@@ -1,0 +1,99 @@
+import { useState, useEffect } from 'react';
+import { navLinks } from '@/mocks/homeData';
+import LogoMark from '@/components/feature/LogoMark';
+
+export default function Navbar() {
+  const [scrolled, setScrolled] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 60);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  return (
+    <header
+      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
+        scrolled
+          ? 'bg-background-50 shadow-sm'
+          : 'bg-transparent'
+      }`}
+    >
+      <div className={`hidden md:flex items-center justify-end px-6 md:px-10 py-2 text-xs gap-4 transition-colors duration-300 ${
+        scrolled ? 'text-foreground-600 border-b border-background-200' : 'text-white/80'
+      }`}>
+        <span className="whitespace-nowrap">Follow our journey</span>
+        <a href="#" className="w-5 h-5 flex items-center justify-center hover:opacity-70 transition-opacity" aria-label="Instagram"><i className="ri-instagram-line text-sm"></i></a>
+        <a href="#" className="w-5 h-5 flex items-center justify-center hover:opacity-70 transition-opacity" aria-label="Pinterest"><i className="ri-pinterest-line text-sm"></i></a>
+        <a href="#" className="w-5 h-5 flex items-center justify-center hover:opacity-70 transition-opacity" aria-label="Reddit"><i className="ri-reddit-line text-sm"></i></a>
+        <a href="#" className="w-5 h-5 flex items-center justify-center hover:opacity-70 transition-opacity" aria-label="YouTube"><i className="ri-youtube-line text-sm"></i></a>
+      </div>
+
+      <nav className="flex items-center justify-between px-6 md:px-10 py-3 md:py-4">
+        <a href="/" className="flex items-center gap-3">
+          <LogoMark />
+          <span className="flex flex-col">
+            <h1 className={`font-heading font-bold text-xl md:text-2xl tracking-[0.08em] leading-none transition-colors duration-300 ${
+              scrolled ? 'text-foreground-900' : 'text-white'
+            }`}>
+              TABI
+            </h1>
+            <span className={`text-xs mt-1 transition-colors duration-300 whitespace-nowrap ${
+              scrolled ? 'text-foreground-500' : 'text-white/70'
+            }`}>
+              Explore Japan Deeply
+            </span>
+          </span>
+        </a>
+
+        <div className="hidden md:flex items-center gap-8">
+          {navLinks.map((link) => (
+            <a
+              key={link.label}
+              href={link.href}
+              className={`text-sm font-semibold whitespace-nowrap transition-colors duration-300 hover:opacity-70 ${
+                scrolled ? 'text-foreground-800' : 'text-white'
+              }`}
+            >
+              {link.label}
+            </a>
+          ))}
+        </div>
+
+        <button
+          className={`md:hidden w-8 h-8 flex items-center justify-center transition-colors duration-300 ${
+            scrolled ? 'text-foreground-900' : 'text-white'
+          }`}
+          onClick={() => setMobileOpen(!mobileOpen)}
+          aria-label="Toggle menu"
+        >
+          <i className={`text-xl ${mobileOpen ? 'ri-close-line' : 'ri-menu-line'}`}></i>
+        </button>
+      </nav>
+
+      {mobileOpen && (
+        <div className="md:hidden bg-background-50 border-t border-background-200 px-6 py-4 flex flex-col gap-3">
+          {navLinks.map((link) => (
+            <a
+              key={link.label}
+              href={link.href}
+              className="text-foreground-800 text-sm font-semibold whitespace-nowrap hover:text-primary-500 transition-colors"
+              onClick={() => setMobileOpen(false)}
+            >
+              {link.label}
+            </a>
+          ))}
+          <div className="flex items-center gap-4 pt-2 border-t border-background-200">
+            <a href="#" className="w-6 h-6 flex items-center justify-center text-foreground-500 hover:text-primary-500 transition-colors" aria-label="Instagram"><i className="ri-instagram-line"></i></a>
+            <a href="#" className="w-6 h-6 flex items-center justify-center text-foreground-500 hover:text-primary-500 transition-colors" aria-label="Pinterest"><i className="ri-pinterest-line"></i></a>
+            <a href="#" className="w-6 h-6 flex items-center justify-center text-foreground-500 hover:text-primary-500 transition-colors" aria-label="Reddit"><i className="ri-reddit-line"></i></a>
+            <a href="#" className="w-6 h-6 flex items-center justify-center text-foreground-500 hover:text-primary-500 transition-colors" aria-label="YouTube"><i className="ri-youtube-line"></i></a>
+          </div>
+        </div>
+      )}
+    </header>
+  );
+}
