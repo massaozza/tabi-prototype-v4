@@ -38,3 +38,4 @@ No database needed currently - all content is static/marketing.
 ### Phase 2: Additional Pages (Future)
 - Goal: Add destination detail pages and about page
 - Deliverable: Multi-page navigation with dedicated content pages
+- 
