@@ -3,21 +3,40 @@
 // フロントエンドからのチャット要求を受け取り、サーバー側でGemini APIを呼び出す。
 // GEMINI_API_KEYはVercelの環境変数に保存すること。フロントエンドには絶対に露出させない。
 //
-// 情報源は src/mocks/homeData.ts の localsPlaces / latestGuides を直接参照する。
+// content.ts と同じ Vercel KV のキー（content:localsPlaces / content:latestGuides）を読む。
+// つまり、管理画面での編集が、保存した瞬間にチャットの回答にも反映される。
 
+import { kv } from '@vercel/kv';
 import { localsPlaces, latestGuides } from '../src/mocks/homeData';
 
 export const config = { runtime: 'edge' };
 
 const MAX_HISTORY_MESSAGES = 12;
 
-function buildSystemPrompt(): string {
-  const localsSection = localsPlaces
-    .map((p: any) => `- ${p.title}\n  ${p.story}`)
+async function buildSystemPrompt(): Promise<string> {
+  let localsData: any[] = localsPlaces;
+  let guidesData: any[] = latestGuides;
+
+  try {
+    const kvLocals = await kv.get<any[]>('content:localsPlaces');
+    if (kvLocals) localsData = kvLocals;
+  } catch {
+    // KV読み取り失敗時は静的データにフォールバック（既にlocalsDataにセット済み）
+  }
+
+  try {
+    const kvGuides = await kv.get<any[]>('content:latestGuides');
+    if (kvGuides) guidesData = kvGuides;
+  } catch {
+    // 同上
+  }
+
+  const localsSection = localsData
+    .map((p) => `- ${p.title}\n  ${p.story}`)
     .join('\n');
 
-  const guidesSection = latestGuides
-    .map((g: any) => `- [${g.category}] ${g.title}\n  ${g.description}`)
+  const guidesSection = guidesData
+    .map((g) => `- [${g.category}] ${g.title}\n  ${g.description}`)
     .join('\n');
 
   return `あなたはTABI、鎌倉・江ノ島・湘南エリア専門の旅行コンシェルジュです。
@@ -111,6 +130,8 @@ export default async function handler(req: Request): Promise<Response> {
   ];
 
   try {
+    const systemPrompt = await buildSystemPrompt();
+
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
       {
@@ -121,7 +142,7 @@ export default async function handler(req: Request): Promise<Response> {
         },
         body: JSON.stringify({
           contents,
-          systemInstruction: { parts: [{ text: buildSystemPrompt() }] },
+          systemInstruction: { parts: [{ text: systemPrompt }] },
         }),
       }
     );
