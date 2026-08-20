@@ -1,5 +1,6 @@
 import { latestGuides as fallbackLatestGuides } from '@/mocks/homeData';
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 
 const categoryColors: Record<string, string> = {
   'Food': 'bg-accent-100 text-accent-800',
@@ -14,6 +15,7 @@ interface Guide {
   category: string;
   description: string;
   image: string;
+  href?: string;
 }
 
 export default function LatestGuidesSection() {
@@ -80,8 +82,9 @@ export default function LatestGuidesSection() {
             </>
           ) : (
             guides.map((guide) => (
-              <article
+              <Link
                 key={guide.id}
+                to={guide.href || `/${guide.category.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}/${guide.id}`}
                 className="group flex flex-col sm:flex-row bg-background-50 rounded-xl overflow-hidden transition-all duration-300 hover:-translate-y-0.5 cursor-pointer"
                 data-product-shop
               >
@@ -110,16 +113,19 @@ export default function LatestGuidesSection() {
                     <i className="ri-arrow-right-line"></i>
                   </span>
                 </div>
-              </article>
+              </Link>
             ))
           )}
         </div>
 
         <div className="text-center mt-10">
-          <button className="inline-flex items-center gap-2 bg-foreground-900 hover:bg-foreground-800 text-white font-semibold text-sm px-8 py-3.5 rounded-md transition-all duration-200 cursor-pointer whitespace-nowrap">
+          <Link
+            to="/guides"
+            className="inline-flex items-center gap-2 bg-foreground-900 hover:bg-foreground-800 text-white font-semibold text-sm px-8 py-3.5 rounded-md transition-all duration-200 cursor-pointer whitespace-nowrap"
+          >
             View All Guides
             <i className="ri-arrow-right-line"></i>
-          </button>
+          </Link>
         </div>
       </div>
     </section>
