@@ -1,5 +1,6 @@
 import { destinations as fallbackDestinations } from '@/mocks/homeData';
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 
 interface Destination {
   id: string;
@@ -96,10 +97,13 @@ export default function DestinationsSection() {
                   <p className="text-foreground-600 text-sm leading-relaxed mb-4 line-clamp-3">
                     {dest.description}
                   </p>
-                  <span className="inline-flex items-center gap-1 text-primary-500 font-semibold text-sm hover:gap-2 transition-all duration-200 cursor-pointer whitespace-nowrap">
+                  <Link
+                    to={`/destinations/${dest.id}`}
+                    className="inline-flex items-center gap-1 text-primary-500 font-semibold text-sm hover:gap-2 transition-all duration-200 cursor-pointer whitespace-nowrap"
+                  >
                     Discover More
                     <i className="ri-arrow-right-line"></i>
-                  </span>
+                  </Link>
                 </div>
               </article>
             ))
