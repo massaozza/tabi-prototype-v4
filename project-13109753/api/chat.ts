@@ -3,11 +3,10 @@
 // フロントエンドからのチャット要求を受け取り、サーバー側でGemini APIを呼び出す。
 // GEMINI_API_KEYはVercelの環境変数に保存すること。フロントエンドには絶対に露出させない。
 //
-// content.ts と同じ Vercel KV のキー（content:localsPlaces / content:latestGuides）を読む。
-// つまり、管理画面での編集が、保存した瞬間にチャットの回答にも反映される。
+// content.ts と同じ Vercel KV のキー（content:localsPlaces / content:latestGuides / content:destinations）を読む。
 
 import { kv } from '@vercel/kv';
-import { localsPlaces, latestGuides } from '../src/mocks/homeData';
+import { localsPlaces, latestGuides, destinations } from '../src/mocks/homeData';
 
 export const config = { runtime: 'edge' };
 
@@ -16,20 +15,22 @@ const MAX_HISTORY_MESSAGES = 12;
 async function buildSystemPrompt(): Promise<string> {
   let localsData: any[] = localsPlaces;
   let guidesData: any[] = latestGuides;
+  let destinationsData: any[] = destinations;
 
   try {
     const kvLocals = await kv.get<any[]>('content:localsPlaces');
     if (kvLocals) localsData = kvLocals;
-  } catch {
-    // KV読み取り失敗時は静的データにフォールバック（既にlocalsDataにセット済み）
-  }
+  } catch {}
 
   try {
     const kvGuides = await kv.get<any[]>('content:latestGuides');
     if (kvGuides) guidesData = kvGuides;
-  } catch {
-    // 同上
-  }
+  } catch {}
+
+  try {
+    const kvDestinations = await kv.get<any[]>('content:destinations');
+    if (kvDestinations) destinationsData = kvDestinations;
+  } catch {}
 
   const localsSection = localsData
     .map((p) => `- ${p.title}\n  ${p.story}`)
@@ -39,10 +40,19 @@ async function buildSystemPrompt(): Promise<string> {
     .map((g) => `- [${g.category}] ${g.title}\n  ${g.description}`)
     .join('\n');
 
+  const destinationsSection = destinationsData
+    .map((d) => `- [${d.category}] ${d.title}\n  ${d.description}`)
+    .join('\n');
+
   return `あなたはTABI、鎌倉・江ノ島・湘南エリア専門の旅行コンシェルジュです。
 
+以下は、サイトに掲載されている目的地情報です。回答する際は、
+可能な限りこの情報を優先的に使ってください。
+
+【目的地情報】
+${destinationsSection}
+
 以下は、サイトに掲載されている「地元の人が友人を連れて行く場所」の情報です。
-回答する際は、可能な限りこの情報を優先的に使ってください。
 
 【ローカル知識】
 ${localsSection}
