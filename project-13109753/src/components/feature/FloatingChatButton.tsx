@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 
 type ChatRole = 'user' | 'assistant';
@@ -26,6 +26,16 @@ export default function FloatingChatButton() {
 
   const listRef = useRef<HTMLDivElement>(null);
   const idRef = useRef(2);
+  const messagesRef = useRef(messages);
+  const loadingRef = useRef(loading);
+
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
+
+  useEffect(() => {
+    loadingRef.current = loading;
+  }, [loading]);
 
   useEffect(() => {
     if (listRef.current) {
@@ -33,26 +43,23 @@ export default function FloatingChatButton() {
     }
   }, [messages, loading]);
 
-  if (location.pathname.startsWith('/admin')) {
-    return null;
-  }
-
-  const handleSend = async () => {
-    const text = input.trim();
-    if (!text || loading) {
+  const sendMessage = useCallback(async (text: string) => {
+    const trimmed = text.trim();
+    if (!trimmed || loadingRef.current) {
       return;
     }
 
     const userMessage: ChatMessage = {
       id: idRef.current++,
       role: 'user',
-      content: text,
+      content: trimmed,
     };
     setMessages((prev) => [...prev, userMessage]);
     setInput('');
     setLoading(true);
+    loadingRef.current = true;
 
-    const history = messages.map((m) => ({
+    const history = messagesRef.current.map((m) => ({
       role: m.role,
       content: m.content,
     }));
@@ -61,7 +68,7 @@ export default function FloatingChatButton() {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text, history }),
+        body: JSON.stringify({ message: trimmed, history }),
       });
 
       const data = await res.json();
@@ -84,8 +91,28 @@ export default function FloatingChatButton() {
       ]);
     } finally {
       setLoading(false);
+      loadingRef.current = false;
     }
-  };
+  }, []);
+
+  // カスタムイベント 'tabi:ask-question' を受信して、パネルを開いて質問を自動送信
+  useEffect(() => {
+    const handleAskQuestion = (event: Event) => {
+      const customEvent = event as CustomEvent<{ question?: string }>;
+      const question = customEvent.detail?.question;
+      if (typeof question === 'string' && question.trim()) {
+        setIsOpen(true);
+        sendMessage(question);
+      }
+    };
+
+    window.addEventListener('tabi:ask-question', handleAskQuestion);
+    return () => window.removeEventListener('tabi:ask-question', handleAskQuestion);
+  }, [sendMessage]);
+
+  if (location.pathname.startsWith('/admin')) {
+    return null;
+  }
 
   return (
     <>
@@ -150,7 +177,7 @@ export default function FloatingChatButton() {
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              handleSend();
+              sendMessage(input);
             }}
             className="flex items-center gap-2 px-4 py-3 border-t border-background-200"
           >
