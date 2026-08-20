@@ -113,4 +113,108 @@ export default function ArticlePage() {
             </p>
             <Link
               to="/"
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-500 hover:bg-primary-600 text-white text-sm font-semibold rounded-lg transition-colors cursor-pointer
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-500 hover:bg-primary-600 text-white text-sm font-semibold rounded-lg transition-colors cursor-pointer whitespace-nowrap"
+            >
+              <i className="ri-arrow-left-line"></i>
+              Back to Home
+            </Link>
+          </div>
+        </div>
+        <Footer />
+      </main>
+    );
+  }
+
+  const data = article;
+
+  return (
+    <main className="min-h-screen bg-background-50">
+      <div className="fixed top-0 left-0 w-full h-[3px] z-[60] bg-transparent pointer-events-none">
+        <div
+          className="h-full bg-primary-500 transition-all duration-150 ease-out"
+          style={{ width: `${readingProgress}%` }}
+        />
+      </div>
+
+      <Navbar />
+
+      <ArticleHeader
+        category={data.category}
+        title={data.title}
+        subtitle={data.subtitle || ''}
+        authorName={data.author?.name || ''}
+        date={data.date || ''}
+        readTime={data.readTime || ''}
+        heroImage={data.heroImage || ''}
+        heroCaption={data.heroCaption}
+      />
+
+      {data.affiliateCta && <AffiliateCtaBox data={data.affiliateCta} />}
+
+      <section className="py-12 md:py-16 px-6 md:px-10 lg:px-20 bg-background-50">
+        <div className="max-w-[1140px] mx-auto">
+          <div className="hidden md:flex justify-end mb-4">
+            <button
+              onClick={handlePrint}
+              className="inline-flex items-center gap-1.5 text-foreground-400 hover:text-foreground-600 text-xs transition-colors cursor-pointer whitespace-nowrap"
+            >
+              <i className="ri-printer-line text-sm"></i>
+              Print this page
+            </button>
+          </div>
+
+          <div className="flex flex-col lg:flex-row gap-10 lg:gap-12">
+            <ArticleContent tocItems={data.tocItems} sections={data.sections} />
+
+            <ArticleSidebar
+              quickFacts={data.quickFacts}
+              topPick={data.topPick}
+              relatedArticles={data.sidebarRelatedArticles}
+            />
+          </div>
+        </div>
+      </section>
+
+      {data.bottomCta && (
+        <div className="py-10 md:py-16">
+          <BottomCta data={data.bottomCta} />
+        </div>
+      )}
+
+      <div className="pb-16 md:pb-24">
+        <ExperienceForm />
+      </div>
+
+      {data.relatedArticles && data.relatedArticles.length > 0 && (
+        <RelatedArticlesGrid articles={data.relatedArticles} />
+      )}
+
+      {data.authorBox && (
+        <div className="pb-16 md:pb-24">
+          <AuthorBox data={data.authorBox} />
+        </div>
+      )}
+
+      <div className="text-center pb-12 px-6">
+        <p className="text-foreground-400 text-xs leading-relaxed">
+          Some links in this article are affiliate links.{' '}
+          <a href="/affiliate-disclosure" className="text-primary-500 hover:text-primary-600 underline transition-colors cursor-pointer">
+            Read our Affiliate Disclosure
+          </a>.
+        </p>
+      </div>
+
+      {showBackToTop && (
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="fixed bottom-8 right-8 w-10 h-10 bg-primary-500 hover:bg-primary-600 text-white rounded-full flex items-center justify-center cursor-pointer transition-all z-40"
+          aria-label="Back to top"
+        >
+          <i className="ri-arrow-up-line"></i>
+        </button>
+      )}
+
+      <Footer />
+    </main>
+  );
+}
