@@ -7,6 +7,7 @@ import PrivacyPolicyPage from "../pages/privacy-policy/page";
 import AffiliateDisclosurePage from "../pages/affiliate-disclosure/page";
 import DisclaimerPage from "../pages/disclaimer/page";
 import ArticlePage from "../pages/article/page";
+import DestinationPage from "../pages/destination/page";
 import { AdminAuthProvider } from "../pages/admin/components/AdminAuth";
 import AdminLayout from "../pages/admin/components/AdminLayout";
 import DashboardPage from "../pages/admin/dashboard/page";
@@ -69,6 +70,10 @@ const routes: RouteObject[] = [
         element: <ContentPage />,
       },
     ],
+  },
+  {
+    path: "/destinations/:id",
+    element: <DestinationPage />,
   },
   {
     path: "/:category/:articleSlug",
