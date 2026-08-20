@@ -3,34 +3,40 @@
 // フロントエンドからのチャット要求を受け取り、サーバー側でGemini APIを呼び出す。
 // GEMINI_API_KEYはVercelの環境変数に保存すること。フロントエンドには絶対に露出させない。
 //
-// 【注意】Gemini APIのエンドポイント・モデル名・無料枠の条件は変更される可能性があります。
-// 最新情報は https://ai.google.dev で必ず確認してください。
-// モデル名が変わっている場合は、環境変数 GEMINI_MODEL で上書きしてください。
+// 情報源は src/mocks/homeData.ts の localsPlaces / latestGuides を直接参照する。
 
-import { knowledgeBase } from './_knowledgeBase';
+import { localsPlaces, latestGuides } from '../src/mocks/homeData';
 
 export const config = { runtime: 'edge' };
 
-const MAX_HISTORY_MESSAGES = 12; // 直近の会話のみ保持（コスト・レイテンシ対策）
+const MAX_HISTORY_MESSAGES = 12;
 
 function buildSystemPrompt(): string {
-  const entries = knowledgeBase
-    .map(
-      (e) =>
-        `- [${e.area}/${e.category}] ${e.title}\n  ${e.story}`
-    )
+  const localsSection = localsPlaces
+    .map((p: any) => `- ${p.title}\n  ${p.story}`)
+    .join('\n');
+
+  const guidesSection = latestGuides
+    .map((g: any) => `- [${g.category}] ${g.title}\n  ${g.description}`)
     .join('\n');
 
   return `あなたはTABI、鎌倉・江ノ島・湘南エリア専門の旅行コンシェルジュです。
 
-以下は、地元の人や現地調査によって集められた実際のローカル知識です。
+以下は、サイトに掲載されている「地元の人が友人を連れて行く場所」の情報です。
 回答する際は、可能な限りこの情報を優先的に使ってください。
 
-${entries}
+【ローカル知識】
+${localsSection}
+
+以下は、サイトに掲載されている記事の一覧です。関連する質問があれば、
+該当する記事があることを伝え、読むことを勧めてください。
+
+【掲載記事】
+${guidesSection}
 
 回答のルール：
-- 上記の知識ベースに関連情報がある場合は、それを踏まえた具体的な回答をする
-- 知識ベースにない質問（一般的な事実、他地域、リアルタイム情報など）については、
+- 上記の情報に関連する質問には、それを踏まえた具体的な回答をする
+- 情報にない質問（一般的な事実、他地域、リアルタイム情報など）については、
   一般的な知識で答えて構わないが、憶測で店名や営業時間などを断定しない
 - 分からないことは正直に「分かりません」「最新情報は現地で確認してください」と伝える
 - 回答は簡潔に、旅行者にとって読みやすい長さで（目安200〜400字）`;
@@ -94,12 +100,8 @@ export default async function handler(req: Request): Promise<Response> {
     );
   }
 
-  // モデル名は環境変数 GEMINI_MODEL で上書き可能。
-  // 未設定の場合のデフォルトは目安です。最新のモデル名は ai.google.dev で確認してください。
-  const model = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
+  const model = process.env.GEMINI_MODEL || 'gemini-3.6-flash';
 
-  // AnthropicのChatMessage形式（role: 'user'|'assistant'）を
-  // Geminiのcontents形式（role: 'user'|'model'）に変換する
   const contents = [
     ...safeHistory.map((m) => ({
       role: m.role === 'assistant' ? 'model' : 'user',
@@ -119,9 +121,7 @@ export default async function handler(req: Request): Promise<Response> {
         },
         body: JSON.stringify({
           contents,
-          systemInstruction: {
-            parts: [{ text: buildSystemPrompt() }],
-          },
+          systemInstruction: { parts: [{ text: buildSystemPrompt() }] },
         }),
       }
     );
