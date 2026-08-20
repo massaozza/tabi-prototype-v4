@@ -10,6 +10,7 @@ export interface ContentItem {
   story?: string;
   category?: string;
   description?: string;
+  href?: string;
 }
 
 const TAB_LABELS: Record<ContentTab, string> = {
@@ -40,6 +41,7 @@ export default function ContentPage() {
   const [formStory, setFormStory] = useState('');
   const [formCategory, setFormCategory] = useState('');
   const [formDescription, setFormDescription] = useState('');
+  const [formHref, setFormHref] = useState('');
 
   const hasChanges = JSON.stringify(items) !== JSON.stringify(originalItems);
 
@@ -77,6 +79,7 @@ export default function ContentPage() {
     setFormStory('');
     setFormCategory('');
     setFormDescription('');
+    setFormHref('');
     setIsNewItem(true);
     setEditingItem(null);
     setShowForm(true);
@@ -88,6 +91,7 @@ export default function ContentPage() {
     setFormStory(item.story || '');
     setFormCategory(item.category || '');
     setFormDescription(item.description || '');
+    setFormHref(item.href || '');
     setIsNewItem(false);
     setEditingItem(item);
     setShowForm(true);
@@ -109,6 +113,7 @@ export default function ContentPage() {
       image: trimmedImage,
       ...(activeTab === 'localsPlaces' ? { story: formStory.trim() } : {}),
       ...(activeTab !== 'localsPlaces' ? { category: formCategory.trim(), description: formDescription.trim() } : {}),
+      ...(activeTab === 'latestGuides' ? { href: formHref.trim() } : {}),
     };
 
     if (isNewItem) {
@@ -240,6 +245,18 @@ export default function ContentPage() {
                     onChange={(e) => setFormCategory(e.target.value)}
                     className="w-full px-3 py-2 rounded-lg border border-background-200 bg-background-50 text-foreground-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
                     placeholder="Enter category..."
+                  />
+                </div>
+              )}
+              {activeTab === 'latestGuides' && (
+                <div>
+                  <label className="block text-sm font-medium text-foreground-700 mb-1">Link (href)</label>
+                  <input
+                    type="text"
+                    value={formHref}
+                    onChange={(e) => setFormHref(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg border border-background-200 bg-background-50 text-foreground-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
+                    placeholder="/transport/jr-pass-guide"
                   />
                 </div>
               )}
