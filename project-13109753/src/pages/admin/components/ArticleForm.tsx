@@ -1,27 +1,9 @@
 import { useState, useEffect } from 'react';
 import { categories, teamMembers } from '@/mocks/adminData';
+import OptionalSections from './OptionalSections';
+import type { ArticleFormData, BodySection, OptionalFields } from './articleFormTypes';
 
-export interface ArticleFormData {
-  title: string;
-  slug: string;
-  category: string;
-  tier: number;
-  targetKeyword: string;
-  assignedTo: string;
-  status: string;
-  author: string;
-  metaTitle: string;
-  metaDescription: string;
-  heroImage: string;
-  bodySections: BodySection[];
-}
-
-export interface BodySection {
-  id: string;
-  type: 'h2' | 'h3' | 'paragraph' | 'image' | 'pro-tip' | 'warning' | 'comparison-table' | 'ordered-list';
-  content: string;
-  caption?: string;
-}
+export type { ArticleFormData, BodySection, BodySection as ArticleBodySection } from './articleFormTypes';
 
 const defaultBodySection = (): BodySection => ({
   id: `sec-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
@@ -29,13 +11,31 @@ const defaultBodySection = (): BodySection => ({
   content: '',
 });
 
+function toOptionalFields(data?: Partial<ArticleFormData>): OptionalFields {
+  if (!data) return {};
+  const out: OptionalFields = {};
+  if (data.subtitle !== undefined) out.subtitle = data.subtitle;
+  if (data.authorBio !== undefined || data.authorAvatar !== undefined) {
+    out.authorBio = data.authorBio || '';
+    out.authorAvatar = data.authorAvatar || '';
+  }
+  if (data.affiliateCta) out.affiliateCta = data.affiliateCta;
+  if (data.quickFacts) out.quickFacts = data.quickFacts;
+  if (data.topPick) out.topPick = data.topPick;
+  if (data.bottomCta) out.bottomCta = data.bottomCta;
+  if (data.sidebarRelatedArticles) out.sidebarRelatedArticles = data.sidebarRelatedArticles;
+  if (data.relatedArticles) out.relatedArticles = data.relatedArticles;
+  return out;
+}
+
 interface ArticleFormProps {
   initialData?: Partial<ArticleFormData>;
   onSubmit: (data: ArticleFormData) => void;
   submitLabel?: string;
+  submitting?: boolean;
 }
 
-export default function ArticleForm({ initialData, onSubmit, submitLabel = 'Save Article' }: ArticleFormProps) {
+export default function ArticleForm({ initialData, onSubmit, submitLabel = 'Save Article', submitting = false }: ArticleFormProps) {
   const [title, setTitle] = useState(initialData?.title || '');
   const [slug, setSlug] = useState(initialData?.slug || '');
   const [category, setCategory] = useState(initialData?.category || 'Transport');
@@ -49,6 +49,16 @@ export default function ArticleForm({ initialData, onSubmit, submitLabel = 'Save
   const [heroImage, setHeroImage] = useState(initialData?.heroImage || '');
   const [bodySections, setBodySections] = useState<BodySection[]>(initialData?.bodySections || [defaultBodySection()]);
   const [autoSlug, setAutoSlug] = useState(!initialData?.slug);
+  const [optional, setOptional] = useState<OptionalFields>(() => toOptionalFields(initialData));
+
+  // ── AI writing assistance state ──
+  const [draftOpen, setDraftOpen] = useState(false);
+  const [draftText, setDraftText] = useState('');
+  const [draftLoading, setDraftLoading] = useState(false);
+  const [draftError, setDraftError] = useState('');
+  const [pendingSections, setPendingSections] = useState<BodySection[] | null>(null);
+  const [polishingId, setPolishingId] = useState<string | null>(null);
+  const [polishErrors, setPolishErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (autoSlug && title) {
@@ -76,6 +86,7 @@ export default function ArticleForm({ initialData, onSubmit, submitLabel = 'Save
       metaDescription,
       heroImage,
       bodySections: bodySections.filter((s) => s.content.trim() || s.type === 'image'),
+      ...optional,
     });
   };
 
@@ -101,6 +112,98 @@ export default function ArticleForm({ initialData, onSubmit, submitLabel = 'Save
     const updated = [...bodySections];
     [updated[index], updated[newIndex]] = [updated[newIndex], updated[index]];
     setBodySections(updated);
+  };
+
+  const VALID_AI_SECTION_TYPES: BodySection['type'][] = [
+    'h2', 'h3', 'paragraph', 'image', 'pro-tip', 'warning', 'comparison-table', 'ordered-list',
+  ];
+
+  const handleGenerateStructure = async () => {
+    if (draftLoading) return;
+    if (!draftText.trim()) {
+      setDraftError('Please paste some notes or draft text first.');
+      return;
+    }
+    setDraftLoading(true);
+    setDraftError('');
+    try {
+      const res = await fetch('/api/article-assist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode: 'structure', rawText: draftText, title, category }),
+      });
+      const responseText = await res.text();
+      let parsed: { sections?: { type?: string; content?: string }[] };
+      try {
+        parsed = JSON.parse(responseText);
+      } catch {
+        parsed = {};
+      }
+      const rawSections = parsed.sections;
+      if (!res.ok || !Array.isArray(rawSections)) {
+        throw new Error('Failed to generate structure');
+      }
+      const generated: BodySection[] = rawSections.map((s, index) => ({
+        id: `sec-${Date.now()}-${index}`,
+        type: VALID_AI_SECTION_TYPES.includes(s.type as BodySection['type'])
+          ? (s.type as BodySection['type'])
+          : 'paragraph',
+        content: typeof s.content === 'string' ? s.content : '',
+      }));
+      if (generated.length === 0) {
+        setDraftError('No structure could be generated. Try adding more detail to your notes.');
+        return;
+      }
+      const hasExistingContent = bodySections.some((s) => s.content.trim());
+      if (hasExistingContent) {
+        setPendingSections(generated);
+      } else {
+        setBodySections(generated);
+      }
+      setDraftText('');
+    } catch {
+      setDraftError('Failed to generate structure. Please try again.');
+    } finally {
+      setDraftLoading(false);
+    }
+  };
+
+  const applyGeneratedSections = (mode: 'replace' | 'append') => {
+    if (!pendingSections) return;
+    if (mode === 'replace') {
+      setBodySections(pendingSections);
+    } else {
+      setBodySections((prev) => [...prev, ...pendingSections]);
+    }
+    setPendingSections(null);
+  };
+
+  const handlePolish = async (section: BodySection) => {
+    if (polishingId) return;
+    setPolishingId(section.id);
+    setPolishErrors((prev) => ({ ...prev, [section.id]: '' }));
+    try {
+      const res = await fetch('/api/article-assist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode: 'polish', type: section.type, content: section.content }),
+      });
+      const responseText = await res.text();
+      let parsed: { content?: string };
+      try {
+        parsed = JSON.parse(responseText);
+      } catch {
+        parsed = {};
+      }
+      if (!res.ok || typeof parsed.content !== 'string') {
+        throw new Error('Failed to improve wording');
+      }
+      updateSection(section.id, 'content', parsed.content);
+    } catch {
+      setPolishErrors((prev) => ({ ...prev, [section.id]: 'Failed to improve wording. Please try again.' }));
+    } finally {
+      setPolishingId(null);
+    }
   };
 
   const sectionTypeLabels: Record<string, string> = {
@@ -178,6 +281,46 @@ export default function ArticleForm({ initialData, onSubmit, submitLabel = 'Save
               </button>
             </div>
 
+            <div className="mb-4 border border-accent-200 rounded-lg overflow-hidden bg-accent-50/40">
+              <button
+                type="button"
+                onClick={() => setDraftOpen((v) => !v)}
+                className="w-full flex items-center justify-between px-4 py-3 hover:bg-accent-100/40 transition-colors cursor-pointer"
+              >
+                <span className="text-sm font-medium text-foreground-800">✨ Draft with AI</span>
+                <i className={`ri-arrow-down-s-line text-foreground-400 transition-transform ${draftOpen ? 'rotate-180' : ''}`}></i>
+              </button>
+              {draftOpen && (
+                <div className="px-4 py-3 border-t border-accent-200 space-y-3">
+                  <p className="text-xs text-foreground-400">
+                    Paste rough notes and let AI organize them into headings, paragraphs, tips, and tables.
+                  </p>
+                  <textarea
+                    value={draftText}
+                    onChange={(e) => setDraftText(e.target.value)}
+                    rows={6}
+                    className="w-full px-3 py-2 text-sm border border-background-300 rounded-lg bg-background-50 text-foreground-900 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent resize-y"
+                    placeholder="Paste your rough notes or draft text here — AI will organize it into headings, paragraphs, tips, and tables."
+                  />
+                  {draftError && (
+                    <p className="text-xs text-red-500">{draftError}</p>
+                  )}
+                  <button
+                    type="button"
+                    onClick={handleGenerateStructure}
+                    disabled={draftLoading}
+                    className={`text-sm px-4 py-2 rounded-lg transition-all whitespace-nowrap ${
+                      draftLoading
+                        ? 'bg-background-300 text-foreground-400 cursor-not-allowed'
+                        : 'bg-primary-500 text-background-50 hover:bg-primary-600 cursor-pointer'
+                    }`}
+                  >
+                    {draftLoading ? 'Generating...' : 'Generate Structure'}
+                  </button>
+                </div>
+              )}
+            </div>
+
             <div className="space-y-3">
               {bodySections.map((section, idx) => (
                 <div key={section.id} className="border border-background-200 rounded-lg p-3 relative group">
@@ -191,6 +334,27 @@ export default function ArticleForm({ initialData, onSubmit, submitLabel = 'Save
                         <option key={val} value={val}>{label}</option>
                       ))}
                     </select>
+
+                    {['h2', 'h3', 'paragraph', 'pro-tip', 'warning'].includes(section.type) && (
+                      <button
+                        type="button"
+                        onClick={() => handlePolish(section)}
+                        disabled={polishingId === section.id}
+                        className={`text-xs px-2 py-1 rounded-lg whitespace-nowrap transition-colors ${
+                          polishingId === section.id
+                            ? 'bg-background-200 text-foreground-400 cursor-not-allowed'
+                            : 'bg-accent-100 text-accent-800 hover:bg-accent-200 cursor-pointer'
+                        }`}
+                      >
+                        {polishingId === section.id ? (
+                          <span className="inline-flex items-center gap-1">
+                            <i className="ri-loader-4-line animate-spin text-xs"></i> Polishing...
+                          </span>
+                        ) : (
+                          '✨ Improve wording'
+                        )}
+                      </button>
+                    )}
 
                     <div className="flex-1"></div>
 
@@ -256,13 +420,18 @@ export default function ArticleForm({ initialData, onSubmit, submitLabel = 'Save
                       placeholder="One item per line..."
                     />
                   ) : (
-                    <textarea
-                      value={section.content}
-                      onChange={(e) => updateSection(section.id, 'content', e.target.value)}
-                      rows={section.type === 'paragraph' ? 5 : 3}
-                      className="w-full px-3 py-2 text-sm border border-background-300 rounded-lg bg-background-50 text-foreground-900 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent resize-y"
-                      placeholder={`${sectionTypeLabels[section.type]} content...`}
-                    />
+                    <>
+                      <textarea
+                        value={section.content}
+                        onChange={(e) => updateSection(section.id, 'content', e.target.value)}
+                        rows={section.type === 'paragraph' ? 5 : 3}
+                        className="w-full px-3 py-2 text-sm border border-background-300 rounded-lg bg-background-50 text-foreground-900 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent resize-y"
+                        placeholder={`${sectionTypeLabels[section.type]} content...`}
+                      />
+                      {polishErrors[section.id] && (
+                        <p className="text-xs text-red-500 mt-1">{polishErrors[section.id]}</p>
+                      )}
+                    </>
                   )}
                 </div>
               ))}
@@ -274,6 +443,8 @@ export default function ArticleForm({ initialData, onSubmit, submitLabel = 'Save
               )}
             </div>
           </div>
+
+          <OptionalSections value={optional} onChange={setOptional} />
         </div>
 
         <div className="w-[320px] flex-shrink-0 space-y-5">
@@ -405,12 +576,52 @@ export default function ArticleForm({ initialData, onSubmit, submitLabel = 'Save
 
           <button
             type="submit"
-            className="w-full py-2.5 bg-primary-500 text-background-50 rounded-lg text-sm font-semibold hover:bg-primary-600 transition-all whitespace-nowrap cursor-pointer"
+            disabled={submitting}
+            className={`w-full py-2.5 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${
+              submitting
+                ? 'bg-background-300 text-foreground-400 cursor-not-allowed'
+                : 'bg-primary-500 text-background-50 hover:bg-primary-600 cursor-pointer'
+            }`}
           >
-            {submitLabel}
+            {submitting ? 'Saving...' : submitLabel}
           </button>
         </div>
       </div>
+
+      {pendingSections && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="bg-background-50 rounded-lg border border-background-200 p-6 w-full max-w-md">
+            <h3 className="text-sm font-semibold text-foreground-900 mb-2 font-heading">Apply generated sections</h3>
+            <p className="text-xs text-foreground-500 mb-5">
+              AI generated {pendingSections.length} section{pendingSections.length === 1 ? '' : 's'}. Do you want to
+              replace your existing body sections, or append these at the end?
+            </p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => applyGeneratedSections('replace')}
+                className="flex-1 py-2 rounded-lg text-sm font-medium bg-primary-500 text-background-50 hover:bg-primary-600 transition-colors cursor-pointer whitespace-nowrap"
+              >
+                Replace existing
+              </button>
+              <button
+                type="button"
+                onClick={() => applyGeneratedSections('append')}
+                className="flex-1 py-2 rounded-lg text-sm font-medium bg-background-100 text-foreground-800 hover:bg-background-200 transition-colors cursor-pointer whitespace-nowrap"
+              >
+                Append
+              </button>
+            </div>
+            <button
+              type="button"
+              onClick={() => setPendingSections(null)}
+              className="mt-3 w-full text-xs text-foreground-400 hover:text-foreground-600 cursor-pointer whitespace-nowrap"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </form>
   );
 }
