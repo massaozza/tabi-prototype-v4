@@ -39,3 +39,4 @@ No database needed currently - all content is static/marketing.
 - Goal: Add destination detail pages and about page
 - Deliverable: Multi-page navigation with dedicated content pages
 - 
+
