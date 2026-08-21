@@ -16,8 +16,8 @@
 import { kv } from '@vercel/kv';
 import bcrypt from 'bcryptjs';
 
-export const config = { runtime: 'edge' };
-
+// GEMINI_API_KEY等とは異なり、bcryptjsがNode.jsのcryptoモジュールに依存するため、
+// このAPIはVercelのデフォルト（Node.js Runtime）で動かす。Edge Runtimeは指定しない。
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 30; // 30日
 const SALT_ROUNDS = 10;
 
