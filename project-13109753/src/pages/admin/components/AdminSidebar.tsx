@@ -27,9 +27,9 @@ export default function AdminSidebar({ onLogout }: AdminSidebarProps) {
     <aside className="w-[220px] bg-background-900 flex flex-col h-screen sticky top-0 flex-shrink-0">
       <div className="p-5 border-b border-background-700/50">
         <h1 className="font-heading font-bold text-lg text-background-50 whitespace-nowrap">
-          JQG <span className="text-primary-400">CMS</span>
+          TABI <span className="text-primary-400">CMS</span>
         </h1>
-        <p className="text-xs text-foreground-400 mt-0.5 whitespace-nowrap">Japan Quest Guide</p>
+        <p className="text-xs text-foreground-400 mt-0.5 whitespace-nowrap">Content Management</p>
       </div>
 
       <nav className="flex-1 px-3 py-4 space-y-1">
