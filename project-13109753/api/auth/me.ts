@@ -1,11 +1,12 @@
 // /api/auth/me.ts
-// Vercel Serverless Function（Edge Runtime）
+// Vercel Serverless Function（Node.js Runtime）
 // Cookie内のセッショントークンから、現在ログイン中のユーザー情報を返す。
 // ログインしていない場合は { user: null } を返す（エラーにはしない）。
+//
+// auth.tsと同じくNode.js Runtime向けの (req, res) 形式で書く。
 
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { kv } from '@vercel/kv';
-
-export const config = { runtime: 'edge' };
 
 interface UserRecord {
   uid: string;
@@ -20,56 +21,45 @@ interface SessionRecord {
   createdAt: string;
 }
 
-function getCookie(req: Request, name: string): string | null {
-  const cookieHeader = req.headers.get('cookie') || '';
+function getCookie(req: VercelRequest, name: string): string | null {
+  const cookieHeader = req.headers.cookie || '';
   const match = cookieHeader.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
   return match ? decodeURIComponent(match[1]) : null;
 }
 
-export default async function handler(req: Request): Promise<Response> {
+export default async function handler(
+  req: VercelRequest,
+  res: VercelResponse
+): Promise<void> {
   if (req.method !== 'GET') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    res.status(405).json({ error: 'Method not allowed' });
+    return;
   }
 
   const token = getCookie(req, 'session');
   if (!token) {
-    return new Response(JSON.stringify({ user: null }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    res.status(200).json({ user: null });
+    return;
   }
 
   try {
     const session = await kv.get<SessionRecord>(`session:${token}`);
     if (!session) {
-      return new Response(JSON.stringify({ user: null }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      res.status(200).json({ user: null });
+      return;
     }
 
     const user = await kv.get<UserRecord>(`user:${session.uid}`);
     if (!user) {
-      return new Response(JSON.stringify({ user: null }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      res.status(200).json({ user: null });
+      return;
     }
 
-    return new Response(
-      JSON.stringify({
-        user: { uid: user.uid, email: user.email, displayName: user.displayName },
-      }),
-      { status: 200, headers: { 'Content-Type': 'application/json' } }
-    );
+    res.status(200).json({
+      user: { uid: user.uid, email: user.email, displayName: user.displayName },
+    });
   } catch {
     // KV読み取り失敗時は「未ログイン」として扱う（サイト全体を落とさない）
-    return new Response(JSON.stringify({ user: null }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    res.status(200).json({ user: null });
   }
 }
