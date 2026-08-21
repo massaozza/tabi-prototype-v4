@@ -4,18 +4,17 @@ import { articleData } from '../src/mocks/articleData';
 
 export const config = { runtime: 'edge' };
 
-const VALID_TYPES = ['localsPlaces', 'latestGuides', 'destinations', 'articles'] as const;
+const VALID_TYPES = ['localsPlaces', 'latestGuides', 'destinations', 'articles', 'featuredArticleIds'] as const;
 type ContentType = typeof VALID_TYPES[number];
 
 const KV_KEY_PREFIX = 'content:';
-
-const FALLBACK_ARTICLE = { ...articleData, id: 'jr-pass-guide' };
 
 const FALLBACK_DATA: Record<ContentType, unknown[]> = {
   localsPlaces,
   latestGuides,
   destinations,
-  articles: [FALLBACK_ARTICLE],
+  articles: [articleData],
+  featuredArticleIds: [],
 };
 
 function getKvKey(type: ContentType): string {
@@ -31,17 +30,20 @@ export default async function handler(req: Request): Promise<Response> {
   if (req.method === 'GET') {
     const url = new URL(req.url);
     const type = url.searchParams.get('type');
+
     if (!isValidType(type)) {
       return new Response(
         JSON.stringify({
-          error: 'Invalid or missing "type" query parameter. Must be one of: localsPlaces, latestGuides, destinations, articles',
+          error: 'Invalid or missing "type" query parameter. Must be one of: localsPlaces, latestGuides, destinations, articles, featuredArticleIds',
         }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
+
     try {
       const data = await kv.get<unknown[]>(getKvKey(type));
       const result = data ?? FALLBACK_DATA[type];
+
       return new Response(JSON.stringify({ type, data: result }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
@@ -71,21 +73,25 @@ export default async function handler(req: Request): Promise<Response> {
         headers: { 'Content-Type': 'application/json' },
       });
     }
+
     const { type, data } = body;
+
     if (!isValidType(type)) {
       return new Response(
         JSON.stringify({
-          error: 'Invalid or missing "type" field. Must be one of: localsPlaces, latestGuides, destinations, articles',
+          error: 'Invalid or missing "type" field. Must be one of: localsPlaces, latestGuides, destinations, articles, featuredArticleIds',
         }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
+
     if (!Array.isArray(data)) {
       return new Response(
         JSON.stringify({ error: '"data" must be an array' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
+
     try {
       await kv.set(getKvKey(type), data);
       return new Response(JSON.stringify({ success: true, type }), {
