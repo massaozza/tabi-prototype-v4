@@ -9,6 +9,8 @@ import DisclaimerPage from "../pages/disclaimer/page";
 import ArticlePage from "../pages/article/page";
 import DestinationPage from "../pages/destination/page";
 import GuidesPage from "../pages/guides/page";
+import SignupPage from "../pages/signup/page";
+import LoginPage from "../pages/login/page";
 import { AdminAuthProvider } from "../pages/admin/components/AdminAuth";
 import AdminLayout from "../pages/admin/components/AdminLayout";
 import DashboardPage from "../pages/admin/dashboard/page";
@@ -84,6 +86,14 @@ const routes: RouteObject[] = [
   {
     path: "/guides",
     element: <GuidesPage />,
+  },
+  {
+    path: "/signup",
+    element: <SignupPage />,
+  },
+  {
+    path: "/login",
+    element: <LoginPage />,
   },
   {
     path: "/:category/:articleSlug",
