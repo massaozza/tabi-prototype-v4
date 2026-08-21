@@ -9,6 +9,7 @@ const sidebarLinks = [
   { to: '/admin/articles', icon: 'ri-article-line', label: 'Articles' },
   { to: '/admin/articles/new', icon: 'ri-add-circle-line', label: 'New Article' },
   { to: '/admin/content', icon: 'ri-database-2-line', label: 'Content' },
+  { to: '/admin/featured', icon: 'ri-star-line', label: 'Featured' },
 ];
 
 export default function AdminSidebar({ onLogout }: AdminSidebarProps) {
