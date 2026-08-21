@@ -59,6 +59,7 @@ export default function ArticleForm({ initialData, onSubmit, submitLabel = 'Save
   const [pendingSections, setPendingSections] = useState<BodySection[] | null>(null);
   const [polishingId, setPolishingId] = useState<string | null>(null);
   const [polishErrors, setPolishErrors] = useState<Record<string, string>>({});
+  const [titleSuggestions, setTitleSuggestions] = useState<string[]>([]);
 
   useEffect(() => {
     if (autoSlug && title) {
@@ -133,7 +134,7 @@ export default function ArticleForm({ initialData, onSubmit, submitLabel = 'Save
         body: JSON.stringify({ mode: 'structure', rawText: draftText, title, category }),
       });
       const responseText = await res.text();
-      let parsed: { sections?: { type?: string; content?: string }[] };
+      let parsed: { sections?: { type?: string; content?: string }[]; titleSuggestions?: unknown };
       try {
         parsed = JSON.parse(responseText);
       } catch {
@@ -143,6 +144,10 @@ export default function ArticleForm({ initialData, onSubmit, submitLabel = 'Save
       if (!res.ok || !Array.isArray(rawSections)) {
         throw new Error('Failed to generate structure');
       }
+      const suggestions = Array.isArray(parsed.titleSuggestions)
+        ? parsed.titleSuggestions.filter((s): s is string => typeof s === 'string' && s.trim() !== '')
+        : [];
+      setTitleSuggestions(suggestions);
       const generated: BodySection[] = rawSections.map((s, index) => ({
         id: `sec-${Date.now()}-${index}`,
         type: VALID_AI_SECTION_TYPES.includes(s.type as BodySection['type'])
@@ -235,6 +240,33 @@ export default function ArticleForm({ initialData, onSubmit, submitLabel = 'Save
                   placeholder="Enter article title..."
                   required
                 />
+                {titleSuggestions.length > 0 && (
+                  <div className="mt-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-medium text-foreground-500">✨ AI suggested titles:</span>
+                      <button
+                        type="button"
+                        onClick={() => setTitleSuggestions([])}
+                        className="text-xs text-foreground-400 hover:text-foreground-600 cursor-pointer whitespace-nowrap"
+                        aria-label="Dismiss title suggestions"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {titleSuggestions.map((suggestion, i) => (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => setTitle(suggestion)}
+                          className="text-xs px-3 py-1.5 rounded-full bg-accent-100 text-accent-800 hover:bg-accent-200 transition-colors cursor-pointer whitespace-nowrap"
+                        >
+                          {suggestion}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div>
