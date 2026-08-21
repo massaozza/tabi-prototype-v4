@@ -1,40 +1,47 @@
-import { latestGuides as fallbackLatestGuides } from '@/mocks/homeData';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 const categoryColors: Record<string, string> = {
-  'Food': 'bg-accent-100 text-accent-800',
-  'Transport': 'bg-secondary-100 text-secondary-800',
-  'Activities': 'bg-primary-100 text-primary-800',
+  Food: 'bg-accent-100 text-accent-800',
+  Transport: 'bg-secondary-100 text-secondary-800',
+  Activities: 'bg-primary-100 text-primary-800',
   'Hidden Gems': 'bg-accent-50 text-accent-700',
 };
 
-interface Guide {
+interface Article {
   id: string;
-  title: string;
   category: string;
-  description: string;
-  image: string;
-  href?: string;
+  articleSlug: string;
+  title: string;
+  subtitle?: string;
+  heroImage?: string;
+  dateISO?: string;
+}
+
+function slugify(text: string): string {
+  return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
 
 export default function LatestGuidesSection() {
-  const [guides, setGuides] = useState<Guide[]>([]);
+  const [guides, setGuides] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
     async function fetchData() {
       try {
-        const res = await fetch('/api/content?type=latestGuides');
+        const res = await fetch('/api/content?type=articles');
         if (!res.ok) throw new Error('Failed to fetch');
         const json = await res.json();
         if (!cancelled && Array.isArray(json.data)) {
-          setGuides(json.data);
+          const sorted = [...json.data]
+            .sort((a, b) => (b.dateISO || '').localeCompare(a.dateISO || ''))
+            .slice(0, 4);
+          setGuides(sorted);
         }
       } catch {
         if (!cancelled) {
-          setGuides(fallbackLatestGuides);
+          setGuides([]);
         }
       } finally {
         if (!cancelled) {
@@ -43,7 +50,9 @@ export default function LatestGuidesSection() {
       }
     }
     fetchData();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (
@@ -81,40 +90,46 @@ export default function LatestGuidesSection() {
               ))}
             </>
           ) : (
-            guides.map((guide) => (
-              <Link
-                key={guide.id}
-                to={guide.href || `/${guide.category.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}/${guide.id}`}
-                className="group flex flex-col sm:flex-row bg-background-50 rounded-xl overflow-hidden transition-all duration-300 hover:-translate-y-0.5 cursor-pointer"
-                data-product-shop
-              >
-                <div className="relative w-full sm:w-48 md:w-56 h-48 sm:h-auto flex-shrink-0 overflow-hidden">
-                  <img
-                    src={guide.image}
-                    alt={guide.title}
-                    title={`${guide.title} — TABI`}
-                    className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
-                  />
-                </div>
-                <div className="p-5 flex flex-col justify-between flex-1">
-                  <div>
-                    <span className={`inline-block text-xs font-semibold px-2.5 py-1 rounded-full mb-2 whitespace-nowrap ${categoryColors[guide.category] || 'bg-background-200 text-foreground-600'}`}>
-                      {guide.category}
-                    </span>
-                    <h3 className="font-heading font-bold text-base md:text-lg text-foreground-900 mb-2 leading-snug line-clamp-2">
-                      {guide.title}
-                    </h3>
-                    <p className="text-foreground-600 text-sm leading-relaxed line-clamp-2">
-                      {guide.description}
-                    </p>
+            guides.map((guide) => {
+              const href = `/${slugify(guide.category)}/${slugify(guide.articleSlug || guide.id)}`;
+              return (
+                <Link
+                  key={guide.id}
+                  to={href}
+                  className="group flex flex-col sm:flex-row bg-background-50 rounded-xl overflow-hidden transition-all duration-300 hover:-translate-y-0.5 cursor-pointer"
+                >
+                  <div className="relative w-full sm:w-48 md:w-56 h-48 sm:h-auto flex-shrink-0 overflow-hidden">
+                    <img
+                      src={guide.heroImage || ''}
+                      alt={guide.title}
+                      title={`${guide.title} — TABI`}
+                      className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
+                    />
                   </div>
-                  <span className="inline-flex items-center gap-1 text-primary-500 font-semibold text-sm mt-3 hover:gap-2 transition-all duration-200 cursor-pointer whitespace-nowrap">
-                    Read Full Guide
-                    <i className="ri-arrow-right-line"></i>
-                  </span>
-                </div>
-              </Link>
-            ))
+                  <div className="p-5 flex flex-col justify-between flex-1">
+                    <div>
+                      <span
+                        className={`inline-block text-xs font-semibold px-2.5 py-1 rounded-full mb-2 whitespace-nowrap ${
+                          categoryColors[guide.category] || 'bg-background-200 text-foreground-600'
+                        }`}
+                      >
+                        {guide.category}
+                      </span>
+                      <h3 className="font-heading font-bold text-base md:text-lg text-foreground-900 mb-2 leading-snug line-clamp-2">
+                        {guide.title}
+                      </h3>
+                      <p className="text-foreground-600 text-sm leading-relaxed line-clamp-2">
+                        {guide.subtitle || ''}
+                      </p>
+                    </div>
+                    <span className="inline-flex items-center gap-1 text-primary-500 font-semibold text-sm mt-3 hover:gap-2 transition-all duration-200 cursor-pointer whitespace-nowrap">
+                      Read Full Guide
+                      <i className="ri-arrow-right-line"></i>
+                    </span>
+                  </div>
+                </Link>
+              );
+            })
           )}
         </div>
 
