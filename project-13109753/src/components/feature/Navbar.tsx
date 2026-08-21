@@ -59,13 +59,9 @@ export default function Navbar() {
 
         <div className="hidden md:flex items-center gap-8">
           {navLinks.map((link) => (
-            
-              key={link.label}
-              href={link.href}
-              className={`text-sm font-semibold whitespace-nowrap transition-colors duration-300 hover:opacity-70 ${
+            <a key={link.label} href={link.href} className={`text-sm font-semibold whitespace-nowrap transition-colors duration-300 hover:opacity-70 ${
                 scrolled ? 'text-foreground-800' : 'text-white'
-              }`}
-            >
+              }`}>
               {link.label}
             </a>
           ))}
@@ -95,18 +91,12 @@ export default function Navbar() {
               </div>
             ) : (
               <>
-                
-                  href="/login"
-                  className={`text-sm font-semibold whitespace-nowrap transition-colors duration-300 hover:opacity-70 ${
+                <a href="/login" className={`text-sm font-semibold whitespace-nowrap transition-colors duration-300 hover:opacity-70 ${
                     scrolled ? 'text-foreground-800' : 'text-white'
-                  }`}
-                >
+                  }`}>
                   Log in
                 </a>
-                
-                  href="/signup"
-                  className="bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-4 py-2 rounded-md transition-all duration-200 whitespace-nowrap cursor-pointer"
-                >
+                <a href="/signup" className="bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-4 py-2 rounded-md transition-all duration-200 whitespace-nowrap cursor-pointer">
                   Sign up
                 </a>
               </>
@@ -128,12 +118,7 @@ export default function Navbar() {
       {mobileOpen && (
         <div className="md:hidden bg-background-50 border-t border-background-200 px-6 py-4 flex flex-col gap-3">
           {navLinks.map((link) => (
-            
-              key={link.label}
-              href={link.href}
-              className="text-foreground-800 text-sm font-semibold whitespace-nowrap hover:text-primary-500 transition-colors"
-              onClick={() => setMobileOpen(false)}
-            >
+            <a key={link.label} href={link.href} className="text-foreground-800 text-sm font-semibold whitespace-nowrap hover:text-primary-500 transition-colors" onClick={() => setMobileOpen(false)}>
               {link.label}
             </a>
           ))}
@@ -154,18 +139,10 @@ export default function Navbar() {
               </>
             ) : (
               <div className="flex items-center gap-4">
-                
-                  href="/login"
-                  className="text-foreground-800 text-sm font-semibold whitespace-nowrap hover:text-primary-500 transition-colors"
-                  onClick={() => setMobileOpen(false)}
-                >
+                <a href="/login" className="text-foreground-800 text-sm font-semibold whitespace-nowrap hover:text-primary-500 transition-colors" onClick={() => setMobileOpen(false)}>
                   Log in
                 </a>
-                
-                  href="/signup"
-                  className="bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-4 py-2 rounded-md transition-all duration-200 whitespace-nowrap cursor-pointer"
-                  onClick={() => setMobileOpen(false)}
-                >
+                <a href="/signup" className="bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-4 py-2 rounded-md transition-all duration-200 whitespace-nowrap cursor-pointer" onClick={() => setMobileOpen(false)}>
                   Sign up
                 </a>
               </div>
