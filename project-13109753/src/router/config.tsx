@@ -8,6 +8,7 @@ import AffiliateDisclosurePage from "../pages/affiliate-disclosure/page";
 import DisclaimerPage from "../pages/disclaimer/page";
 import ArticlePage from "../pages/article/page";
 import DestinationPage from "../pages/destination/page";
+import GuidesPage from "../pages/guides/page";
 import { AdminAuthProvider } from "../pages/admin/components/AdminAuth";
 import AdminLayout from "../pages/admin/components/AdminLayout";
 import DashboardPage from "../pages/admin/dashboard/page";
@@ -15,7 +16,6 @@ import ArticlesPage from "../pages/admin/articles/page";
 import NewArticlePage from "../pages/admin/articles/new/page";
 import EditArticlePage from "../pages/admin/articles/edit/page";
 import ContentPage from "../pages/admin/content/page";
-
 const routes: RouteObject[] = [
   {
     path: "/",
@@ -72,6 +72,10 @@ const routes: RouteObject[] = [
     ],
   },
   {
+    path: "/guides",
+    element: <GuidesPage />,
+  },
+  {
     path: "/destinations/:id",
     element: <DestinationPage />,
   },
@@ -84,5 +88,4 @@ const routes: RouteObject[] = [
     element: <NotFound />,
   },
 ];
-
 export default routes;
