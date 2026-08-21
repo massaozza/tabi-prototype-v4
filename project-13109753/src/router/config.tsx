@@ -16,6 +16,8 @@ import ArticlesPage from "../pages/admin/articles/page";
 import NewArticlePage from "../pages/admin/articles/new/page";
 import EditArticlePage from "../pages/admin/articles/edit/page";
 import ContentPage from "../pages/admin/content/page";
+import FeaturedPage from "../pages/admin/featured/page";
+
 const routes: RouteObject[] = [
   {
     path: "/",
@@ -69,15 +71,19 @@ const routes: RouteObject[] = [
         path: "content",
         element: <ContentPage />,
       },
+      {
+        path: "featured",
+        element: <FeaturedPage />,
+      },
     ],
-  },
-  {
-    path: "/guides",
-    element: <GuidesPage />,
   },
   {
     path: "/destinations/:id",
     element: <DestinationPage />,
+  },
+  {
+    path: "/guides",
+    element: <GuidesPage />,
   },
   {
     path: "/:category/:articleSlug",
@@ -88,4 +94,5 @@ const routes: RouteObject[] = [
     element: <NotFound />,
   },
 ];
+
 export default routes;
