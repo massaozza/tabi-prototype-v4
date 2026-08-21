@@ -13,13 +13,35 @@
 // （session Cookieを見て、有効なセッションが無ければ拒否する）
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { kv } from '@vercel/kv';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import crypto from 'crypto';
-import { getAuthenticatedUid } from './_auth';
 
 const ALLOWED_CONTENT_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic'];
 const MAX_FILE_SIZE_BYTES = 15 * 1024 * 1024; // 15MB
+
+interface SessionRecord {
+  uid: string;
+  createdAt: string;
+}
+
+function getCookie(req: VercelRequest, name: string): string | null {
+  const cookieHeader = req.headers.cookie || '';
+  const match = cookieHeader.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+async function getAuthenticatedUid(req: VercelRequest): Promise<string | null> {
+  const token = getCookie(req, 'session');
+  if (!token) return null;
+  try {
+    const session = await kv.get<SessionRecord>(`session:${token}`);
+    return session?.uid ?? null;
+  } catch {
+    return null;
+  }
+}
 
 function getExtension(contentType: string): string {
   switch (contentType) {
