@@ -5,6 +5,7 @@
 // mode: "structure"
 //   ライターが書いた生の下書きテキストを受け取り、Gemini APIで
 //   見出し・段落・箇条書き・比較表などのセクション構成に自動で組み立て直す。
+//   あわせて、タイトル案（2〜3個）も提案する。
 //   ArticleForm.tsx の bodySections にそのまま流し込める形式で返す。
 //
 // mode: "polish"
@@ -37,12 +38,21 @@ function buildStructurePrompt(rawText: string, title?: string, category?: string
   return `あなたは旅行メディア「TABI」の編集アシスタントです。
 以下は、ライターが書いた記事の下書き（構成を考えずに書いたメモ・文章）です。
 
-${title ? `記事タイトル: ${title}\n` : ''}${category ? `カテゴリ: ${category}\n` : ''}
+${title ? `ライターが仮に付けたタイトル（参考、変更してよい）: ${title}\n` : ''}${category ? `カテゴリ: ${category}\n` : ''}
 --- 下書き本文 ---
 ${rawText}
 --- 下書き本文ここまで ---
 
-この下書きを、以下のルールに従って読みやすい記事構成に組み立て直してください。
+この下書きをもとに、以下の2つの作業を行ってください。
+
+【作業1：タイトル案の提案】
+下書きの内容を踏まえて、記事タイトルの案を2〜3個提案してください。
+- 下書きと同じ言語で書く
+- 具体的で、読者が内容を想像できるタイトルにする
+- 誇張しすぎない、旅行メディアとして自然なトーンにする
+
+【作業2：本文の構成】
+下書きを、以下のルールに従って読みやすい記事構成に組み立て直してください。
 
 1. 内容を意味のまとまりで分割し、適切な見出し（h2, 必要ならh3）を追加する
 2. 各段落は paragraph として整理し、誤字脱字・不自然な言い回しがあれば自然に校正する
@@ -56,6 +66,7 @@ ${rawText}
 出力は、他の説明文を一切付けず、以下のJSON形式のみを出力してください。
 
 {
+  "titleSuggestions": ["タイトル案1", "タイトル案2", "タイトル案3"],
   "sections": [
     { "type": "h2", "content": "見出しテキスト" },
     { "type": "paragraph", "content": "段落テキスト" },
@@ -214,7 +225,13 @@ export default async function handler(req: Request): Promise<Response> {
           ALL_TYPES.includes((s as { type?: string }).type as (typeof ALL_TYPES)[number]) &&
           typeof (s as { content?: unknown }).content === 'string'
       );
-      return new Response(JSON.stringify({ sections: validSections }), {
+
+      const rawTitleSuggestions = (parsed as { titleSuggestions?: unknown }).titleSuggestions;
+      const titleSuggestions = Array.isArray(rawTitleSuggestions)
+        ? rawTitleSuggestions.filter((t): t is string => typeof t === 'string' && t.trim().length > 0)
+        : [];
+
+      return new Response(JSON.stringify({ sections: validSections, titleSuggestions }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
       });
