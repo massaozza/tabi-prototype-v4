@@ -1,5 +1,5 @@
 // /api/auth.ts
-// Vercel Serverless Function（Edge Runtime）
+// Vercel Serverless Function（Node.js Runtime）
 // サインアップ・ログイン・ログアウトを扱う認証API。
 //
 // 設計方針：
@@ -8,16 +8,20 @@
 // - ログイン状態は HttpOnly Cookie に入れたセッショントークンで管理する
 //   （トークン自体はKVに保存され、JavaScriptからは読み取れない）
 //
+// 【重要】bcryptjsがNode.jsのcryptoモジュールに依存するため、Edge Runtimeでは動かない。
+// このファイルは、Vercelの標準的なNode.js Runtime向けの (req, res) 形式で書く
+// （chat.ts等のEdge Runtime向け Request/Response 形式とは異なる）。
+//
 // KVのキー設計：
 // - user:{uid}              → ユーザーレコード（email, passwordHash, displayName等）
 // - user:byEmail:{email}    → email から uid を引くための索引
 // - session:{token}         → { uid, createdAt }。TTL付きで自動失効する
 
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { kv } from '@vercel/kv';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 
-// GEMINI_API_KEY等とは異なり、bcryptjsがNode.jsのcryptoモジュールに依存するため、
-// このAPIはVercelのデフォルト（Node.js Runtime）で動かす。Edge Runtimeは指定しない。
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 30; // 30日
 const SALT_ROUNDS = 10;
 
@@ -65,39 +69,27 @@ async function createSession(uid: string): Promise<string> {
   return token;
 }
 
-function getCookie(req: Request, name: string): string | null {
-  const cookieHeader = req.headers.get('cookie') || '';
+function getCookie(req: VercelRequest, name: string): string | null {
+  const cookieHeader = req.headers.cookie || '';
   const match = cookieHeader.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
   return match ? decodeURIComponent(match[1]) : null;
 }
 
-function jsonResponse(
-  body: Record<string, unknown>,
-  status: number,
-  extraHeaders?: Record<string, string>
-): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { 'Content-Type': 'application/json', ...(extraHeaders || {}) },
-  });
-}
-
-export default async function handler(req: Request): Promise<Response> {
+export default async function handler(
+  req: VercelRequest,
+  res: VercelResponse
+): Promise<void> {
   if (req.method !== 'POST') {
-    return jsonResponse({ error: 'Method not allowed' }, 405);
+    res.status(405).json({ error: 'Method not allowed' });
+    return;
   }
 
-  let body: {
+  const body: {
     action?: string;
     email?: string;
     password?: string;
     displayName?: string;
-  };
-  try {
-    body = await req.json();
-  } catch {
-    return jsonResponse({ error: 'Invalid JSON body' }, 400);
-  }
+  } = req.body || {};
 
   const { action } = body;
 
@@ -108,25 +100,27 @@ export default async function handler(req: Request): Promise<Response> {
     const displayName = (body.displayName || '').trim();
 
     if (!isValidEmail(email)) {
-      return jsonResponse({ error: 'Invalid email address' }, 400);
+      res.status(400).json({ error: 'Invalid email address' });
+      return;
     }
     if (password.length < 8) {
-      return jsonResponse(
-        { error: 'Password must be at least 8 characters' },
-        400
-      );
+      res
+        .status(400)
+        .json({ error: 'Password must be at least 8 characters' });
+      return;
     }
     if (!displayName) {
-      return jsonResponse({ error: 'Display name is required' }, 400);
+      res.status(400).json({ error: 'Display name is required' });
+      return;
     }
 
     try {
       const existingUid = await kv.get<string>(`user:byEmail:${email}`);
       if (existingUid) {
-        return jsonResponse(
-          { error: 'An account with this email already exists' },
-          409
-        );
+        res
+          .status(409)
+          .json({ error: 'An account with this email already exists' });
+        return;
       }
 
       const uid = generateId();
@@ -144,16 +138,12 @@ export default async function handler(req: Request): Promise<Response> {
 
       const token = await createSession(uid);
 
-      return jsonResponse(
-        { success: true, user: toPublicUser(user) },
-        200,
-        { 'Set-Cookie': setSessionCookie(token) }
-      );
+      res.setHeader('Set-Cookie', setSessionCookie(token));
+      res.status(200).json({ success: true, user: toPublicUser(user) });
+      return;
     } catch (err) {
-      return jsonResponse(
-        { error: 'Signup failed', detail: String(err) },
-        500
-      );
+      res.status(500).json({ error: 'Signup failed', detail: String(err) });
+      return;
     }
   }
 
@@ -163,40 +153,37 @@ export default async function handler(req: Request): Promise<Response> {
     const password = body.password || '';
 
     if (!email || !password) {
-      return jsonResponse(
-        { error: 'Email and password are required' },
-        400
-      );
+      res.status(400).json({ error: 'Email and password are required' });
+      return;
     }
 
     try {
       const uid = await kv.get<string>(`user:byEmail:${email}`);
       if (!uid) {
-        return jsonResponse({ error: 'Invalid email or password' }, 401);
+        res.status(401).json({ error: 'Invalid email or password' });
+        return;
       }
 
       const user = await kv.get<UserRecord>(`user:${uid}`);
       if (!user) {
-        return jsonResponse({ error: 'Invalid email or password' }, 401);
+        res.status(401).json({ error: 'Invalid email or password' });
+        return;
       }
 
       const valid = await bcrypt.compare(password, user.passwordHash);
       if (!valid) {
-        return jsonResponse({ error: 'Invalid email or password' }, 401);
+        res.status(401).json({ error: 'Invalid email or password' });
+        return;
       }
 
       const token = await createSession(user.uid);
 
-      return jsonResponse(
-        { success: true, user: toPublicUser(user) },
-        200,
-        { 'Set-Cookie': setSessionCookie(token) }
-      );
+      res.setHeader('Set-Cookie', setSessionCookie(token));
+      res.status(200).json({ success: true, user: toPublicUser(user) });
+      return;
     } catch (err) {
-      return jsonResponse(
-        { error: 'Login failed', detail: String(err) },
-        500
-      );
+      res.status(500).json({ error: 'Login failed', detail: String(err) });
+      return;
     }
   }
 
@@ -207,19 +194,16 @@ export default async function handler(req: Request): Promise<Response> {
       if (token) {
         await kv.del(`session:${token}`);
       }
-      return jsonResponse({ success: true }, 200, {
-        'Set-Cookie': clearSessionCookie(),
-      });
+      res.setHeader('Set-Cookie', clearSessionCookie());
+      res.status(200).json({ success: true });
+      return;
     } catch (err) {
-      return jsonResponse(
-        { error: 'Logout failed', detail: String(err) },
-        500
-      );
+      res.status(500).json({ error: 'Logout failed', detail: String(err) });
+      return;
     }
   }
 
-  return jsonResponse(
-    { error: 'Unknown action. Must be "signup", "login", or "logout"' },
-    400
-  );
+  res
+    .status(400)
+    .json({ error: 'Unknown action. Must be "signup", "login", or "logout"' });
 }
