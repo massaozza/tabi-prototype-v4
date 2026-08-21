@@ -33,7 +33,6 @@ export default function SignupPage() {
     <main className="min-h-screen bg-background-50">
       <Navbar />
 
-      {/* Page Header */}
       <section className="bg-background-900 pt-24 md:pt-28 pb-16 md:pb-20 px-6 md:px-10">
         <div className="max-w-[960px] mx-auto text-center">
           <nav
@@ -55,7 +54,6 @@ export default function SignupPage() {
         </div>
       </section>
 
-      {/* Form */}
       <section className="py-16 md:py-24 px-6 md:px-10">
         <div className="max-w-md mx-auto">
           <div className="bg-background-50 border border-background-200 rounded-lg p-6 md:p-8">
