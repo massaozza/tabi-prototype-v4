@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '@/components/feature/Navbar';
 import Footer from '@/components/feature/Footer';
-import { latestGuides as fallbackGuides } from '@/mocks/homeData';
 
 const categoryColors: Record<string, string> = {
   Food: 'bg-accent-100 text-accent-800',
@@ -11,39 +10,40 @@ const categoryColors: Record<string, string> = {
   'Hidden Gems': 'bg-accent-50 text-accent-700',
 };
 
-interface Guide {
+interface Article {
   id: string;
-  title: string;
   category: string;
-  description: string;
-  image: string;
-  href?: string;
+  articleSlug: string;
+  title: string;
+  subtitle?: string;
+  heroImage?: string;
+  dateISO?: string;
 }
 
-function slugifyCategory(category: string): string {
-  return category
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '');
+function slugify(text: string): string {
+  return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
 
 export default function GuidesPage() {
-  const [guides, setGuides] = useState<Guide[]>([]);
+  const [guides, setGuides] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
     async function fetchData() {
       try {
-        const res = await fetch('/api/content?type=latestGuides');
+        const res = await fetch('/api/content?type=articles');
         if (!res.ok) throw new Error('Failed to fetch');
         const json = await res.json();
         if (!cancelled && Array.isArray(json.data)) {
-          setGuides(json.data);
+          const sorted = [...json.data].sort((a, b) =>
+            (b.dateISO || '').localeCompare(a.dateISO || '')
+          );
+          setGuides(sorted);
         }
       } catch {
         if (!cancelled) {
-          setGuides(fallbackGuides);
+          setGuides([]);
         }
       } finally {
         if (!cancelled) {
@@ -130,9 +130,7 @@ export default function GuidesPage() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
               {guides.map((guide) => {
-                const href =
-                  guide.href ||
-                  `/${slugifyCategory(guide.category)}/${slugifyCategory(guide.id)}`;
+                const href = `/${slugify(guide.category)}/${slugify(guide.articleSlug || guide.id)}`;
                 return (
                   <Link
                     key={guide.id}
@@ -141,7 +139,7 @@ export default function GuidesPage() {
                   >
                     <div className="relative w-full h-48 flex-shrink-0 overflow-hidden">
                       <img
-                        src={guide.image}
+                        src={guide.heroImage || ''}
                         alt={guide.title}
                         title={`${guide.title} — TABI`}
                         className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
@@ -159,7 +157,7 @@ export default function GuidesPage() {
                         {guide.title}
                       </h2>
                       <p className="text-foreground-600 text-sm leading-relaxed line-clamp-3 mb-4">
-                        {guide.description}
+                        {guide.subtitle || ''}
                       </p>
                       <span className="mt-auto inline-flex items-center gap-1 text-primary-500 font-semibold text-sm hover:gap-2 transition-all duration-200 whitespace-nowrap">
                         Read Full Guide
