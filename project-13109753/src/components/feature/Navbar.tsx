@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
 import { navLinks } from '@/mocks/homeData';
 import LogoMark from '@/components/feature/LogoMark';
+import { useAuth } from '@/context/AuthContext';
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const { user, loading, logout } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -13,6 +16,11 @@ export default function Navbar() {
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const handleLogout = async () => {
+    setUserMenuOpen(false);
+    await logout();
+  };
 
   return (
     <header
@@ -51,7 +59,7 @@ export default function Navbar() {
 
         <div className="hidden md:flex items-center gap-8">
           {navLinks.map((link) => (
-            <a
+            
               key={link.label}
               href={link.href}
               className={`text-sm font-semibold whitespace-nowrap transition-colors duration-300 hover:opacity-70 ${
@@ -61,6 +69,49 @@ export default function Navbar() {
               {link.label}
             </a>
           ))}
+
+          <div className="hidden md:flex items-center gap-5">
+            {loading ? null : user ? (
+              <div className="relative">
+                <button
+                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  className={`flex items-center gap-1.5 text-sm font-semibold whitespace-nowrap transition-colors duration-300 hover:opacity-70 ${
+                    scrolled ? 'text-foreground-800' : 'text-white'
+                  }`}
+                >
+                  {user.displayName}
+                  <i className={`text-sm transition-transform ${userMenuOpen ? 'ri-arrow-up-s-line' : 'ri-arrow-down-s-line'}`}></i>
+                </button>
+                {userMenuOpen && (
+                  <div className="absolute right-0 top-full mt-2 min-w-[160px] bg-background-50 border border-background-200 rounded-md py-1">
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-left px-4 py-2.5 text-sm text-foreground-700 hover:bg-background-100 hover:text-foreground-900 transition-colors whitespace-nowrap cursor-pointer"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <>
+                
+                  href="/login"
+                  className={`text-sm font-semibold whitespace-nowrap transition-colors duration-300 hover:opacity-70 ${
+                    scrolled ? 'text-foreground-800' : 'text-white'
+                  }`}
+                >
+                  Log in
+                </a>
+                
+                  href="/signup"
+                  className="bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-4 py-2 rounded-md transition-all duration-200 whitespace-nowrap cursor-pointer"
+                >
+                  Sign up
+                </a>
+              </>
+            )}
+          </div>
         </div>
 
         <button
@@ -77,7 +128,7 @@ export default function Navbar() {
       {mobileOpen && (
         <div className="md:hidden bg-background-50 border-t border-background-200 px-6 py-4 flex flex-col gap-3">
           {navLinks.map((link) => (
-            <a
+            
               key={link.label}
               href={link.href}
               className="text-foreground-800 text-sm font-semibold whitespace-nowrap hover:text-primary-500 transition-colors"
@@ -86,6 +137,41 @@ export default function Navbar() {
               {link.label}
             </a>
           ))}
+
+          <div className="flex flex-col gap-3 pt-3 border-t border-background-200">
+            {loading ? null : user ? (
+              <>
+                <span className="text-foreground-500 text-sm">{user.displayName}</span>
+                <button
+                  onClick={() => {
+                    setMobileOpen(false);
+                    handleLogout();
+                  }}
+                  className="text-left text-primary-500 hover:text-primary-600 text-sm font-semibold whitespace-nowrap transition-colors cursor-pointer"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <div className="flex items-center gap-4">
+                
+                  href="/login"
+                  className="text-foreground-800 text-sm font-semibold whitespace-nowrap hover:text-primary-500 transition-colors"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  Log in
+                </a>
+                
+                  href="/signup"
+                  className="bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-4 py-2 rounded-md transition-all duration-200 whitespace-nowrap cursor-pointer"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  Sign up
+                </a>
+              </div>
+            )}
+          </div>
+
           <div className="flex items-center gap-4 pt-2 border-t border-background-200">
             <a href="#" className="w-6 h-6 flex items-center justify-center text-foreground-500 hover:text-primary-500 transition-colors" aria-label="Instagram"><i className="ri-instagram-line"></i></a>
             <a href="#" className="w-6 h-6 flex items-center justify-center text-foreground-500 hover:text-primary-500 transition-colors" aria-label="Pinterest"><i className="ri-pinterest-line"></i></a>
