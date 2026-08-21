@@ -3,6 +3,7 @@ import Footer from '@/components/feature/Footer';
 import HeroSection from './components/HeroSection';
 import BrandPhilosophySection from './components/BrandPhilosophySection';
 import DestinationsSection from './components/DestinationsSection';
+import FeaturedSection from './components/FeaturedSection';
 // Budget Calculator section temporarily disabled (2026.08) — keep component file intact
 // import BudgetCalculatorSection from './components/BudgetCalculatorSection';
 import LocalsRecommendSection from './components/LocalsRecommendSection';
@@ -16,6 +17,7 @@ export default function Home() {
       <HeroSection />
       <BrandPhilosophySection />
       <DestinationsSection />
+      <FeaturedSection />
       {/* Budget Calculator section temporarily hidden */}
       {/* <BudgetCalculatorSection /> */}
       <LocalsRecommendSection />
