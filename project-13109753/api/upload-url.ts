@@ -95,8 +95,9 @@ export default async function handler(
   const accessKeyId = process.env.R2_ACCESS_KEY_ID;
   const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
   const bucketName = process.env.R2_BUCKET_NAME;
+  const publicUrl = process.env.R2_PUBLIC_URL;
 
-  if (!accountId || !accessKeyId || !secretAccessKey || !bucketName) {
+  if (!accountId || !accessKeyId || !secretAccessKey || !bucketName || !publicUrl) {
     res.status(500).json({ error: 'Server misconfigured: R2 credentials are not set' });
     return;
   }
@@ -118,10 +119,12 @@ export default async function handler(
     });
 
     const uploadUrl = await getSignedUrl(s3, command, { expiresIn: 300 }); // 5分間有効
+    const publicUrlBase = publicUrl.replace(/\/$/, '');
 
     res.status(200).json({
       uploadUrl,
       objectKey,
+      publicUrl: `${publicUrlBase}/${objectKey}`,
     });
   } catch (err) {
     res.status(500).json({
