@@ -2,12 +2,17 @@
 // Vercel Serverless Function（Node.js Runtime）
 // 旅行者のリアルな体験（Experience）の投稿・一覧取得・削除を扱うAPI。
 //
-// 事業計画書の構造化データ（WHO/WHERE/WHEN/CONTEXT/EXPERIENCE/EVIDENCE）を
-// 反映したデータ構造。まずはAIとの会話ではなく、通常のフォーム入力で作成する
-// （AIによる会話形式での自動生成は、後続のフェーズで別途追加する）。
+// 【重要】このVercelプロジェクトのNode.js Runtimeでは、api/配下の別ファイル
+// （_auth.ts, _store.ts等）をimportすると、実行時に "Cannot find module" で
+// 落ちることが判明した（Edge Runtimeでは問題なく動く）。そのため、
+// このファイルは共通ヘルパーに頼らず、必要なロジックを全て自己完結させている。
 //
-// 保存方式：_store.ts の「1レコード＝1キー」方式を使う。同時投稿でも
-// データが失われない（localsPlaces等の配列一括保存方式とは異なる）。
+// 事業計画書の構造化データ（WHO/WHERE/WHEN/CONTEXT/EXPERIENCE/EVIDENCE）を
+// 反映したデータ構造。まずはAIとの会話ではなく、通常のフォーム入力で作成する。
+//
+// 保存方式：「1レコード＝1キー」＋RedisのSet型（sadd/smembers/srem）による索引。
+// 配列を丸ごと上書きする方式（localsPlaces等）とは異なり、同時投稿でも
+// データが失われない。
 //
 // GET  /api/experiences            → 公開されている全Experienceを取得（認証不要）
 // GET  /api/experiences?mine=1     → 自分が投稿したExperienceだけを取得（認証必須）
@@ -15,15 +20,8 @@
 // DELETE /api/experiences?id=xxx   → 削除（認証必須、本人の投稿のみ）
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { kv } from '@vercel/kv';
 import crypto from 'crypto';
-import { getAuthenticatedUid } from './_auth';
-import {
-  createRecord,
-  deleteRecord,
-  getRecord,
-  listRecords,
-  listUserRecords,
-} from './_store';
 
 const COLLECTION = 'experiences';
 
@@ -59,6 +57,75 @@ export interface Experience {
   photos: string[];
 }
 
+interface SessionRecord {
+  uid: string;
+  createdAt: string;
+}
+
+// ── 認証ヘルパー（自己完結） ──
+
+function getCookie(req: VercelRequest, name: string): string | null {
+  const cookieHeader = req.headers.cookie || '';
+  const match = cookieHeader.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+async function getAuthenticatedUid(req: VercelRequest): Promise<string | null> {
+  const token = getCookie(req, 'session');
+  if (!token) return null;
+  try {
+    const session = await kv.get<SessionRecord>(`session:${token}`);
+    return session?.uid ?? null;
+  } catch {
+    return null;
+  }
+}
+
+// ── 保存用ヘルパー（自己完結、1レコード＝1キー方式） ──
+
+function recordKey(id: string): string {
+  return `${COLLECTION}:${id}`;
+}
+
+function collectionIndexKey(): string {
+  return `${COLLECTION}:all`;
+}
+
+function userIndexKey(uid: string): string {
+  return `user:${uid}:${COLLECTION}`;
+}
+
+async function createExperienceRecord(id: string, data: Experience, uid: string): Promise<void> {
+  await kv.set(recordKey(id), data);
+  await kv.sadd(collectionIndexKey(), id);
+  await kv.sadd(userIndexKey(uid), id);
+}
+
+async function getExperienceRecord(id: string): Promise<Experience | null> {
+  const value = await kv.get<Experience>(recordKey(id));
+  return value ?? null;
+}
+
+async function deleteExperienceRecord(id: string, uid: string): Promise<void> {
+  await kv.del(recordKey(id));
+  await kv.srem(collectionIndexKey(), id);
+  await kv.srem(userIndexKey(uid), id);
+}
+
+async function listAllExperiences(): Promise<Experience[]> {
+  const ids = await kv.smembers(collectionIndexKey());
+  if (!ids || ids.length === 0) return [];
+  const values = await kv.mget<Experience[]>(...ids.map((id) => recordKey(id)));
+  return (values || []).filter((v): v is Experience => v !== null && v !== undefined);
+}
+
+async function listUserExperiences(uid: string): Promise<Experience[]> {
+  const ids = await kv.smembers(userIndexKey(uid));
+  if (!ids || ids.length === 0) return [];
+  const values = await kv.mget<Experience[]>(...ids.map((id) => recordKey(id)));
+  return (values || []).filter((v): v is Experience => v !== null && v !== undefined);
+}
+
 function isValidMonthFormat(value: string): boolean {
   return /^\d{4}-(0[1-9]|1[0-2])$/.test(value);
 }
@@ -77,12 +144,12 @@ export default async function handler(
         res.status(401).json({ error: 'You must be logged in to view your experiences' });
         return;
       }
-      const experiences = await listUserRecords<Experience>(COLLECTION, uid);
+      const experiences = await listUserExperiences(uid);
       res.status(200).json({ experiences });
       return;
     }
 
-    const experiences = await listRecords<Experience>(COLLECTION);
+    const experiences = await listAllExperiences();
     res.status(200).json({ experiences });
     return;
   }
@@ -139,7 +206,11 @@ export default async function handler(
       res.status(400).json({ error: 'whatWasGood is required' });
       return;
     }
-    if (whatWasGood.length > 2000 || (body.whatWasHard || '').length > 2000 || (body.tip || '').length > 2000) {
+    if (
+      whatWasGood.length > 2000 ||
+      (body.whatWasHard || '').length > 2000 ||
+      (body.tip || '').length > 2000
+    ) {
       res.status(400).json({ error: 'Text fields must be 2000 characters or fewer' });
       return;
     }
@@ -169,7 +240,7 @@ export default async function handler(
     };
 
     try {
-      await createRecord<Experience>(COLLECTION, id, experience, uid);
+      await createExperienceRecord(id, experience, uid);
       res.status(200).json({ success: true, experience });
     } catch (err) {
       res.status(500).json({ error: 'Failed to save experience', detail: String(err) });
@@ -192,7 +263,7 @@ export default async function handler(
     }
 
     try {
-      const existing = await getRecord<Experience>(COLLECTION, id);
+      const existing = await getExperienceRecord(id);
       if (!existing) {
         res.status(404).json({ error: 'Experience not found' });
         return;
@@ -202,7 +273,7 @@ export default async function handler(
         return;
       }
 
-      await deleteRecord(COLLECTION, id, uid);
+      await deleteExperienceRecord(id, uid);
       res.status(200).json({ success: true });
     } catch (err) {
       res.status(500).json({ error: 'Failed to delete experience', detail: String(err) });
