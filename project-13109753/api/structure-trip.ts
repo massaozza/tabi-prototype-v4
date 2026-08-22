@@ -1,14 +1,17 @@
 // /api/structure-trip.ts
 // Vercel Serverless Function（Edge Runtime）
-// チャット（TABI AI）の会話履歴を受け取り、Gemini APIで
-// 「Day 1, Day 2...」のような構造化された旅程データに変換する。
+// チャット（TABI AI）の会話履歴を受け取り、Gemini APIで構造化された旅程データに変換する。
 //
-// 認証必須：ログインしていないユーザーは使えない
-// （Trip保存はログインユーザー専用の機能のため）。
+// 【今回の変更】
+// 単純な「Day毎のitems配列」から、以下の形式に変更：
+// - stays（宿泊）: ホテル名と、何日目から何日目まで宿泊するか。
+//   同じホテルに連泊する場合も、日ごとに違うホテルに泊まる場合も両方表現できる。
+// - days（日程）: 各日の朝食・昼食・夕食（提案とその日の予定）＋アクティビティ。
+//   食事・宿泊は、後から個別に「予約済み」にできるよう、母体の trips.ts 側で
+//   id と予約状況（status）を付与する（この時点ではまだ付与しない）。
 //
+// 認証必須：ログインしていないユーザーは使えない。
 // この処理はあくまで「構造化するだけ」で、実際の保存は行わない。
-// フロントエンドは、この結果をユーザーに確認させてから、
-// 別途 POST /api/trips で保存する。
 
 import { kv } from '@vercel/kv';
 
@@ -24,16 +27,31 @@ interface ChatMessage {
   content: string;
 }
 
-interface TripItem {
+interface RawStay {
+  hotelName: string;
+  checkInDay: number;
+  checkOutDay: number;
+}
+
+interface RawMeal {
+  suggestion?: string;
+}
+
+interface RawActivity {
   time?: string;
   title: string;
   description?: string;
 }
 
-interface TripDay {
+interface RawDay {
   day: number;
-  title: string;
-  items: TripItem[];
+  date?: string;
+  activities: RawActivity[];
+  meals?: {
+    breakfast?: RawMeal;
+    lunch?: RawMeal;
+    dinner?: RawMeal;
+  };
 }
 
 function getCookie(req: Request, name: string): string | null {
@@ -60,18 +78,24 @@ function buildPrompt(conversationText: string): string {
 ${conversationText}
 --- 会話履歴ここまで ---
 
-この会話の中から、具体的な旅行プラン（訪れる場所、日程、順序など）を
-読み取り、日程表（Day 1, Day 2...）の形式に構造化してください。
+この会話の中から、具体的な旅行プランを読み取り、以下の形式に構造化してください。
 
 【重要なルール】
-- 会話の中に、構造化できるだけの具体的な旅行プランが含まれていない場合
-  （例えば、単なる雑談や、一般的な質問への回答だけで終わっている場合）は、
+- 会話の中に、構造化できるだけの具体的な旅行プランが含まれていない場合は、
   success を false にし、reason に理由を日本語で簡潔に書いてください。
   無理に旅程を創作しないでください。
-- 会話に書かれていない場所・時間・順序を、勝手に創作しないでください。
+- 会話に書かれていない場所・時間・順序・宿泊先・食事先を、勝手に創作しないでください。
   あくまで会話の中で実際に言及された内容だけを整理してください。
-- 日程が明示されていない場合（「3日間の旅行」のような情報が無い場合）は、
-  会話の中で言及された場所の数や流れから、妥当な範囲でDayを分けて構いません。
+- 日程が明示されていない場合は、会話の中で言及された場所の数や流れから、
+  妥当な範囲でDayを分けて構いません。
+- 宿泊（stays）について：会話の中でホテル・旅館名が具体的に言及されていれば、
+  それが何日目のチェックインから何日目のチェックアウトまでかを整理してください
+  （例：1日目〜3日目まで同じホテルなら checkInDay:1, checkOutDay:3。
+  日ごとに違う宿に泊まる場合は、それぞれ別のstayとして分けてください）。
+  会話の中でホテル名が一切言及されていなければ、stays は空配列にしてください。
+- 食事（meals）について：会話の中で具体的なレストラン名・食事の提案が
+  言及されていれば、その日の朝食/昼食/夕食として整理してください。
+  言及が無い食事枠は、そのキー自体を省略してください（無理に埋めない）。
 - タイトルは、会話の内容を踏まえた分かりやすい旅行タイトルにしてください
   （例: "3 Days in Kamakura & Enoshima"）。
 
@@ -82,13 +106,19 @@ ${conversationText}
   "success": true,
   "title": "旅行プランのタイトル",
   "summary": "1〜2文の概要",
+  "stays": [
+    { "hotelName": "ホテル名", "checkInDay": 1, "checkOutDay": 3 }
+  ],
   "days": [
     {
       "day": 1,
-      "title": "Day 1のタイトル（例: Kamakura Temples）",
-      "items": [
+      "activities": [
         { "time": "morning", "title": "訪問先や活動", "description": "補足説明（任意）" }
-      ]
+      ],
+      "meals": {
+        "lunch": { "suggestion": "店名（言及があれば）" },
+        "dinner": { "suggestion": "店名（言及があれば）" }
+      }
     }
   ]
 }
@@ -103,6 +133,28 @@ ${conversationText}
 function extractJson(text: string): unknown {
   const cleaned = text.replace(/```json\s*|```\s*/g, '').trim();
   return JSON.parse(cleaned);
+}
+
+function isValidStay(s: unknown): s is RawStay {
+  const stay = s as Partial<RawStay>;
+  return (
+    !!stay &&
+    typeof stay.hotelName === 'string' &&
+    stay.hotelName.trim() !== '' &&
+    typeof stay.checkInDay === 'number' &&
+    typeof stay.checkOutDay === 'number' &&
+    stay.checkOutDay > stay.checkInDay
+  );
+}
+
+function isValidDay(d: unknown): d is RawDay {
+  const day = d as Partial<RawDay>;
+  if (!day || typeof day.day !== 'number' || !Array.isArray(day.activities)) {
+    return false;
+  }
+  return day.activities.every(
+    (item) => item && typeof (item as RawActivity).title === 'string'
+  );
 }
 
 export default async function handler(req: Request): Promise<Response> {
@@ -203,7 +255,8 @@ export default async function handler(req: Request): Promise<Response> {
       success?: boolean;
       title?: string;
       summary?: string;
-      days?: TripDay[];
+      stays?: unknown[];
+      days?: unknown[];
       reason?: string;
     };
 
@@ -227,12 +280,28 @@ export default async function handler(req: Request): Promise<Response> {
       );
     }
 
+    const validDays = result.days.filter(isValidDay);
+    if (validDays.length === 0) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          reason: 'AI response did not contain valid day details',
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const validStays = Array.isArray(result.stays)
+      ? result.stays.filter(isValidStay)
+      : [];
+
     return new Response(
       JSON.stringify({
         success: true,
         title: result.title,
         summary: result.summary || '',
-        days: result.days,
+        stays: validStays,
+        days: validDays,
       }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
