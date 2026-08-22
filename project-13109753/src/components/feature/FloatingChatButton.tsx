@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
 
 type ChatRole = 'user' | 'assistant';
 
@@ -9,6 +10,24 @@ interface ChatMessage {
   content: string;
 }
 
+interface TripDayItem {
+  time?: string;
+  title: string;
+  description?: string;
+}
+
+interface TripDay {
+  day: number;
+  title: string;
+  items: TripDayItem[];
+}
+
+interface StructuredTrip {
+  title: string;
+  summary: string;
+  days: TripDay[];
+}
+
 const WELCOME_MESSAGE =
   'Ask me anything about Kamakura, Enoshima, or the Shonan coast — I know the spots locals actually go to.';
 
@@ -16,12 +35,20 @@ const ERROR_MESSAGE =
   "Sorry, I'm having trouble right now. Please try again in a moment.";
 
 export default function FloatingChatButton() {
+  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
     { id: 1, role: 'assistant', content: WELCOME_MESSAGE },
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const [structuring, setStructuring] = useState(false);
+  const [tripPreview, setTripPreview] = useState<StructuredTrip | null>(null);
+  const [tripTitle, setTripTitle] = useState('');
+  const [tripSaving, setTripSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
+
   const location = useLocation();
 
   const listRef = useRef<HTMLDivElement>(null);
@@ -42,6 +69,13 @@ export default function FloatingChatButton() {
       listRef.current.scrollTop = listRef.current.scrollHeight;
     }
   }, [messages, loading]);
+
+  const addAssistantMessage = useCallback((content: string) => {
+    setMessages((prev) => [
+      ...prev,
+      { id: idRef.current++, role: 'assistant', content },
+    ]);
+  }, []);
 
   const sendMessage = useCallback(async (text: string) => {
     const trimmed = text.trim();
@@ -74,28 +108,94 @@ export default function FloatingChatButton() {
       const data = await res.json();
 
       if (res.ok && data.reply) {
-        setMessages((prev) => [
-          ...prev,
-          { id: idRef.current++, role: 'assistant', content: data.reply },
-        ]);
+        addAssistantMessage(data.reply);
       } else {
-        setMessages((prev) => [
-          ...prev,
-          { id: idRef.current++, role: 'assistant', content: ERROR_MESSAGE },
-        ]);
+        addAssistantMessage(ERROR_MESSAGE);
       }
     } catch {
-      setMessages((prev) => [
-        ...prev,
-        { id: idRef.current++, role: 'assistant', content: ERROR_MESSAGE },
-      ]);
+      addAssistantMessage(ERROR_MESSAGE);
     } finally {
       setLoading(false);
       loadingRef.current = false;
     }
-  }, []);
+  }, [addAssistantMessage]);
 
-  // カスタムイベント 'tabi:ask-question' を受信して、パネルを開いて質問を自動送信
+  const handleSaveAsTrip = useCallback(async () => {
+    if (!user || structuring) {
+      return;
+    }
+
+    setStructuring(true);
+
+    const history = messagesRef.current.map((m) => ({
+      role: m.role,
+      content: m.content,
+    }));
+
+    try {
+      const res = await fetch('/api/structure-trip', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ history }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        setTripPreview(data);
+        setTripTitle(data.title || '');
+        setSaveError('');
+      } else if (data && data.success === false && data.reason) {
+        addAssistantMessage(
+          `I couldn't find enough trip details in our conversation yet. ${data.reason}`
+        );
+      } else {
+        addAssistantMessage(ERROR_MESSAGE);
+      }
+    } catch {
+      addAssistantMessage(ERROR_MESSAGE);
+    } finally {
+      setStructuring(false);
+    }
+  }, [user, structuring, addAssistantMessage]);
+
+  const handleSaveTrip = useCallback(async () => {
+    if (!tripPreview || tripSaving) {
+      return;
+    }
+
+    setTripSaving(true);
+    setSaveError('');
+
+    try {
+      const res = await fetch('/api/trips', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          title: tripTitle.trim(),
+          summary: tripPreview.summary,
+          days: tripPreview.days,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        setTripPreview(null);
+        setTripTitle('');
+        addAssistantMessage('Trip saved! You can view it in My Trips.');
+      } else {
+        setSaveError(data.error || 'Failed to save your trip. Please try again.');
+      }
+    } catch {
+      setSaveError('Network error. Please try again.');
+    } finally {
+      setTripSaving(false);
+    }
+  }, [tripPreview, tripSaving, tripTitle, addAssistantMessage]);
+
   useEffect(() => {
     const handleAskQuestion = (event: Event) => {
       const customEvent = event as CustomEvent<{ question?: string }>;
@@ -118,7 +218,6 @@ export default function FloatingChatButton() {
     <>
       {isOpen && (
         <div className="fixed bottom-24 right-4 md:right-6 z-[60] w-[calc(100vw-2rem)] max-w-sm h-[520px] max-h-[70vh] flex flex-col bg-background-50 border border-background-200 rounded-2xl overflow-hidden shadow-lg">
-          {/* Header */}
           <div className="flex items-center justify-between px-5 py-4 bg-primary-500 text-white">
             <div className="flex items-center gap-3">
               <span className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
@@ -131,16 +230,32 @@ export default function FloatingChatButton() {
                 <span className="text-xs text-white/80">Your local guide</span>
               </div>
             </div>
-            <button
-              onClick={() => setIsOpen(false)}
-              aria-label="Close chat"
-              className="w-8 h-8 rounded-full flex items-center justify-center text-white/90 hover:bg-white/20 transition-colors cursor-pointer"
-            >
-              <i className="ri-close-line text-lg"></i>
-            </button>
+            <div className="flex items-center gap-2">
+              {user && (
+                <button
+                  onClick={handleSaveAsTrip}
+                  disabled={structuring}
+                  aria-label="Save as Trip"
+                  className="h-8 px-3 rounded-full bg-white/20 hover:bg-white/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 text-xs font-medium text-white transition-colors cursor-pointer whitespace-nowrap"
+                >
+                  {structuring ? (
+                    <span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
+                  ) : (
+                    <i className="ri-bookmark-line text-sm"></i>
+                  )}
+                  Save as Trip
+                </button>
+              )}
+              <button
+                onClick={() => setIsOpen(false)}
+                aria-label="Close chat"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-white/90 hover:bg-white/20 transition-colors cursor-pointer"
+              >
+                <i className="ri-close-line text-lg"></i>
+              </button>
+            </div>
           </div>
 
-          {/* Messages */}
           <div
             ref={listRef}
             className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3"
@@ -173,7 +288,6 @@ export default function FloatingChatButton() {
             )}
           </div>
 
-          {/* Input */}
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -197,6 +311,121 @@ export default function FloatingChatButton() {
               <i className="ri-send-plane-2-fill text-lg"></i>
             </button>
           </form>
+        </div>
+      )}
+
+      {tripPreview && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-foreground-950/50"
+            onClick={() => {
+              if (!tripSaving) {
+                setTripPreview(null);
+              }
+            }}
+          ></div>
+          <div className="relative w-full max-w-lg max-h-[85vh] flex flex-col bg-background-50 rounded-2xl overflow-hidden shadow-lg">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-background-200">
+              <h3 className="font-heading font-semibold text-base text-foreground-950">
+                Review Your Trip
+              </h3>
+              <button
+                onClick={() => {
+                  if (!tripSaving) {
+                    setTripPreview(null);
+                  }
+                }}
+                aria-label="Close preview"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-foreground-500 hover:bg-background-100 transition-colors cursor-pointer"
+              >
+                <i className="ri-close-line text-lg"></i>
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-4">
+              <div>
+                <label
+                  htmlFor="trip-title"
+                  className="block text-xs font-medium text-foreground-500 mb-1.5"
+                >
+                  Trip Title
+                </label>
+                <input
+                  id="trip-title"
+                  type="text"
+                  value={tripTitle}
+                  onChange={(e) => setTripTitle(e.target.value)}
+                  className="w-full text-sm px-4 py-2.5 rounded-md bg-background-100 text-foreground-900 focus:outline-none focus:ring-2 focus:ring-primary-300"
+                />
+              </div>
+
+              {tripPreview.summary && (
+                <p className="text-sm text-foreground-700 leading-relaxed">
+                  {tripPreview.summary}
+                </p>
+              )}
+
+              <div className="flex flex-col gap-3">
+                {tripPreview.days.map((day) => (
+                  <div
+                    key={day.day}
+                    className="rounded-lg border border-background-200 bg-background-50 p-4"
+                  >
+                    <h4 className="font-heading font-semibold text-sm text-foreground-950 mb-2">
+                      Day {day.day}
+                      {day.title ? `: ${day.title}` : ''}
+                    </h4>
+                    <ul className="flex flex-col gap-1.5">
+                      {day.items.map((item, idx) => (
+                        <li
+                          key={idx}
+                          className="text-sm text-foreground-700 leading-relaxed"
+                        >
+                          {item.time && (
+                            <span className="font-medium text-foreground-900">
+                              {item.time}{' '}
+                            </span>
+                          )}
+                          <span className="font-medium">{item.title}</span>
+                          {item.description && (
+                            <span className="text-foreground-500">
+                              {' '}
+                              — {item.description}
+                            </span>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+
+              {saveError && (
+                <p className="text-sm text-red-600 font-medium">{saveError}</p>
+              )}
+            </div>
+
+            <div className="flex items-center gap-3 px-5 py-4 border-t border-background-200">
+              <button
+                onClick={() => {
+                  if (!tripSaving) {
+                    setTripPreview(null);
+                  }
+                }}
+                disabled={tripSaving}
+                className="flex-1 h-10 rounded-md border border-background-300 text-foreground-700 hover:bg-background-100 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium transition-colors cursor-pointer whitespace-nowrap"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveTrip}
+                disabled={tripSaving || !tripTitle.trim()}
+                className="flex-1 h-10 rounded-md bg-primary-500 hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium transition-colors cursor-pointer whitespace-nowrap"
+              >
+                {tripSaving ? 'Saving...' : 'Save Trip'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
