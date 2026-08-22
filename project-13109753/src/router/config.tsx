@@ -12,6 +12,8 @@ import GuidesPage from "../pages/guides/page";
 import SignupPage from "../pages/signup/page";
 import LoginPage from "../pages/login/page";
 import NewExperiencePage from "../pages/experiences/new/page";
+import ExperienceDetailPage from "../pages/experiences/detail/page";
+import ExperiencesPage from "../pages/experiences/page";
 import { AdminAuthProvider } from "../pages/admin/components/AdminAuth";
 import AdminLayout from "../pages/admin/components/AdminLayout";
 import DashboardPage from "../pages/admin/dashboard/page";
@@ -99,6 +101,14 @@ const routes: RouteObject[] = [
   {
     path: "/experiences/new",
     element: <NewExperiencePage />,
+  },
+  {
+    path: "/experiences/:id",
+    element: <ExperienceDetailPage />,
+  },
+  {
+    path: "/experiences",
+    element: <ExperiencesPage />,
   },
   {
     path: "/:category/:articleSlug",
