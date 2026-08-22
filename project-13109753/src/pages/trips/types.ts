@@ -1,4 +1,20 @@
-export interface TripItem {
+export type BookingStatus = 'not_booked' | 'booked';
+
+export interface TripStay {
+  id: string;
+  hotelName: string;
+  checkInDay: number;
+  checkOutDay: number;
+  status: BookingStatus;
+}
+
+export interface TripMeal {
+  id: string;
+  suggestion: string;
+  status: BookingStatus;
+}
+
+export interface TripActivity {
   time?: string;
   title: string;
   description?: string;
@@ -6,8 +22,13 @@ export interface TripItem {
 
 export interface TripDay {
   day: number;
-  title: string;
-  items: TripItem[];
+  date?: string;
+  activities: TripActivity[];
+  meals: {
+    breakfast?: TripMeal;
+    lunch?: TripMeal;
+    dinner?: TripMeal;
+  };
 }
 
 export interface Trip {
@@ -15,6 +36,7 @@ export interface Trip {
   uid: string;
   title: string;
   summary?: string;
+  stays: TripStay[];
   days: TripDay[];
   createdAt: string;
 }
