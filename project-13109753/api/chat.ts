@@ -59,6 +59,7 @@ async function fetchExperiences(): Promise<ExperienceRecord[]> {
     const records = (values || []).filter(
       (v): v is ExperienceRecord => v !== null && v !== undefined
     );
+    // 新しい投稿を優先して上限件数に絞る
     records.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
     return records.slice(0, MAX_EXPERIENCES_IN_PROMPT);
   } catch {
