@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import Navbar from '@/components/feature/Navbar';
 import Footer from '@/components/feature/Footer';
 import { destinations as fallbackDestinations } from '@/mocks/homeData';
+import { type Experience } from '@/pages/experiences/types';
 
 interface Destination {
   id: string;
@@ -12,9 +13,21 @@ interface Destination {
   image: string;
 }
 
+const categoryColors: Record<string, string> = {
+  Temple: 'bg-accent-100 text-accent-800',
+  Restaurant: 'bg-secondary-100 text-secondary-800',
+  Cafe: 'bg-accent-50 text-accent-700',
+  Nature: 'bg-primary-100 text-primary-800',
+  Activity: 'bg-primary-100 text-primary-800',
+  Hotel: 'bg-secondary-100 text-secondary-800',
+  Shop: 'bg-accent-100 text-accent-800',
+  Other: 'bg-background-200 text-foreground-600',
+};
+
 export default function DestinationPage() {
   const { id } = useParams<{ id: string }>();
   const [destination, setDestination] = useState<Destination | null>(null);
+  const [experiences, setExperiences] = useState<Experience[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
@@ -23,6 +36,7 @@ export default function DestinationPage() {
     setLoading(true);
     setNotFound(false);
     setDestination(null);
+    setExperiences([]);
 
     async function fetchData() {
       let list: Destination[] = fallbackDestinations;
@@ -44,6 +58,24 @@ export default function DestinationPage() {
       const found = list.find((d) => d.id === id);
       if (found) {
         setDestination(found);
+
+        // 関連するExperienceを取得（area === destination.id で絞り込み）
+        try {
+          const expRes = await fetch('/api/experiences');
+          if (expRes.ok) {
+            const json = await expRes.json();
+            const all = Array.isArray(json) ? json : json.experiences;
+            if (!cancelled && Array.isArray(all)) {
+              const matching = all
+                .filter((e: Experience) => e.area === found.id)
+                .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''))
+                .slice(0, 6);
+              setExperiences(matching);
+            }
+          }
+        } catch {
+          // Experience取得失敗時はセクション非表示のまま
+        }
       } else {
         setNotFound(true);
       }
@@ -161,6 +193,76 @@ export default function DestinationPage() {
               <p className="text-foreground-600 text-base md:text-lg leading-relaxed">
                 {destination.description}
               </p>
+
+              {experiences.length > 0 && (
+                <section className="mt-12">
+                  <h2 className="font-heading font-bold text-xl md:text-2xl text-foreground-900 mb-6">
+                    Real Experiences from Travelers
+                  </h2>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 md:gap-6">
+                    {experiences.map((exp) => (
+                      <Link
+                        key={exp.id}
+                        to={`/experiences/${exp.id}`}
+                        className="group flex flex-col bg-background-50 rounded-xl overflow-hidden border border-background-200 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer"
+                      >
+                        {exp.photos && exp.photos.length > 0 && (
+                          <div className="relative w-full h-40 flex-shrink-0 overflow-hidden bg-background-100">
+                            <img
+                              src={exp.photos[0]}
+                              alt={exp.placeName}
+                              title={`${exp.placeName} — TABI`}
+                              className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
+                            />
+                          </div>
+                        )}
+
+                        <div className="p-5 flex flex-col flex-1">
+                          <div className="flex items-center gap-2 mb-3 flex-wrap">
+                            <span
+                              className={`inline-block text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap ${
+                                categoryColors[exp.category] ||
+                                'bg-background-200 text-foreground-600'
+                              }`}
+                            >
+                              {exp.category}
+                            </span>
+                            {exp.wouldRecommend && (
+                              <span className="inline-flex items-center text-xs font-semibold text-emerald-600 whitespace-nowrap">
+                                <i className="ri-checkbox-circle-fill mr-1"></i>
+                                Recommended
+                              </span>
+                            )}
+                          </div>
+
+                          <h3 className="font-heading font-bold text-base text-foreground-900 mb-2 leading-snug">
+                            {exp.placeName}
+                          </h3>
+
+                          <p className="text-foreground-600 text-sm leading-relaxed line-clamp-2 mb-3">
+                            {exp.whatWasGood}
+                          </p>
+
+                          <span className="mt-auto text-foreground-400 text-xs whitespace-nowrap">
+                            — {exp.authorName}
+                          </span>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+
+                  <div className="mt-8">
+                    <Link
+                      to="/experiences"
+                      className="inline-flex items-center gap-1.5 text-primary-500 hover:text-primary-600 font-semibold text-sm transition-colors whitespace-nowrap"
+                    >
+                      View All Experiences
+                      <i className="ri-arrow-right-line"></i>
+                    </Link>
+                  </div>
+                </section>
+              )}
 
               <div className="mt-10 pt-8 border-t border-background-200">
                 <button
