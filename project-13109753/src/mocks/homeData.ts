@@ -3,6 +3,7 @@ export const navLinks = [
   { label: 'Destinations', href: '#destinations' },
   // Budget Calculator link temporarily removed to avoid broken anchor (2026.08)
   // { label: 'Plan Your Trip', href: '#budget-calculator' },
+  { label: 'Experiences', href: '/experiences' },
   { label: 'About', href: '#features' },
 ];
 
@@ -70,6 +71,7 @@ export const latestGuides = [
     category: 'Activities',
     description: 'Skip the crowds and follow this carefully planned morning route through Kamakura most serene temple gardens, ending at a hidden matcha house.',
     image: 'https://readdy.ai/api/search-image?query=Kamakura%20Japan%20temple%20trail%20stone%20steps%20leading%20to%20traditional%20wooden%20temple%20gate%2C%20lush%20green%20bamboo%20forest%20surroundings%2C%20soft%20morning%20mist%2C%20minimalist%20travel%20photography%20warm%20natural%20light&width=600&height=400&seq=guide-temple-01&orientation=landscape',
+    href: '/activities/kamakura-temple-trail',
   },
   {
     id: 'guide-2',
@@ -77,6 +79,7 @@ export const latestGuides = [
     category: 'Food',
     description: 'The ultimate foodie guide to Enoshima island — where to find the freshest shirasu, legendary lobster senbei, and sunset terrace dining with Fuji views.',
     image: 'https://readdy.ai/api/search-image?query=Japanese%20seafood%20bowl%20with%20fresh%20shirasu%20whitebait%20on%20rice%20at%20seaside%20restaurant%2C%20wooden%20table%20with%20ocean%20background%2C%20natural%20lighting%2C%20food%20photography%20minimalist%20clean%20style&width=600&height=400&seq=guide-food-02&orientation=landscape',
+    href: '/food/enoshima-food-guide',
   },
   {
     id: 'guide-3',
@@ -84,6 +87,7 @@ export const latestGuides = [
     category: 'Transport',
     description: 'Compare all routes, passes, and insider shortcuts. Whether you are taking the JR line, Odakyu, or the charming Enoden tram, we have you covered.',
     image: 'https://readdy.ai/api/search-image?query=Enoden%20train%20in%20Japan%20vintage%20green%20electric%20tram%20running%20along%20coastal%20track%20with%20ocean%20view%2C%20traditional%20Japanese%20neighborhood%20background%2C%20bright%20sunny%20day%2C%20travel%20photography%20style&width=600&height=400&seq=guide-transport-03&orientation=landscape',
+    href: '/transport/tokyo-to-kamakura-enoshima',
   },
   {
     id: 'guide-4',
@@ -91,6 +95,15 @@ export const latestGuides = [
     category: 'Hidden Gems',
     description: 'Venture beyond the Great Buddha to discover tucked-away tea houses, a cave shrine only locals know, and the most photogenic bamboo path without the crowds.',
     image: 'https://readdy.ai/api/search-image?query=Hidden%20Japanese%20bamboo%20grove%20path%20in%20Kamakura%20with%20sunlight%20filtering%20through%20tall%20green%20bamboo%20stalks%2C%20stone%20lantern%20along%20path%2C%20peaceful%20secluded%20atmosphere%2C%20vertical%20composition%20travel%20photography&width=600&height=400&seq=guide-hidden-04&orientation=landscape',
+    href: '/hidden-gems/hidden-kamakura',
+  },
+  {
+    id: 'guide-5',
+    title: 'Japan Rail Pass Guide 2026: Is the JR Pass Still Worth It After the Price Increase?',
+    category: 'Transport',
+    description: 'Unlimited bullet train travel across Japan — 2026 prices, coverage, alternatives, and our honest verdict on whether the JR Pass still makes sense after the price hike.',
+    image: 'https://readdy.ai/api/search-image?query=Japan%20Shinkansen%20bullet%20train%20speeding%20past%20Mount%20Fuji%20under%20a%20clear%20blue%20sky%2C%20Japan%20Rail%20Pass%20ticket%20held%20in%20foreground%20on%20a%20modern%20station%20platform%2C%20bright%20natural%20daylight%2C%20editorial%20travel%20photography%20with%20clean%20composition%20and%20warm%20tones&width=600&height=400&seq=guide-jrpass-05&orientation=landscape',
+    href: '/transport/jr-pass-guide',
   },
 ];
 
