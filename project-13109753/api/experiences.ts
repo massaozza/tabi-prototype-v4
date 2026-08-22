@@ -55,14 +55,69 @@ export interface Experience {
 
   // EVIDENCE
   photos: string[];
+  photoDescription?: string; // 1枚目の写真をAIが解析した説明文（投稿時に一度だけ生成）
+}
+
+/**
+ * 写真の中身をGemini APIで解析し、簡潔な説明文を生成する。
+ * 投稿時に一度だけ実行し、結果をKVに保存しておく
+ * （チャットの応答のたびに画像処理を行うと遅く・高コストになるため）。
+ * 失敗しても投稿自体は止めず、単に説明文が付かないだけにする。
+ */
+async function analyzePhoto(photoUrl: string): Promise<string | null> {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) return null;
+  const model = process.env.GEMINI_MODEL || 'gemini-3.6-flash';
+
+  try {
+    const imgRes = await fetch(photoUrl);
+    if (!imgRes.ok) return null;
+    const arrayBuffer = await imgRes.arrayBuffer();
+    const base64 = Buffer.from(arrayBuffer).toString('base64');
+    const contentType = imgRes.headers.get('content-type') || 'image/jpeg';
+
+    const prompt =
+      'これは旅行者が投稿した写真です。写っているものを簡潔に日本語で説明してください' +
+      '（1〜2文、店名や場所名の断定はせず、見えるものだけを客観的に描写してください）。';
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': apiKey,
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              role: 'user',
+              parts: [
+                { text: prompt },
+                { inlineData: { mimeType: contentType, data: base64 } },
+              ],
+            },
+          ],
+        }),
+      }
+    );
+
+    if (!response.ok) return null;
+    const data = await response.json();
+    const text: string =
+      data?.candidates?.[0]?.content?.parts
+        ?.map((p: { text?: string }) => p.text || '')
+        .join('') ?? '';
+    return text.trim() || null;
+  } catch {
+    return null;
+  }
 }
 
 interface SessionRecord {
   uid: string;
   createdAt: string;
 }
-
-// ── 認証ヘルパー（自己完結） ──
 
 function getCookie(req: VercelRequest, name: string): string | null {
   const cookieHeader = req.headers.cookie || '';
@@ -80,8 +135,6 @@ async function getAuthenticatedUid(req: VercelRequest): Promise<string | null> {
     return null;
   }
 }
-
-// ── 保存用ヘルパー（自己完結、1レコード＝1キー方式） ──
 
 function recordKey(id: string): string {
   return `${COLLECTION}:${id}`;
@@ -220,6 +273,11 @@ export default async function handler(
     }
 
     const id = crypto.randomUUID();
+
+    // 1枚目の写真だけをAIで解析する（複数枚あっても最初の1枚のみ、コスト・時間を抑えるため）
+    const photoDescription =
+      photos.length > 0 ? (await analyzePhoto(photos[0])) ?? undefined : undefined;
+
     const experience: Experience = {
       id,
       uid,
@@ -237,6 +295,7 @@ export default async function handler(
       tip: body.tip?.trim() || undefined,
       wouldRecommend: body.wouldRecommend !== false,
       photos,
+      photoDescription,
     };
 
     try {
