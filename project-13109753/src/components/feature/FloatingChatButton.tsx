@@ -28,15 +28,28 @@ interface TripDayItem {
   description?: string;
 }
 
+interface TripStay {
+  hotelName: string;
+  checkInDay: number;
+  checkOutDay: number;
+}
+
+interface TripMeals {
+  breakfast?: { suggestion: string };
+  lunch?: { suggestion: string };
+  dinner?: { suggestion: string };
+}
+
 interface TripDay {
   day: number;
-  title: string;
-  items: TripDayItem[];
+  activities: TripDayItem[];
+  meals?: TripMeals;
 }
 
 interface StructuredTrip {
   title: string;
   summary: string;
+  stays: TripStay[];
   days: TripDay[];
 }
 
@@ -55,6 +68,7 @@ export default function FloatingChatButton() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Save as Trip の状態
   const [structuring, setStructuring] = useState(false);
   const [tripPreview, setTripPreview] = useState<StructuredTrip | null>(null);
   const [tripTitle, setTripTitle] = useState('');
@@ -191,6 +205,7 @@ export default function FloatingChatButton() {
         body: JSON.stringify({
           title: tripTitle.trim(),
           summary: tripPreview.summary,
+          stays: tripPreview.stays,
           days: tripPreview.days,
         }),
       });
@@ -211,6 +226,7 @@ export default function FloatingChatButton() {
     }
   }, [tripPreview, tripSaving, tripTitle, addAssistantMessage]);
 
+  // カスタムイベント 'tabi:ask-question' を受信して、パネルを開いて質問を自動送信
   useEffect(() => {
     const handleAskQuestion = (event: Event) => {
       const customEvent = event as CustomEvent<{ question?: string }>;
@@ -233,6 +249,7 @@ export default function FloatingChatButton() {
     <>
       {isOpen && (
         <div className="fixed bottom-24 right-4 md:right-6 z-[60] w-[calc(100vw-2rem)] max-w-sm h-[520px] max-h-[70vh] flex flex-col bg-background-50 border border-background-200 rounded-2xl overflow-hidden shadow-lg">
+          {/* Header */}
           <div className="flex items-center justify-between px-5 py-4 bg-primary-500 text-white">
             <div className="flex items-center gap-3">
               <span className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
@@ -271,6 +288,7 @@ export default function FloatingChatButton() {
             </div>
           </div>
 
+          {/* Messages */}
           <div
             ref={listRef}
             className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3"
@@ -353,6 +371,7 @@ export default function FloatingChatButton() {
             )}
           </div>
 
+          {/* Input */}
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -379,6 +398,7 @@ export default function FloatingChatButton() {
         </div>
       )}
 
+      {/* Save as Trip プレビューモーダル */}
       {tripPreview && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
           <div
@@ -430,6 +450,28 @@ export default function FloatingChatButton() {
                 </p>
               )}
 
+              {tripPreview.stays && tripPreview.stays.length > 0 && (
+                <div className="rounded-lg border border-background-200 bg-background-50 p-4">
+                  <h4 className="font-heading font-semibold text-sm text-foreground-950 mb-2">
+                    Accommodation
+                  </h4>
+                  <ul className="flex flex-col gap-1.5">
+                    {tripPreview.stays.map((stay, idx) => (
+                      <li
+                        key={idx}
+                        className="text-sm text-foreground-700 leading-relaxed"
+                      >
+                        <span className="font-medium">{stay.hotelName}</span>
+                        <span className="text-foreground-500">
+                          {' '}
+                          (Day {stay.checkInDay} - Day {stay.checkOutDay})
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
               <div className="flex flex-col gap-3">
                 {tripPreview.days.map((day) => (
                   <div
@@ -438,10 +480,9 @@ export default function FloatingChatButton() {
                   >
                     <h4 className="font-heading font-semibold text-sm text-foreground-950 mb-2">
                       Day {day.day}
-                      {day.title ? `: ${day.title}` : ''}
                     </h4>
                     <ul className="flex flex-col gap-1.5">
-                      {day.items.map((item, idx) => (
+                      {day.activities.map((item, idx) => (
                         <li
                           key={idx}
                           className="text-sm text-foreground-700 leading-relaxed"
@@ -461,6 +502,37 @@ export default function FloatingChatButton() {
                         </li>
                       ))}
                     </ul>
+
+                    {day.meals &&
+                      (day.meals.breakfast ||
+                        day.meals.lunch ||
+                        day.meals.dinner) && (
+                        <div className="mt-3 pt-3 border-t border-background-200">
+                          <h5 className="text-xs font-semibold text-foreground-500 uppercase tracking-wide mb-1.5">
+                            Meals
+                          </h5>
+                          <ul className="flex flex-col gap-1">
+                            {day.meals.breakfast && (
+                              <li className="text-sm text-foreground-700 leading-relaxed">
+                                <span className="font-medium">Breakfast:</span>{' '}
+                                {day.meals.breakfast.suggestion}
+                              </li>
+                            )}
+                            {day.meals.lunch && (
+                              <li className="text-sm text-foreground-700 leading-relaxed">
+                                <span className="font-medium">Lunch:</span>{' '}
+                                {day.meals.lunch.suggestion}
+                              </li>
+                            )}
+                            {day.meals.dinner && (
+                              <li className="text-sm text-foreground-700 leading-relaxed">
+                                <span className="font-medium">Dinner:</span>{' '}
+                                {day.meals.dinner.suggestion}
+                              </li>
+                            )}
+                          </ul>
+                        </div>
+                      )}
                   </div>
                 ))}
               </div>
