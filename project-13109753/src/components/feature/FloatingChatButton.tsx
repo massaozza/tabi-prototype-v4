@@ -4,10 +4,22 @@ import { useAuth } from '@/context/AuthContext';
 
 type ChatRole = 'user' | 'assistant';
 
+interface CitedExperience {
+  id: string;
+  placeName: string;
+  category: string;
+  area: string;
+  authorName: string;
+  whatWasGood: string;
+  wouldRecommend: boolean;
+  photos: string[];
+}
+
 interface ChatMessage {
   id: number;
   role: ChatRole;
   content: string;
+  citedExperiences?: CitedExperience[];
 }
 
 interface TripDayItem {
@@ -70,12 +82,15 @@ export default function FloatingChatButton() {
     }
   }, [messages, loading]);
 
-  const addAssistantMessage = useCallback((content: string) => {
-    setMessages((prev) => [
-      ...prev,
-      { id: idRef.current++, role: 'assistant', content },
-    ]);
-  }, []);
+  const addAssistantMessage = useCallback(
+    (content: string, citedExperiences?: CitedExperience[]) => {
+      setMessages((prev) => [
+        ...prev,
+        { id: idRef.current++, role: 'assistant', content, citedExperiences },
+      ]);
+    },
+    []
+  );
 
   const sendMessage = useCallback(async (text: string) => {
     const trimmed = text.trim();
@@ -108,7 +123,7 @@ export default function FloatingChatButton() {
       const data = await res.json();
 
       if (res.ok && data.reply) {
-        addAssistantMessage(data.reply);
+        addAssistantMessage(data.reply, data.citedExperiences);
       } else {
         addAssistantMessage(ERROR_MESSAGE);
       }
@@ -263,7 +278,7 @@ export default function FloatingChatButton() {
             {messages.map((msg) => (
               <div
                 key={msg.id}
-                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
               >
                 <div
                   className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
@@ -274,6 +289,56 @@ export default function FloatingChatButton() {
                 >
                   {msg.content}
                 </div>
+
+                {msg.role === 'assistant' &&
+                  msg.citedExperiences &&
+                  msg.citedExperiences.length > 0 && (
+                    <div className="mt-2 w-full flex flex-col gap-2">
+                      {msg.citedExperiences.map((exp) => (
+                        <a key={exp.id} href={`/experiences/${exp.id}`} target="_blank" rel="noopener noreferrer" className="w-full flex items-stretch gap-3 p-2.5 rounded-lg bg-accent-100/60 border border-background-200 border-l-4 border-l-accent-500 hover:bg-accent-100/90 transition-colors cursor-pointer">
+                          {exp.photos && exp.photos.length > 0 && (
+                            <div className="w-16 h-16 shrink-0 rounded-md overflow-hidden">
+                              <img
+                                src={exp.photos[0]}
+                                alt={exp.placeName}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0 flex flex-col gap-1">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="font-heading font-semibold text-sm text-foreground-950 truncate">
+                                {exp.placeName}
+                              </span>
+                              {exp.wouldRecommend && (
+                                <span className="shrink-0 text-green-600">
+                                  <i className="ri-checkbox-circle-fill text-sm"></i>
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-secondary-100 text-secondary-900 font-medium whitespace-nowrap">
+                                {exp.category}
+                              </span>
+                              <span className="text-[9px] uppercase tracking-wide text-accent-700 font-semibold whitespace-nowrap">
+                                Real experience
+                              </span>
+                            </div>
+                            {exp.whatWasGood && (
+                              <p className="text-xs text-foreground-700 leading-snug line-clamp-1">
+                                {exp.whatWasGood}
+                              </p>
+                            )}
+                            {exp.authorName && (
+                              <span className="text-[10px] text-foreground-500">
+                                — {exp.authorName}
+                              </span>
+                            )}
+                          </div>
+                        </a>
+                      ))}
+                    </div>
+                  )}
               </div>
             ))}
 
