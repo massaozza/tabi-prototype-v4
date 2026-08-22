@@ -59,23 +59,16 @@ export default function Navbar() {
 
         <div className="hidden md:flex items-center gap-8">
           {navLinks.map((link) => (
-            
-              key={link.label}
-              href={link.href}
-              className={`text-sm font-semibold whitespace-nowrap transition-colors duration-300 hover:opacity-70 ${
+            <a key={link.label} href={link.href} className={`text-sm font-semibold whitespace-nowrap transition-colors duration-300 hover:opacity-70 ${
                 scrolled ? 'text-foreground-800' : 'text-white'
-              }`}
-            >
+              }`}>
               {link.label}
             </a>
           ))}
 
-          
-            href="/experiences/new"
-            className={`flex items-center gap-1.5 text-sm font-semibold whitespace-nowrap transition-colors duration-300 hover:opacity-70 ${
+          <a href="/experiences/new" className={`flex items-center gap-1.5 text-sm font-semibold whitespace-nowrap transition-colors duration-300 hover:opacity-70 ${
               scrolled ? 'text-foreground-800' : 'text-white'
-            }`}
-          >
+            }`}>
             <i className="ri-add-line text-base"></i>
             Share Experience
           </a>
@@ -96,109 +89,4 @@ export default function Navbar() {
                   <div className="absolute right-0 top-full mt-2 min-w-[160px] bg-background-50 border border-background-200 rounded-md py-1">
                     <button
                       onClick={handleLogout}
-                      className="w-full text-left px-4 py-2.5 text-sm text-foreground-700 hover:bg-background-100 hover:text-foreground-900 transition-colors whitespace-nowrap cursor-pointer"
-                    >
-                      Logout
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <>
-                
-                  href="/login"
-                  className={`text-sm font-semibold whitespace-nowrap transition-colors duration-300 hover:opacity-70 ${
-                    scrolled ? 'text-foreground-800' : 'text-white'
-                  }`}
-                >
-                  Log in
-                </a>
-                
-                  href="/signup"
-                  className="bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-4 py-2 rounded-md transition-all duration-200 whitespace-nowrap cursor-pointer"
-                >
-                  Sign up
-                </a>
-              </>
-            )}
-          </div>
-        </div>
-
-        <button
-          className={`md:hidden w-8 h-8 flex items-center justify-center transition-colors duration-300 ${
-            scrolled ? 'text-foreground-900' : 'text-white'
-          }`}
-          onClick={() => setMobileOpen(!mobileOpen)}
-          aria-label="Toggle menu"
-        >
-          <i className={`text-xl ${mobileOpen ? 'ri-close-line' : 'ri-menu-line'}`}></i>
-        </button>
-      </nav>
-
-      {mobileOpen && (
-        <div className="md:hidden bg-background-50 border-t border-background-200 px-6 py-4 flex flex-col gap-3">
-          {navLinks.map((link) => (
-            
-              key={link.label}
-              href={link.href}
-              className="text-foreground-800 text-sm font-semibold whitespace-nowrap hover:text-primary-500 transition-colors"
-              onClick={() => setMobileOpen(false)}
-            >
-              {link.label}
-            </a>
-          ))}
-
-          
-            href="/experiences/new"
-            className="flex items-center gap-1.5 text-foreground-800 text-sm font-semibold whitespace-nowrap hover:text-primary-500 transition-colors"
-            onClick={() => setMobileOpen(false)}
-          >
-            <i className="ri-add-line"></i>
-            Share Experience
-          </a>
-
-          <div className="flex flex-col gap-3 pt-3 border-t border-background-200">
-            {loading ? null : user ? (
-              <>
-                <span className="text-foreground-500 text-sm">{user.displayName}</span>
-                <button
-                  onClick={() => {
-                    setMobileOpen(false);
-                    handleLogout();
-                  }}
-                  className="text-left text-primary-500 hover:text-primary-600 text-sm font-semibold whitespace-nowrap transition-colors cursor-pointer"
-                >
-                  Logout
-                </button>
-              </>
-            ) : (
-              <div className="flex items-center gap-4">
-                
-                  href="/login"
-                  className="text-foreground-800 text-sm font-semibold whitespace-nowrap hover:text-primary-500 transition-colors"
-                  onClick={() => setMobileOpen(false)}
-                >
-                  Log in
-                </a>
-                
-                  href="/signup"
-                  className="bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-4 py-2 rounded-md transition-all duration-200 whitespace-nowrap cursor-pointer"
-                  onClick={() => setMobileOpen(false)}
-                >
-                  Sign up
-                </a>
-              </div>
-            )}
-          </div>
-
-          <div className="flex items-center gap-4 pt-2 border-t border-background-200">
-            <a href="#" className="w-6 h-6 flex items-center justify-center text-foreground-500 hover:text-primary-500 transition-colors" aria-label="Instagram"><i className="ri-instagram-line"></i></a>
-            <a href="#" className="w-6 h-6 flex items-center justify-center text-foreground-500 hover:text-primary-500 transition-colors" aria-label="Pinterest"><i className="ri-pinterest-line"></i></a>
-            <a href="#" className="w-6 h-6 flex items-center justify-center text-foreground-500 hover:text-primary-500 transition-colors" aria-label="Reddit"><i className="ri-reddit-line"></i></a>
-            <a href="#" className="w-6 h-6 flex items-center justify-center text-foreground-500 hover:text-primary-500 transition-colors" aria-label="YouTube"><i className="ri-youtube-line"></i></a>
-          </div>
-        </div>
-      )}
-    </header>
-  );
-}
+                      className="w-full text-left px-4 py-2.5 text-sm text-foreground-700 hover:bg-background-100 hover:text-foreground-900 transition-colors whitespace-nowrap
