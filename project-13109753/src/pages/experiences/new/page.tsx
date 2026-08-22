@@ -35,15 +35,48 @@ const BUDGET_OPTIONS = ['', 'Budget', 'Mid-range', 'Luxury'];
 
 const MAX_TEXT_LENGTH = 2000;
 
+type Step = 'form' | 'review' | 'success';
+
 const inputClass =
   'w-full bg-background-50 border border-background-200 rounded-md px-4 py-3 text-sm text-foreground-900 placeholder:text-foreground-400 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-primary-400 transition-all';
 
 const selectClass =
   'w-full bg-background-50 border border-background-200 rounded-md px-4 py-3 pr-10 text-sm text-foreground-900 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-primary-400 transition-all appearance-none cursor-pointer';
 
+function ReviewField({
+  label,
+  value,
+  multiline,
+}: {
+  label: string;
+  value: string;
+  multiline?: boolean;
+}) {
+  if (multiline) {
+    return (
+      <div className="py-4 border-b border-background-100 last:border-b-0">
+        <span className="block font-heading font-semibold text-sm text-foreground-600 mb-1">
+          {label}
+        </span>
+        <p className="text-sm text-foreground-900 whitespace-pre-wrap break-words">{value}</p>
+      </div>
+    );
+  }
+  return (
+    <div className="flex items-start justify-between gap-6 py-3 border-b border-background-100 last:border-b-0">
+      <span className="font-heading font-semibold text-sm text-foreground-600 whitespace-nowrap">
+        {label}
+      </span>
+      <span className="text-sm text-foreground-900 text-right break-words">{value}</span>
+    </div>
+  );
+}
+
 export default function NewExperiencePage() {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
+
+  const [step, setStep] = useState<Step>('form');
 
   const [placeName, setPlaceName] = useState('');
   const [area, setArea] = useState('kamakura');
@@ -61,14 +94,18 @@ export default function NewExperiencePage() {
   const [photosUploading, setPhotosUploading] = useState(false);
 
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [uploaderKey, setUploaderKey] = useState(0);
 
   useEffect(() => {
     if (!loading && !user) {
       navigate('/login', { replace: true });
     }
   }, [loading, user, navigate]);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [step]);
 
   if (loading) {
     return (
@@ -89,29 +126,38 @@ export default function NewExperiencePage() {
   const requiredFilled =
     placeName.trim() !== '' && visitedMonth !== '' && whatWasGood.trim() !== '';
 
-  const canSubmit = requiredFilled && !photosUploading && !submitting;
+  const canReview = requiredFilled && !photosUploading;
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const areaLabel = AREA_OPTIONS.find((opt) => opt.value === area)?.label ?? area;
+
+  const buildPayload = () => ({
+    authorName: user.displayName,
+    placeName: placeName.trim(),
+    area,
+    category,
+    visitedMonth,
+    travelStyle,
+    companions: companions.trim(),
+    budgetLevel,
+    whatWasGood: whatWasGood.trim(),
+    whatWasHard: whatWasHard.trim(),
+    tip: tip.trim(),
+    wouldRecommend,
+    photos: photoUrls,
+  });
+
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!canSubmit) return;
+    if (!canReview) return;
+    setError('');
+    setStep('review');
+  };
+
+  const handleConfirmPost = async () => {
     setError('');
     setSubmitting(true);
     try {
-      const payload = {
-        authorName: user.displayName,
-        placeName: placeName.trim(),
-        area,
-        category,
-        visitedMonth,
-        travelStyle,
-        companions: companions.trim(),
-        budgetLevel,
-        whatWasGood: whatWasGood.trim(),
-        whatWasHard: whatWasHard.trim(),
-        tip: tip.trim(),
-        wouldRecommend,
-        photos: photoUrls,
-      };
+      const payload = buildPayload();
 
       const res = await fetch('/api/experiences', {
         method: 'POST',
@@ -122,8 +168,7 @@ export default function NewExperiencePage() {
       const data = await res.json();
 
       if (res.ok && data.success) {
-        setSuccess(true);
-        setTimeout(() => navigate('/'), 1500);
+        setStep('success');
       } else {
         setError(data.error || 'Failed to post your experience. Please try again.');
       }
@@ -134,10 +179,31 @@ export default function NewExperiencePage() {
     }
   };
 
+  const resetForm = () => {
+    setPlaceName('');
+    setArea('kamakura');
+    setCategory('Temple');
+    setVisitedMonth('');
+    setTravelStyle('Solo');
+    setCompanions('');
+    setBudgetLevel('');
+    setWhatWasGood('');
+    setWhatWasHard('');
+    setTip('');
+    setWouldRecommend(true);
+    setPhotoUrls([]);
+    setPhotosUploading(false);
+    setError('');
+    setSubmitting(false);
+    setUploaderKey((k) => k + 1);
+    setStep('form');
+  };
+
   return (
     <main className="min-h-screen bg-background-50">
       <Navbar />
 
+      {/* Page Header */}
       <section className="bg-background-900 pt-24 md:pt-28 pb-16 md:pb-20 px-6 md:px-10">
         <div className="max-w-[960px] mx-auto text-center">
           <nav
@@ -159,23 +225,23 @@ export default function NewExperiencePage() {
         </div>
       </section>
 
+      {/* Content */}
       <section className="py-16 md:py-20 px-6 md:px-10">
         <div className="max-w-2xl mx-auto">
-          <div className="bg-background-50 border border-background-200 rounded-lg p-6 md:p-10">
+          {/* Step: Form */}
+          <div
+            className={`bg-background-50 border border-background-200 rounded-lg p-6 md:p-10 ${
+              step === 'form' ? '' : 'hidden'
+            }`}
+          >
             <form onSubmit={handleSubmit} className="space-y-8">
-              {success && (
-                <div className="bg-accent-50 border border-accent-200 rounded-md px-4 py-3 text-sm text-accent-900">
-                  <i className="ri-check-line mr-1"></i>
-                  Your experience has been posted! Redirecting to the home page...
-                </div>
-              )}
-
               {error && (
                 <div className="bg-red-50 border border-red-200 rounded-md px-4 py-3 text-sm text-red-700">
                   {error}
                 </div>
               )}
 
+              {/* Place */}
               <div className="space-y-5">
                 <h4 className="font-heading font-semibold text-base text-foreground-900">
                   The Place
@@ -252,6 +318,7 @@ export default function NewExperiencePage() {
                 </div>
               </div>
 
+              {/* Trip details */}
               <div className="space-y-5 pt-6 border-t border-background-200">
                 <h4 className="font-heading font-semibold text-base text-foreground-900">
                   Your Trip
@@ -347,6 +414,7 @@ export default function NewExperiencePage() {
                 </div>
               </div>
 
+              {/* Impressions */}
               <div className="space-y-5 pt-6 border-t border-background-200">
                 <h4 className="font-heading font-semibold text-base text-foreground-900">
                   Your Impressions
@@ -425,6 +493,7 @@ export default function NewExperiencePage() {
                 </div>
               </div>
 
+              {/* Recommendation */}
               <div className="pt-6 border-t border-background-200">
                 <span className="block font-heading font-semibold text-sm text-foreground-700 mb-3">
                   Would you recommend this?
@@ -455,6 +524,7 @@ export default function NewExperiencePage() {
                 </div>
               </div>
 
+              {/* Photos */}
               <div className="pt-6 border-t border-background-200">
                 <label
                   htmlFor="experience-photos"
@@ -463,6 +533,7 @@ export default function NewExperiencePage() {
                   Photos
                 </label>
                 <PhotoUploader
+                  key={uploaderKey}
                   onPhotosChange={setPhotoUrls}
                   onUploadingChange={setPhotosUploading}
                 />
@@ -470,17 +541,123 @@ export default function NewExperiencePage() {
 
               <button
                 type="submit"
-                disabled={!canSubmit}
+                disabled={!canReview}
                 className="w-full bg-primary-500 hover:bg-primary-600 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold text-sm px-6 py-3 rounded-md transition-all duration-200 whitespace-nowrap cursor-pointer"
               >
-                {submitting
-                  ? 'Posting...'
-                  : photosUploading
-                  ? 'Uploading photos...'
-                  : 'Post Experience'}
+                {photosUploading ? 'Uploading photos...' : 'Review Your Experience'}
               </button>
             </form>
           </div>
+
+          {/* Step: Review */}
+          {step === 'review' && (
+            <div className="bg-background-50 border border-background-200 rounded-lg p-6 md:p-10">
+              <h2 className="font-heading font-bold text-2xl text-foreground-900">
+                Review Your Experience
+              </h2>
+              <p className="text-sm text-foreground-500 mt-2 mb-6">
+                Please check your details before posting.
+              </p>
+
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-md px-4 py-3 text-sm text-red-700 mb-6">
+                  {error}
+                </div>
+              )}
+
+              <div className="bg-background-50 border border-background-200 rounded-md px-5 py-2">
+                <ReviewField label="Place Name" value={placeName.trim()} />
+                <ReviewField label="Area" value={areaLabel} />
+                <ReviewField label="Category" value={category} />
+                <ReviewField label="Visited Month" value={visitedMonth} />
+                <ReviewField label="Travel Style" value={travelStyle} />
+                {companions.trim() !== '' && (
+                  <ReviewField label="Companions" value={companions.trim()} />
+                )}
+                {budgetLevel !== '' && <ReviewField label="Budget Level" value={budgetLevel} />}
+                <ReviewField label="What was good?" value={whatWasGood.trim()} multiline />
+                {whatWasHard.trim() !== '' && (
+                  <ReviewField label="What was hard?" value={whatWasHard.trim()} multiline />
+                )}
+                {tip.trim() !== '' && (
+                  <ReviewField label="Tip" value={tip.trim()} multiline />
+                )}
+                <ReviewField
+                  label="Would you recommend?"
+                  value={wouldRecommend ? 'Yes' : 'No'}
+                />
+              </div>
+
+              {photoUrls.length > 0 && (
+                <div className="mt-6">
+                  <span className="block font-heading font-semibold text-sm text-foreground-700 mb-3">
+                    Photos ({photoUrls.length})
+                  </span>
+                  <div className="flex flex-wrap gap-3">
+                    {photoUrls.map((url) => (
+                      <img
+                        key={url}
+                        src={url}
+                        alt="Uploaded photo"
+                        className="w-24 h-24 rounded-md object-cover border border-background-200"
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex flex-col sm:flex-row gap-3 mt-8">
+                <button
+                  type="button"
+                  onClick={() => setStep('form')}
+                  disabled={submitting}
+                  className="w-full sm:w-auto px-6 py-3 rounded-md border border-background-300 text-foreground-700 font-semibold text-sm hover:bg-background-100 transition-colors duration-200 whitespace-nowrap cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  ← Edit
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmPost}
+                  disabled={submitting}
+                  className="w-full sm:w-auto flex-1 bg-primary-500 hover:bg-primary-600 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold text-sm px-6 py-3 rounded-md transition-all duration-200 whitespace-nowrap cursor-pointer"
+                >
+                  {submitting ? 'Posting...' : 'Confirm & Post'}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Step: Success */}
+          {step === 'success' && (
+            <div className="bg-background-50 border border-background-200 rounded-lg p-10 md:p-14 text-center">
+              <div className="w-16 h-16 mx-auto flex items-center justify-center rounded-full bg-accent-100 text-accent-600">
+                <i className="ri-checkbox-circle-line text-4xl"></i>
+              </div>
+              <h2 className="font-heading font-bold text-2xl md:text-3xl text-foreground-900 mt-6">
+                Your experience has been posted!
+              </h2>
+              <p className="text-sm text-foreground-500 mt-3 max-w-sm mx-auto">
+                Thank you for sharing your experience with other travelers.
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-3 mt-8 justify-center">
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  className="w-full sm:w-auto px-6 py-3 rounded-md border border-background-300 text-foreground-700 font-semibold text-sm hover:bg-background-100 transition-colors duration-200 whitespace-nowrap cursor-pointer"
+                >
+                  Share Another Experience
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate('/')}
+                  className="w-full sm:w-auto bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-6 py-3 rounded-md transition-all duration-200 whitespace-nowrap cursor-pointer"
+                >
+                  Back to Home
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
