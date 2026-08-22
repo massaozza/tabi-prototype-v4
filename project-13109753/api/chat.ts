@@ -4,6 +4,8 @@
 // GEMINI_API_KEYはVercelの環境変数に保存すること。フロントエンドには絶対に露出させない。
 //
 // content.ts と同じ Vercel KV のキー（content:localsPlaces / content:latestGuides / content:destinations）を読む。
+// 加えて、experiences.ts が保存する実際の旅行者の体験（Experience）も読み込み、
+// AIの回答が「実際に旅行した人の声」に基づいたものになるようにする。
 
 import { kv } from '@vercel/kv';
 import { localsPlaces, latestGuides, destinations } from '../src/mocks/homeData';
@@ -11,6 +13,40 @@ import { localsPlaces, latestGuides, destinations } from '../src/mocks/homeData'
 export const config = { runtime: 'edge' };
 
 const MAX_HISTORY_MESSAGES = 12;
+const MAX_EXPERIENCES_IN_PROMPT = 50; // トークン量が際限なく増えないよう上限を設ける
+
+interface ExperienceRecord {
+  id: string;
+  authorName: string;
+  placeName: string;
+  area: string;
+  category: string;
+  travelStyle: string;
+  companions?: string;
+  budgetLevel?: string;
+  whatWasGood: string;
+  whatWasHard?: string;
+  tip?: string;
+  wouldRecommend: boolean;
+  createdAt: string;
+}
+
+async function fetchExperiences(): Promise<ExperienceRecord[]> {
+  try {
+    const ids = await kv.smembers('experiences:all');
+    if (!ids || ids.length === 0) return [];
+    const keys = ids.map((id) => `experiences:${id}`);
+    const values = await kv.mget<ExperienceRecord[]>(...keys);
+    const records = (values || []).filter(
+      (v): v is ExperienceRecord => v !== null && v !== undefined
+    );
+    // 新しい投稿を優先して上限件数に絞る
+    records.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+    return records.slice(0, MAX_EXPERIENCES_IN_PROMPT);
+  } catch {
+    return [];
+  }
+}
 
 async function buildSystemPrompt(): Promise<string> {
   let localsData: any[] = localsPlaces;
@@ -32,6 +68,8 @@ async function buildSystemPrompt(): Promise<string> {
     if (kvDestinations) destinationsData = kvDestinations;
   } catch {}
 
+  const experiencesData = await fetchExperiences();
+
   const localsSection = localsData
     .map((p) => `- ${p.title}\n  ${p.story}`)
     .join('\n');
@@ -43,6 +81,22 @@ async function buildSystemPrompt(): Promise<string> {
   const destinationsSection = destinationsData
     .map((d) => `- [${d.category}] ${d.title}\n  ${d.description}`)
     .join('\n');
+
+  const experiencesSection =
+    experiencesData.length > 0
+      ? experiencesData
+          .map((e) => {
+            const lines = [
+              `- ${e.placeName}（${e.category}、${e.area}）— 投稿者: ${e.authorName}（${e.travelStyle}${e.companions ? `、同行者: ${e.companions}` : ''}）`,
+              `  良かった点: ${e.whatWasGood}`,
+            ];
+            if (e.whatWasHard) lines.push(`  大変だった点: ${e.whatWasHard}`);
+            if (e.tip) lines.push(`  アドバイス: ${e.tip}`);
+            lines.push(`  おすすめ度: ${e.wouldRecommend ? 'おすすめする' : 'おすすめしない'}`);
+            return lines.join('\n');
+          })
+          .join('\n')
+      : '（まだ投稿された体験談はありません）';
 
   return `あなたはTABI、鎌倉・江ノ島・湘南エリア専門の旅行コンシェルジュです。
 
@@ -63,8 +117,20 @@ ${localsSection}
 【掲載記事】
 ${guidesSection}
 
+以下は、実際にTABIのユーザーが投稿した「旅行体験談」です。関連する質問には、
+可能な限りこれらの実体験を引用して回答してください。引用する際は、
+「実際に投稿された体験によると」「〇〇さんの体験では」のように、
+これが編集部の情報ではなく、実際の旅行者の声であることが伝わるようにしてください。
+
+【投稿された旅行体験】
+${experiencesSection}
+
 回答のルール：
 - 上記の情報に関連する質問には、それを踏まえた具体的な回答をする
+- 特に「投稿された旅行体験」に関連する内容があれば、積極的に引用し、
+  実際の旅行者の声であることを明示する
+- 投稿された体験談に書かれていない内容を、体験談から得た情報であるかのように
+  創作しないこと（体験談の引用は、実際に書かれている内容のみに限る）
 - 情報にない質問（一般的な事実、他地域、リアルタイム情報など）については、
   一般的な知識で答えて構わないが、憶測で店名や営業時間などを断定しない
 - 分からないことは正直に「分かりません」「最新情報は現地で確認してください」と伝える
