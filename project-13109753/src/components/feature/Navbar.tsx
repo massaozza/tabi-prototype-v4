@@ -59,23 +59,16 @@ export default function Navbar() {
 
         <div className="hidden md:flex items-center gap-8">
           {navLinks.map((link) => (
-            <a
-              key={link.label}
-              href={link.href}
-              className={`text-sm font-semibold whitespace-nowrap transition-colors duration-300 hover:opacity-70 ${
+            <a key={link.label} href={link.href} className={`text-sm font-semibold whitespace-nowrap transition-colors duration-300 hover:opacity-70 ${
                 scrolled ? 'text-foreground-800' : 'text-white'
-              }`}
-            >
+              }`}>
               {link.label}
             </a>
           ))}
 
-          <a
-            href="/experiences/new"
-            className={`flex items-center gap-1.5 text-sm font-semibold whitespace-nowrap transition-colors duration-300 hover:opacity-70 ${
+          <a href="/experiences/new" className={`flex items-center gap-1.5 text-sm font-semibold whitespace-nowrap transition-colors duration-300 hover:opacity-70 ${
               scrolled ? 'text-foreground-800' : 'text-white'
-            }`}
-          >
+            }`}>
             <i className="ri-add-line text-base"></i>
             Share Experience
           </a>
@@ -94,6 +87,9 @@ export default function Navbar() {
                 </button>
                 {userMenuOpen && (
                   <div className="absolute right-0 top-full mt-2 min-w-[160px] bg-background-50 border border-background-200 rounded-md py-1">
+                    <a href="/trips" onClick={() => setUserMenuOpen(false)} className="block w-full text-left px-4 py-2.5 text-sm text-foreground-700 hover:bg-background-100 hover:text-foreground-900 transition-colors whitespace-nowrap">
+                      My Trips
+                    </a>
                     <button
                       onClick={handleLogout}
                       className="w-full text-left px-4 py-2.5 text-sm text-foreground-700 hover:bg-background-100 hover:text-foreground-900 transition-colors whitespace-nowrap cursor-pointer"
@@ -105,18 +101,12 @@ export default function Navbar() {
               </div>
             ) : (
               <>
-                <a
-                  href="/login"
-                  className={`text-sm font-semibold whitespace-nowrap transition-colors duration-300 hover:opacity-70 ${
+                <a href="/login" className={`text-sm font-semibold whitespace-nowrap transition-colors duration-300 hover:opacity-70 ${
                     scrolled ? 'text-foreground-800' : 'text-white'
-                  }`}
-                >
+                  }`}>
                   Log in
                 </a>
-                <a
-                  href="/signup"
-                  className="bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-4 py-2 rounded-md transition-all duration-200 whitespace-nowrap cursor-pointer"
-                >
+                <a href="/signup" className="bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-4 py-2 rounded-md transition-all duration-200 whitespace-nowrap cursor-pointer">
                   Sign up
                 </a>
               </>
@@ -138,21 +128,12 @@ export default function Navbar() {
       {mobileOpen && (
         <div className="md:hidden bg-background-50 border-t border-background-200 px-6 py-4 flex flex-col gap-3">
           {navLinks.map((link) => (
-            <a
-              key={link.label}
-              href={link.href}
-              className="text-foreground-800 text-sm font-semibold whitespace-nowrap hover:text-primary-500 transition-colors"
-              onClick={() => setMobileOpen(false)}
-            >
+            <a key={link.label} href={link.href} className="text-foreground-800 text-sm font-semibold whitespace-nowrap hover:text-primary-500 transition-colors" onClick={() => setMobileOpen(false)}>
               {link.label}
             </a>
           ))}
 
-          <a
-            href="/experiences/new"
-            className="flex items-center gap-1.5 text-foreground-800 text-sm font-semibold whitespace-nowrap hover:text-primary-500 transition-colors"
-            onClick={() => setMobileOpen(false)}
-          >
+          <a href="/experiences/new" className="flex items-center gap-1.5 text-foreground-800 text-sm font-semibold whitespace-nowrap hover:text-primary-500 transition-colors" onClick={() => setMobileOpen(false)}>
             <i className="ri-add-line"></i>
             Share Experience
           </a>
@@ -161,6 +142,9 @@ export default function Navbar() {
             {loading ? null : user ? (
               <>
                 <span className="text-foreground-500 text-sm">{user.displayName}</span>
+                <a href="/trips" onClick={() => setMobileOpen(false)} className="text-foreground-800 text-sm font-semibold whitespace-nowrap hover:text-primary-500 transition-colors">
+                  My Trips
+                </a>
                 <button
                   onClick={() => {
                     setMobileOpen(false);
@@ -173,18 +157,10 @@ export default function Navbar() {
               </>
             ) : (
               <div className="flex items-center gap-4">
-                <a
-                  href="/login"
-                  className="text-foreground-800 text-sm font-semibold whitespace-nowrap hover:text-primary-500 transition-colors"
-                  onClick={() => setMobileOpen(false)}
-                >
+                <a href="/login" className="text-foreground-800 text-sm font-semibold whitespace-nowrap hover:text-primary-500 transition-colors" onClick={() => setMobileOpen(false)}>
                   Log in
                 </a>
-                <a
-                  href="/signup"
-                  className="bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-4 py-2 rounded-md transition-all duration-200 whitespace-nowrap cursor-pointer"
-                  onClick={() => setMobileOpen(false)}
-                >
+                <a href="/signup" className="bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-4 py-2 rounded-md transition-all duration-200 whitespace-nowrap cursor-pointer" onClick={() => setMobileOpen(false)}>
                   Sign up
                 </a>
               </div>
