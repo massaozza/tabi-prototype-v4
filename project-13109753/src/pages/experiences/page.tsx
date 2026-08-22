@@ -26,7 +26,7 @@ export default function ExperiencesPage() {
         const res = await fetch('/api/experiences');
         if (!res.ok) throw new Error('Failed to fetch');
         const json = await res.json();
-        const list = Array.isArray(json) ? json : json.data;
+        const list = Array.isArray(json) ? json : json.experiences;
         if (!cancelled && Array.isArray(list)) {
           const sorted = [...list].sort((a, b) =>
             (b.createdAt || '').localeCompare(a.createdAt || '')
