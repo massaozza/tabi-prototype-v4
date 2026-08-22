@@ -36,6 +36,7 @@ interface ExperienceRecord {
   tip?: string;
   wouldRecommend: boolean;
   photos: string[];
+  photoDescription?: string;
   createdAt: string;
 }
 
@@ -95,6 +96,7 @@ function buildSystemPrompt(
             ];
             if (e.whatWasHard) lines.push(`  大変だった点: ${e.whatWasHard}`);
             if (e.tip) lines.push(`  アドバイス: ${e.tip}`);
+            if (e.photoDescription) lines.push(`  投稿写真の内容: ${e.photoDescription}`);
             lines.push(`  おすすめ度: ${e.wouldRecommend ? 'おすすめする' : 'おすすめしない'}`);
             return lines.join('\n');
           })
