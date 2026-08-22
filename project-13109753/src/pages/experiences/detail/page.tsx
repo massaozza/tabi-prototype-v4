@@ -27,7 +27,7 @@ export default function ExperienceDetailPage() {
         const res = await fetch('/api/experiences');
         if (!res.ok) throw new Error('Failed to fetch');
         const json = await res.json();
-        const list = Array.isArray(json) ? json : json.data;
+        const list = Array.isArray(json) ? json : json.experiences;
         if (!cancelled && Array.isArray(list)) {
           const found = list.find((e: Experience) => e.id === id) ?? null;
           setExperience(found);
