@@ -132,6 +132,10 @@ ${guidesSection}
 ${experiencesSection}
 
 回答のルール：
+- 【最重要】必ず、旅行者が最後に送った質問と同じ言語で回答すること。
+  質問が英語なら英語で、日本語なら日本語で、他の言語であればその言語で答える。
+  このシステムプロンプト自体は日本語で書かれているが、それに引きずられて
+  日本語で回答してはならない。
 - 上記の情報に関連する質問には、それを踏まえた具体的な回答をする
 - 特に「投稿された旅行体験」に関連する内容があれば、積極的に引用し、
   実際の旅行者の声であることを明示する
@@ -289,6 +293,8 @@ export default async function handler(req: Request): Promise<Response> {
     try {
       parsed = extractJson(rawText);
     } catch {
+      // JSONとして解釈できない場合、素のテキストをそのまま返答として使う
+      // （AIが稀に自由形式で答えてしまった場合のフォールバック。引用カードは出さない）
       return new Response(JSON.stringify({ reply: rawText, citedExperiences: [] }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
@@ -298,6 +304,8 @@ export default async function handler(req: Request): Promise<Response> {
     const result = parsed as { reply?: string; citedExperienceIds?: string[] };
     const reply = typeof result.reply === 'string' ? result.reply : '';
 
+    // AIが挙げたIDのうち、実在するExperienceのみを引用として採用する
+    // （幻覚で存在しないIDや、他の投稿のIDを挙げた場合はここで弾かれる）
     const citedIds = Array.isArray(result.citedExperienceIds)
       ? result.citedExperienceIds.filter((id): id is string => typeof id === 'string')
       : [];
