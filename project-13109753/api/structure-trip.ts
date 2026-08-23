@@ -38,6 +38,8 @@ interface RawMeal {
 }
 
 interface RawActivity {
+  type?: 'activity' | 'transport';
+  transportMode?: 'walk' | 'train' | 'bus' | 'car' | 'taxi' | 'other';
   time?: string;
   title: string;
   description?: string;
@@ -96,6 +98,13 @@ ${conversationText}
 - 食事（meals）について：会話の中で具体的なレストラン名・食事の提案が
   言及されていれば、その日の朝食/昼食/夕食として整理してください。
   言及が無い食事枠は、そのキー自体を省略してください（無理に埋めない）。
+- 移動（transport）について：会話の中で、ある活動から次の活動へ場所が
+  変わる際の交通手段（徒歩・電車・バス・車/タクシー）が言及されていれば、
+  それを type: "transport" のactivityとして、該当する2つの活動の間に
+  明示的に挿入してください（例：長谷寺の後に「江ノ電で稲村ヶ崎へ移動」と
+  言及があれば、それを1つの独立したactivityとして含める）。
+  会話の中で交通手段が全く言及されていない場合は、無理に創作せず、
+  移動のactivityは省略して構いません。
 - タイトルは、会話の内容を踏まえた分かりやすい旅行タイトルにしてください
   （例: "3 Days in Kamakura & Enoshima"）。
 
@@ -113,7 +122,8 @@ ${conversationText}
     {
       "day": 1,
       "activities": [
-        { "time": "morning", "title": "訪問先や活動", "description": "補足説明（任意）" }
+        { "type": "activity", "time": "morning", "title": "訪問先や活動", "description": "補足説明（任意）" },
+        { "type": "transport", "transportMode": "train", "title": "江ノ電で長谷から稲村ヶ崎へ移動", "description": "補足説明（任意）" }
       ],
       "meals": {
         "lunch": { "suggestion": "店名（言及があれば）" },
