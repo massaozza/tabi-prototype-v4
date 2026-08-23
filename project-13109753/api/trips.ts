@@ -42,6 +42,8 @@ interface TripMeal {
 }
 
 interface TripActivity {
+  type?: 'activity' | 'transport';
+  transportMode?: 'walk' | 'train' | 'bus' | 'car' | 'taxi' | 'other';
   time?: string;
   title: string;
   description?: string;
@@ -123,6 +125,8 @@ interface RawMealInput {
 }
 
 interface RawActivityInput {
+  type?: 'activity' | 'transport';
+  transportMode?: 'walk' | 'train' | 'bus' | 'car' | 'taxi' | 'other';
   time?: string;
   title?: string;
   description?: string;
@@ -193,6 +197,8 @@ function buildDays(raw: unknown, tripId: string): TripDay[] {
       .map((a) => {
         const item = a as RawActivityInput;
         return {
+          type: item.type === 'transport' ? 'transport' as const : 'activity' as const,
+          transportMode: item.type === 'transport' ? item.transportMode : undefined,
           time: item.time?.trim() || undefined,
           title: (item.title as string).trim(),
           description: item.description?.trim() || undefined,
