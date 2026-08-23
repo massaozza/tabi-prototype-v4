@@ -14,7 +14,12 @@ export interface TripMeal {
   status: BookingStatus;
 }
 
+export type ActivityType = 'activity' | 'transport';
+export type TransportMode = 'walk' | 'train' | 'bus' | 'car' | 'taxi' | 'other';
+
 export interface TripActivity {
+  type?: ActivityType;
+  transportMode?: TransportMode;
   time?: string;
   title: string;
   description?: string;
