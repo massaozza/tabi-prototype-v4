@@ -64,6 +64,40 @@ export default function TripsPage() {
     }
   };
 
+  const handleBookingStatusChange = (tripId: string, targetId: string) => {
+    setTrips((prev) =>
+      prev.map((t) => {
+        if (t.id !== tripId) return t;
+        return {
+          ...t,
+          stays: t.stays.map((s) =>
+            s.id === targetId ? { ...s, status: 'booked' as const } : s
+          ),
+          days: t.days.map((d) => {
+            const meals = d.meals || {};
+            return {
+              ...d,
+              meals: {
+                breakfast:
+                  meals.breakfast && meals.breakfast.id === targetId
+                    ? { ...meals.breakfast, status: 'booked' as const }
+                    : meals.breakfast,
+                lunch:
+                  meals.lunch && meals.lunch.id === targetId
+                    ? { ...meals.lunch, status: 'booked' as const }
+                    : meals.lunch,
+                dinner:
+                  meals.dinner && meals.dinner.id === targetId
+                    ? { ...meals.dinner, status: 'booked' as const }
+                    : meals.dinner,
+              },
+            };
+          }),
+        };
+      })
+    );
+  };
+
   if (authLoading) {
     return (
       <main className="min-h-screen bg-background-50">
@@ -141,10 +175,7 @@ export default function TripsPage() {
                 Start a conversation with Ask TABI and save your itinerary to plan your perfect
                 trip.
               </p>
-              <Link
-                to="/"
-                className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-6 py-3 rounded-lg transition-colors whitespace-nowrap"
-              >
+              <Link to="/" className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-6 py-3 rounded-lg transition-colors whitespace-nowrap">
                 <i className="ri-chat-3-line"></i>
                 Start with Ask TABI
               </Link>
@@ -158,6 +189,7 @@ export default function TripsPage() {
                   expanded={expandedId === trip.id}
                   onToggle={() => setExpandedId(expandedId === trip.id ? null : trip.id)}
                   onDelete={() => setDeleteTarget(trip)}
+                  onBookingStatusChange={handleBookingStatusChange}
                 />
               ))}
             </div>
