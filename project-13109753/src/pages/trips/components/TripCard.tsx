@@ -84,10 +84,10 @@ export default function TripCard({
               <i className="ri-calendar-line"></i>
               {dayCount} {dayCount === 1 ? 'day' : 'days'}
             </span>
-            {trip.stays && trip.stays.length > 0 && (
+            {(trip.stays || []).length > 0 && (
               <span className="inline-flex items-center gap-1 text-xs text-foreground-500 whitespace-nowrap">
                 <i className="ri-hotel-line"></i>
-                {trip.stays[0].hotelName}
+                {(trip.stays || [])[0].hotelName}
               </span>
             )}
           </div>
@@ -131,13 +131,13 @@ export default function TripCard({
       {expanded && (
         <div className="px-5 md:px-6 pb-6 border-t border-background-200">
           <div className="pt-5 space-y-6">
-            {trip.stays && trip.stays.length > 0 && (
+            {(trip.stays || []).length > 0 && (
               <div>
                 <h3 className="font-heading font-semibold text-sm text-foreground-900 mb-3">
                   Accommodation
                 </h3>
                 <ul className="space-y-3">
-                  {trip.stays.map((stay) => (
+                  {(trip.stays || []).map((stay) => (
                     <li key={stay.id}>
                       <div className="flex items-center justify-between gap-3">
                         <span className="text-foreground-800 font-medium text-sm">
@@ -152,11 +152,11 @@ export default function TripCard({
               </div>
             )}
 
-            {trip.days.map((day) => {
+            {(trip.days || []).map((day) => {
               const mealEntries = [
-                { label: 'Breakfast', meal: day.meals?.breakfast },
-                { label: 'Lunch', meal: day.meals?.lunch },
-                { label: 'Dinner', meal: day.meals?.dinner },
+                { label: 'Breakfast', meal: (day.meals || {}).breakfast },
+                { label: 'Lunch', meal: (day.meals || {}).lunch },
+                { label: 'Dinner', meal: (day.meals || {}).dinner },
               ].filter(
                 (entry): entry is { label: string; meal: TripMeal } => Boolean(entry.meal)
               );
@@ -167,7 +167,7 @@ export default function TripCard({
                     Day {day.day}
                   </h3>
                   <ul className="space-y-2.5">
-                    {day.activities.map((activity, idx) => (
+                    {(day.activities || []).map((activity, idx) => (
                       <li key={idx} className="flex items-start gap-3 text-sm">
                         <span className="text-foreground-400 text-xs mt-0.5 w-14 flex-shrink-0 whitespace-nowrap">
                           {activity.time || '—'}
