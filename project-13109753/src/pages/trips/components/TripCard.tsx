@@ -1,6 +1,53 @@
 import { useState } from 'react';
-import type { BookingStatus, Trip, TripMeal } from '../types';
+import type { BookingStatus, Trip, TripDay, TripMeal, TripStay, TransportMode } from '../types';
 import { formatSavedDate } from '../types';
+
+const TRANSPORT_ICONS: Record<TransportMode, string> = {
+  walk: 'ri-walk-line',
+  train: 'ri-train-line',
+  bus: 'ri-bus-2-line',
+  car: 'ri-car-line',
+  taxi: 'ri-taxi-line',
+  other: 'ri-route-line',
+};
+
+function transportIcon(mode?: TransportMode): string {
+  return TRANSPORT_ICONS[mode ?? 'other'] || TRANSPORT_ICONS.other;
+}
+
+interface DayRow {
+  day: TripDay;
+  stay?: TripStay;
+  staySpan: number;
+}
+
+function findStayForDay(stays: TripStay[], dayNum: number): TripStay | undefined {
+  return stays.find((s) => dayNum >= s.checkInDay && dayNum <= s.checkOutDay);
+}
+
+function buildDayRows(days: TripDay[], stays: TripStay[]): DayRow[] {
+  const sorted = [...days].sort((a, b) => a.day - b.day);
+  const withStay = sorted.map((day) => ({ day, stay: findStayForDay(stays, day.day) }));
+
+  const rows: DayRow[] = [];
+  let i = 0;
+  while (i < withStay.length) {
+    const stay = withStay[i].stay;
+    if (!stay) {
+      rows.push({ day: withStay[i].day, stay: undefined, staySpan: 1 });
+      i += 1;
+      continue;
+    }
+    let j = i;
+    while (j < withStay.length && withStay[j].stay?.id === stay.id) j += 1;
+    const span = j - i;
+    for (let k = i; k < j; k += 1) {
+      rows.push({ day: withStay[k].day, stay, staySpan: k === i ? span : 0 });
+    }
+    i = j;
+  }
+  return rows;
+}
 
 interface TripCardProps {
   trip: Trip;
@@ -130,85 +177,124 @@ export default function TripCard({
 
       {expanded && (
         <div className="px-5 md:px-6 pb-6 border-t border-background-200">
-          <div className="pt-5 space-y-6">
-            {(trip.stays || []).length > 0 && (
-              <div>
-                <h3 className="font-heading font-semibold text-sm text-foreground-900 mb-3">
-                  Accommodation
-                </h3>
-                <ul className="space-y-3">
-                  {(trip.stays || []).map((stay) => (
-                    <li key={stay.id}>
-                      <div className="flex items-center justify-between gap-3">
-                        <span className="text-foreground-800 font-medium text-sm">
-                          {stay.hotelName}（Day {stay.checkInDay} - Day {stay.checkOutDay}）
-                        </span>
-                        {renderBookingControl(stay.status, stay.id)}
-                      </div>
-                      {renderBookingError(stay.id)}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+          <div className="pt-5 overflow-x-auto">
+            <table className="w-full text-sm border-collapse min-w-[640px]">
+              <thead>
+                <tr className="text-left text-xs font-semibold text-foreground-500 uppercase tracking-wide border-b border-background-200">
+                  <th className="py-2 pr-3 w-16 align-bottom">Day</th>
+                  <th className="py-2 pr-3 w-40 align-bottom">Stay</th>
+                  <th className="py-2 pr-3 align-bottom">Schedule</th>
+                  <th className="py-2 pl-2 w-44 align-bottom">Meals</th>
+                </tr>
+              </thead>
+              <tbody>
+                {buildDayRows(trip.days || [], trip.stays || []).map((row) => {
+                  const nonTransport = (row.day.activities || []).filter(
+                    (a) => a.type !== 'transport'
+                  );
+                  const transportItems = (row.day.activities || []).filter(
+                    (a) => a.type === 'transport'
+                  );
+                  const mealSlots: { label: string; short: string; meal?: TripMeal }[] = [
+                    { label: 'Breakfast', short: 'B', meal: (row.day.meals || {}).breakfast },
+                    { label: 'Lunch', short: 'L', meal: (row.day.meals || {}).lunch },
+                    { label: 'Dinner', short: 'D', meal: (row.day.meals || {}).dinner },
+                  ];
 
-            {(trip.days || []).map((day) => {
-              const mealEntries = [
-                { label: 'Breakfast', meal: (day.meals || {}).breakfast },
-                { label: 'Lunch', meal: (day.meals || {}).lunch },
-                { label: 'Dinner', meal: (day.meals || {}).dinner },
-              ].filter(
-                (entry): entry is { label: string; meal: TripMeal } => Boolean(entry.meal)
-              );
-
-              return (
-                <div key={day.day}>
-                  <h3 className="font-heading font-semibold text-sm text-foreground-900 mb-3">
-                    Day {day.day}
-                  </h3>
-                  <ul className="space-y-2.5">
-                    {(day.activities || []).map((activity, idx) => (
-                      <li key={idx} className="flex items-start gap-3 text-sm">
-                        <span className="text-foreground-400 text-xs mt-0.5 w-14 flex-shrink-0 whitespace-nowrap">
-                          {activity.time || '—'}
-                        </span>
-                        <span className="flex-1 min-w-0">
-                          <span className="text-foreground-800 font-medium">
-                            {activity.title}
+                  return (
+                    <tr key={row.day.day} className="border-b border-background-100 align-top">
+                      <td className="py-3 pr-3 whitespace-nowrap">
+                        <span className="font-semibold text-foreground-800">Day {row.day.day}</span>
+                        {row.day.date && (
+                          <span className="block text-foreground-400 text-xs mt-0.5">
+                            {row.day.date}
                           </span>
-                          {activity.description && (
-                            <span className="block text-foreground-500 text-xs leading-relaxed mt-0.5">
-                              {activity.description}
-                            </span>
-                          )}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
+                        )}
+                      </td>
 
-                  {mealEntries.length > 0 && (
-                    <div className="mt-4">
-                      <h4 className="font-heading font-semibold text-xs uppercase tracking-wide text-foreground-500 mb-2">
-                        Meals
-                      </h4>
-                      <ul className="space-y-2.5">
-                        {mealEntries.map(({ label, meal }) => (
-                          <li key={meal.id}>
-                            <div className="flex items-center justify-between gap-3">
-                              <span className="text-sm text-foreground-800 flex-1 min-w-0">
-                                <span className="font-medium">{label}:</span> {meal.suggestion}
+                      {row.staySpan !== 0 && (
+                        <td className="py-3 pr-3" rowSpan={row.staySpan || 1}>
+                          {row.stay ? (
+                            <div>
+                              <span className="text-foreground-800 font-medium text-sm block flex items-center gap-1">
+                                <i className="ri-hotel-line text-foreground-400"></i>
+                                {row.stay.hotelName}
                               </span>
-                              {renderBookingControl(meal.status, meal.id)}
+                              <div className="mt-1.5">
+                                {renderBookingControl(row.stay.status, row.stay.id)}
+                              </div>
+                              {renderBookingError(row.stay.id)}
                             </div>
-                            {renderBookingError(meal.id)}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+                          ) : (
+                            <span className="text-foreground-300 text-xs">—</span>
+                          )}
+                        </td>
+                      )}
+
+                      <td className="py-3 pr-3">
+                        {transportItems.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5 mb-2">
+                            {transportItems.map((t, i) => (
+                              <span
+                                key={i}
+                                className="inline-flex items-center gap-1.5 bg-background-100 text-foreground-600 text-xs rounded-full px-2.5 py-1"
+                              >
+                                <i className={`${transportIcon(t.transportMode)} flex-shrink-0`}></i>
+                                {t.title}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        <ul className="space-y-2">
+                          {nonTransport.map((activity, idx) => (
+                            <li key={idx} className="text-sm">
+                              {activity.time && (
+                                <span className="text-foreground-400 text-xs mr-1.5 whitespace-nowrap">
+                                  {activity.time}
+                                </span>
+                              )}
+                              <span className="text-foreground-800 font-medium">
+                                {activity.title}
+                              </span>
+                              {activity.description && (
+                                <span className="block text-foreground-500 text-xs leading-relaxed mt-0.5">
+                                  {activity.description}
+                                </span>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      </td>
+
+                      <td className="py-3 pl-2">
+                        <div className="flex flex-col gap-2">
+                          {mealSlots.map(({ label, short, meal }) => (
+                            <div key={label} className="text-xs" title={label}>
+                              {meal ? (
+                                <div>
+                                  <span className="text-foreground-400 font-semibold mr-1">
+                                    {short}
+                                  </span>
+                                  <span className="text-foreground-700">{meal.suggestion}</span>
+                                  <div className="mt-1">
+                                    {renderBookingControl(meal.status, meal.id)}
+                                  </div>
+                                  {renderBookingError(meal.id)}
+                                </div>
+                              ) : (
+                                <span className="text-foreground-300">
+                                  <span className="font-semibold mr-1">{short}</span>—
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         </div>
       )}
