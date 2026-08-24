@@ -2,6 +2,7 @@ import Navbar from '@/components/feature/Navbar';
 import Footer from '@/components/feature/Footer';
 import HeroSection from './components/HeroSection';
 import BrandPhilosophySection from './components/BrandPhilosophySection';
+import JapanMapSection from './components/JapanMapSection';
 import DestinationsSection from './components/DestinationsSection';
 import FeaturedSection from './components/FeaturedSection';
 // Budget Calculator section temporarily disabled (2026.08) — keep component file intact
@@ -16,6 +17,7 @@ export default function Home() {
       <Navbar />
       <HeroSection />
       <BrandPhilosophySection />
+      <JapanMapSection />
       <DestinationsSection />
       <FeaturedSection />
       {/* Budget Calculator section temporarily hidden */}
