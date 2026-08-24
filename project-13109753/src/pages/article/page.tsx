@@ -149,7 +149,9 @@ export default function ArticlePage() {
         heroCaption={data.heroCaption}
       />
 
-      {data.affiliateCta && <AffiliateCtaBox data={data.affiliateCta} />}
+      {data.affiliateCta && (
+        <AffiliateCtaBox data={data.affiliateCta} articleSlug={data.articleSlug} />
+      )}
 
       <section className="py-12 md:py-16 px-6 md:px-10 lg:px-20 bg-background-50">
         <div className="max-w-[1140px] mx-auto">
