@@ -118,7 +118,8 @@ ${conversationText}
   transportMode（walk/train/bus/car/taxi/other）も、会話の中の記述から
   判断できる範囲で設定してください。判断できない場合は "other" にしてください。
 - タイトルは、会話の内容を踏まえた分かりやすい旅行タイトルにしてください
-  （例: "3 Days in Kamakura & Enoshima"）。
+  （例: "3 Days in Kamakura & Enoshima"、"5 Days in Kyoto & Osaka" など、
+  会話で実際に扱われた地域名を使うこと）。
 
 出力は、他の説明文を一切付けず、以下のJSON形式のみを出力してください。
 
