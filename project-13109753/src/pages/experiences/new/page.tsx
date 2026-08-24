@@ -5,13 +5,6 @@ import Footer from '@/components/feature/Footer';
 import { useAuth } from '@/context/AuthContext';
 import PhotoUploader from './components/PhotoUploader';
 
-const AREA_OPTIONS = [
-  { value: 'kamakura', label: 'Kamakura' },
-  { value: 'enoshima', label: 'Enoshima' },
-  { value: 'shonan', label: 'Shonan Coast' },
-  { value: 'other', label: 'Other' },
-];
-
 const CATEGORY_OPTIONS = [
   'Temple',
   'Restaurant',
@@ -79,7 +72,7 @@ export default function NewExperiencePage() {
   const [step, setStep] = useState<Step>('form');
 
   const [placeName, setPlaceName] = useState('');
-  const [area, setArea] = useState('kamakura');
+  const [area, setArea] = useState('');
   const [category, setCategory] = useState('Temple');
   const [visitedMonth, setVisitedMonth] = useState('');
   const [travelStyle, setTravelStyle] = useState('Solo');
@@ -128,7 +121,7 @@ export default function NewExperiencePage() {
 
   const canReview = requiredFilled && !photosUploading;
 
-  const areaLabel = AREA_OPTIONS.find((opt) => opt.value === area)?.label ?? area;
+  const areaLabel = area.trim();
 
   const buildPayload = () => ({
     authorName: user.displayName,
@@ -181,7 +174,7 @@ export default function NewExperiencePage() {
 
   const resetForm = () => {
     setPlaceName('');
-    setArea('kamakura');
+    setArea('');
     setCategory('Temple');
     setVisitedMonth('');
     setTravelStyle('Solo');
@@ -273,22 +266,15 @@ export default function NewExperiencePage() {
                     >
                       Area
                     </label>
-                    <div className="relative">
-                      <select
-                        id="area"
-                        name="area"
-                        value={area}
-                        onChange={(e) => setArea(e.target.value)}
-                        className={selectClass}
-                      >
-                        {AREA_OPTIONS.map((opt) => (
-                          <option key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </option>
-                        ))}
-                      </select>
-                      <i className="ri-arrow-down-s-line absolute right-3 top-1/2 -translate-y-1/2 text-foreground-400 pointer-events-none"></i>
-                    </div>
+                    <input
+                      id="area"
+                      name="area"
+                      type="text"
+                      value={area}
+                      onChange={(e) => setArea(e.target.value)}
+                      placeholder="e.g., Kamakura, Kanagawa"
+                      className={inputClass}
+                    />
                   </div>
 
                   <div>
@@ -567,7 +553,7 @@ export default function NewExperiencePage() {
 
               <div className="bg-background-50 border border-background-200 rounded-md px-5 py-2">
                 <ReviewField label="Place Name" value={placeName.trim()} />
-                <ReviewField label="Area" value={areaLabel} />
+                {areaLabel !== '' && <ReviewField label="Area" value={areaLabel} />}
                 <ReviewField label="Category" value={category} />
                 <ReviewField label="Visited Month" value={visitedMonth} />
                 <ReviewField label="Travel Style" value={travelStyle} />
