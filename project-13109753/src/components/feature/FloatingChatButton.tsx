@@ -54,7 +54,7 @@ interface StructuredTrip {
 }
 
 const WELCOME_MESSAGE =
-  'Ask me anything about Kamakura, Enoshima, or the Shonan coast — I know the spots locals actually go to.';
+  "Ask me anything about traveling in Japan — I'll help you find the spots locals actually go to.";
 
 const ERROR_MESSAGE =
   "Sorry, I'm having trouble right now. Please try again in a moment.";
@@ -383,7 +383,7 @@ export default function FloatingChatButton() {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask about Kamakura, Enoshima…"
+              placeholder="Ask about your trip to Japan…"
               className="flex-1 text-sm px-4 py-2.5 rounded-full bg-background-100 text-foreground-900 placeholder:text-foreground-400 focus:outline-none focus:ring-2 focus:ring-primary-300"
             />
             <button
