@@ -95,10 +95,7 @@ export default async function handler(req: Request): Promise<Response> {
         })
       );
 
-      const stats: Record
-        string,
-        { helpfulCount: number; helpfulByMe: boolean; citationCount: number }
-      > = {};
+      const stats: Record<string, { helpfulCount: number; helpfulByMe: boolean; citationCount: number }> = {};
       for (const [id, value] of results) {
         stats[id] = value;
       }
