@@ -85,7 +85,7 @@ export default function ExperienceForm() {
                     type="text"
                     required
                     className="w-full bg-background-50 border border-background-200 rounded-md px-4 py-2.5 text-sm text-foreground-800 placeholder:text-foreground-400 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all"
-                    placeholder="e.g. Kamakura, Enoshima, Shonan"
+                    placeholder="e.g. Kamakura, Kyoto, Osaka"
                   />
                 </div>
               </div>
