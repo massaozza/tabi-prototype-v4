@@ -18,7 +18,7 @@ export default function Footer() {
             </p>
 
             <div className="bg-background-800/50 rounded-xl p-5 max-w-md">
-              <h4 className="font-heading font-semibold text-sm mb-3">Get our free Kamakura guide</h4>
+              <h4 className="font-heading font-semibold text-sm mb-3">Get our free Japan travel guide</h4>
               <form className="flex flex-col sm:flex-row gap-2" data-readdy-form="" action="https://readdy.ai/api/form/d8khvl7jf7p243ot2mmg" method="POST" onSubmit={async (e) => {
                 e.preventDefault();
                 const form = e.currentTarget;
