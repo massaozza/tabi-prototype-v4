@@ -14,7 +14,7 @@ export default function BudgetCalculatorSection() {
           Travel Planning Tool
         </span>
         <h2 className="font-heading font-bold text-3xl md:text-5xl text-white leading-tight mb-4">
-          Plan Your Kamakura Day Trip Budget
+          Plan Your Japan Day Trip Budget
         </h2>
         <p className="text-white/80 text-base md:text-lg max-w-2xl mx-auto mb-10">
           Calculate transport, food &amp; activities in seconds — no spreadsheets needed
