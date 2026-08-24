@@ -52,16 +52,6 @@ export default function RegionPage() {
   const nextRegion =
     regionIndex >= 0 ? PREFECTURE_REGIONS[(regionIndex + 1) % PREFECTURE_REGIONS.length] : undefined;
 
-  const handleAskAboutPrefecture = (prefecture: string) => {
-    window.dispatchEvent(
-      new CustomEvent('tabi:ask-question', {
-        detail: {
-          question: `What should I see and do in ${prefecture}, Japan?`,
-        },
-      })
-    );
-  };
-
   if (!region) {
     return (
       <main className="min-h-screen bg-background-50 flex flex-col">
@@ -133,9 +123,10 @@ export default function RegionPage() {
               const hasContent = prefDestinations.length > 0;
 
               return (
-                <div
+                <Link
                   key={pref}
-                  className="bg-background-50 border border-background-200 rounded-xl overflow-hidden flex flex-col"
+                  to={`/prefectures/${encodeURIComponent(pref)}`}
+                  className="bg-background-50 border border-background-200 rounded-xl overflow-hidden flex flex-col hover:border-background-300 transition-colors cursor-pointer"
                 >
                   {hasContent ? (
                     <div className="relative w-full h-36 overflow-hidden">
@@ -155,43 +146,20 @@ export default function RegionPage() {
                     <h3 className="font-heading font-bold text-base text-foreground-900 mb-1.5">
                       {pref}
                     </h3>
-
                     {hasContent ? (
-                      <>
-                        <p className="text-foreground-500 text-xs mb-3">
-                          {prefDestinations.length}{' '}
-                          {prefDestinations.length === 1 ? 'destination' : 'destinations'} on TABI
-                        </p>
-                        <ul className="space-y-1.5 mb-2">
-                          {prefDestinations.map((d) => (
-                            <li key={d.id}>
-                              <Link
-                                to={`/destinations/${d.id}`}
-                                className="text-primary-500 hover:text-primary-600 text-sm font-medium transition-colors cursor-pointer"
-                              >
-                                {d.title}
-                              </Link>
-                            </li>
-                          ))}
-                        </ul>
-                      </>
+                      <p className="text-foreground-500 text-xs">
+                        {prefDestinations.length}{' '}
+                        {prefDestinations.length === 1 ? 'destination' : 'destinations'} on TABI
+                      </p>
                     ) : (
-                      <>
-                        <p className="text-foreground-400 text-xs mb-3">
-                          No destinations posted yet
-                        </p>
-                        <button
-                          type="button"
-                          onClick={() => handleAskAboutPrefecture(pref)}
-                          className="mt-auto inline-flex items-center gap-1.5 text-xs font-semibold text-primary-500 hover:text-primary-600 transition-colors cursor-pointer whitespace-nowrap"
-                        >
-                          <i className="ri-chat-3-line"></i>
-                          Ask TABI about {pref}
-                        </button>
-                      </>
+                      <p className="text-foreground-400 text-xs">No destinations posted yet</p>
                     )}
+                    <span className="mt-auto pt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-primary-500 whitespace-nowrap">
+                      Explore {pref}
+                      <i className="ri-arrow-right-s-line"></i>
+                    </span>
                   </div>
-                </div>
+                </Link>
               );
             })}
           </div>
