@@ -136,7 +136,22 @@ export default async function handler(
 
       await kv.set(`user:${uid}`, user);
       await kv.set(`user:byEmail:${email}`, uid);
-      await kv.sadd('users:index', uid);
+      try {
+        await kv.sadd('users:index', uid);
+      } catch (indexErr) {
+        // users:index がSet以外の型で存在してしまっている場合の自己修復。
+        // ここで失敗しても、サインアップ自体は成功させる（管理画面のUsers一覧が
+        // 該当ユーザーを拾えなくなるだけで、ログイン等には影響しないため）。
+        if (String(indexErr).includes('WRONGTYPE')) {
+          try {
+            await kv.del('users:index');
+            await kv.sadd('users:index', uid);
+          } catch {
+            // それでも失敗した場合は諦める（次回 /api/admin-users アクセス時の
+            // バックフィルで拾われる）
+          }
+        }
+      }
 
       const token = await createSession(uid);
 
