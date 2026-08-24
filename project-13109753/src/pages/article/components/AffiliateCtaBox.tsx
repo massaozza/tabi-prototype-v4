@@ -2,10 +2,31 @@ import type { AffiliateCtaData } from '../types';
 
 interface AffiliateCtaBoxProps {
   data?: AffiliateCtaData;
+  articleSlug?: string;
 }
 
-export default function AffiliateCtaBox({ data }: AffiliateCtaBoxProps) {
+export default function AffiliateCtaBox({ data, articleSlug }: AffiliateCtaBoxProps) {
   if (!data || !data.title) return null;
+
+  const handleCtaClick = () => {
+    // クリックの記録は非同期・失敗しても無視（ユーザーの遷移をブロックしない）。
+    // 実際のアフィリエイトリンクはまだ無い（href="#"のプレースホルダー）ため、
+    // 現時点ではクリックの「意思」だけを記録しておき、実際のリンクに
+    // 差し替わった後の収益計算にすぐ使えるようにする。
+    fetch('/api/affiliate-click', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        source: 'article',
+        context: articleSlug,
+        partnerName: data.partnerName,
+        ctaLabel: data.buttonText,
+      }),
+    }).catch(() => {
+      // ネットワークエラーは無視する
+    });
+  };
 
   return (
     <section className="px-6 md:px-10 lg:px-20 bg-background-50 pt-10 pb-6">
@@ -31,8 +52,9 @@ export default function AffiliateCtaBox({ data }: AffiliateCtaBoxProps) {
           )}
           <div className="flex flex-wrap items-center gap-3">
             {data.buttonText && (
-              <a
+              
                 href="#"
+                onClick={handleCtaClick}
                 className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-6 py-3 rounded-md transition-all duration-200 whitespace-nowrap cursor-pointer"
               >
                 {data.buttonText}
@@ -44,7 +66,7 @@ export default function AffiliateCtaBox({ data }: AffiliateCtaBoxProps) {
             )}
           </div>
           {data.reviewLinkText && (
-            <a
+            
               href="#review"
               className="inline-block text-primary-500 hover:text-primary-600 text-xs mt-3 transition-colors cursor-pointer"
             >
