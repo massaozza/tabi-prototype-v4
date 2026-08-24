@@ -13,6 +13,9 @@
 // 【自動バックフィル】users:index を追加する前に登録されたユーザーは、
 // この索引に含まれていない。初回アクセス時、索引が空であれば
 // user:* キーを直接スキャンして索引を作り直す（以降は通常通りSetを使う）。
+//
+// 【自己修復】users:index が何らかの理由でSet以外の型として存在してしまっている
+// 場合（WRONGTYPEエラー）、そのキーを削除してから作り直す。
 
 import { kv } from '@vercel/kv';
 
@@ -33,21 +36,61 @@ interface PublicUser {
   createdAt: string;
 }
 
+function isWrongTypeError(err: unknown): boolean {
+  return String(err).includes('WRONGTYPE');
+}
+
+async function getUsersIndexSafe(): Promise<string[] | null> {
+  try {
+    return (await kv.smembers('users:index')) as string[] | null;
+  } catch (err) {
+    if (isWrongTypeError(err)) {
+      // users:index が Set以外の型で存在している → 削除して作り直す
+      try {
+        await kv.del('users:index');
+      } catch {
+        // ignore
+      }
+      return null;
+    }
+    throw err;
+  }
+}
+
+async function addToUsersIndexSafe(uids: string[]): Promise<void> {
+  try {
+    await kv.sadd('users:index', ...uids);
+  } catch (err) {
+    if (isWrongTypeError(err)) {
+      await kv.del('users:index');
+      await kv.sadd('users:index', ...uids);
+    } else {
+      throw err;
+    }
+  }
+}
+
 async function getOrBackfillUids(): Promise<string[]> {
-  const existing = (await kv.smembers('users:index')) as string[] | null;
+  const existing = await getUsersIndexSafe();
   if (existing && existing.length > 0) {
     return existing;
   }
 
   // users:index がまだ無い/空 → user:* キーから直接スキャンしてバックフィルする
+  //
+  // 【注意】"user:*" というパターンは、user:{uid} だけでなく、
+  // user:byEmail:{email} や user:{uid}:trips / user:{uid}:experiences
+  // （そのユーザーのTrip/Experience ID一覧）のような、別の名前空間のキーにも
+  // マッチしてしまう。"user:" を取り除いた残りの文字列に ":" が含まれる場合は
+  // すべて別の名前空間のキーとみなし、候補から除外する（uid自体にはコロンが
+  // 含まれないUUID形式のため、この判定で正しく絞り込める）。
   const allUserKeys = await kv.keys('user:*');
   const candidateUids = allUserKeys
-    .filter((k) => !k.startsWith('user:byEmail:'))
     .map((k) => k.slice('user:'.length))
-    .filter((uid) => uid.length > 0);
+    .filter((rest) => rest.length > 0 && !rest.includes(':'));
 
   if (candidateUids.length > 0) {
-    await kv.sadd('users:index', ...candidateUids);
+    await addToUsersIndexSafe(candidateUids);
   }
 
   return candidateUids;
@@ -72,7 +115,15 @@ export default async function handler(req: Request): Promise<Response> {
     }
 
     const records = await Promise.all(
-      uids.map((uid) => kv.get<UserRecord>(`user:${uid}`))
+      uids.map(async (uid) => {
+        try {
+          return await kv.get<UserRecord>(`user:${uid}`);
+        } catch {
+          // 想定外の形式のuidが紛れていた場合でも、その1件だけをスキップし、
+          // 一覧全体の表示は継続する。
+          return null;
+        }
+      })
     );
 
     const users: PublicUser[] = records
