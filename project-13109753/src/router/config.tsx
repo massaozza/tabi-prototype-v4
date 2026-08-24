@@ -23,6 +23,7 @@ import NewArticlePage from "../pages/admin/articles/new/page";
 import EditArticlePage from "../pages/admin/articles/edit/page";
 import ContentPage from "../pages/admin/content/page";
 import FeaturedPage from "../pages/admin/featured/page";
+import UsersPage from "../pages/admin/users/page";
 
 const routes: RouteObject[] = [
   {
@@ -80,6 +81,10 @@ const routes: RouteObject[] = [
       {
         path: "featured",
         element: <FeaturedPage />,
+      },
+      {
+        path: "users",
+        element: <UsersPage />,
       },
     ],
   },
