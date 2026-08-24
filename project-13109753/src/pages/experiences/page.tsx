@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import Navbar from '@/components/feature/Navbar';
 import Footer from '@/components/feature/Footer';
 import { formatArea, type Experience } from './types';
-import { computeExperienceScore, MAX_EXPERIENCE_SCORE } from './score';
+import { computeExperienceScore, MAX_EXPERIENCE_SCORE, type ExperienceEngagementStats } from './score';
 
 const categoryColors: Record<string, string> = {
   Temple: 'bg-accent-100 text-accent-800',
@@ -18,6 +18,9 @@ const categoryColors: Record<string, string> = {
 
 export default function ExperiencesPage() {
   const [experiences, setExperiences] = useState<Experience[]>([]);
+  const [engagementById, setEngagementById] = useState
+    Record<string, ExperienceEngagementStats>
+  >({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -33,6 +36,25 @@ export default function ExperiencesPage() {
             (b.createdAt || '').localeCompare(a.createdAt || '')
           );
           setExperiences(sorted);
+
+          // Helpful件数・AI引用回数をまとめて取得する（一覧全体で1リクエスト）
+          if (sorted.length > 0) {
+            try {
+              const ids = sorted.map((e: Experience) => e.id).join(',');
+              const statsRes = await fetch(
+                `/api/experience-helpful?ids=${encodeURIComponent(ids)}`,
+                { credentials: 'include' }
+              );
+              if (statsRes.ok) {
+                const statsJson = await statsRes.json();
+                if (!cancelled && statsJson.stats) {
+                  setEngagementById(statsJson.stats);
+                }
+              }
+            } catch {
+              // 統計取得に失敗しても一覧自体は表示する（スコアは0点扱いになる）
+            }
+          }
         }
       } catch {
         if (!cancelled) setExperiences([]);
@@ -127,7 +149,11 @@ export default function ExperiencesPage() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
               {experiences.map((exp) => {
-                const score = computeExperienceScore(exp, experiences);
+                const score = computeExperienceScore(
+                  exp,
+                  experiences,
+                  engagementById[exp.id] || {}
+                );
                 return (
                 <Link
                   key={exp.id}
