@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import Navbar from '@/components/feature/Navbar';
 import Footer from '@/components/feature/Footer';
 import { formatArea, type Experience } from './types';
+import { computeExperienceScore, MAX_EXPERIENCE_SCORE } from './score';
 
 const categoryColors: Record<string, string> = {
   Temple: 'bg-accent-100 text-accent-800',
@@ -125,7 +126,9 @@ export default function ExperiencesPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-              {experiences.map((exp) => (
+              {experiences.map((exp) => {
+                const score = computeExperienceScore(exp, experiences);
+                return (
                 <Link
                   key={exp.id}
                   to={`/experiences/${exp.id}`}
@@ -144,6 +147,13 @@ export default function ExperiencesPage() {
                         <i className="ri-image-line text-5xl"></i>
                       </div>
                     )}
+                    <span
+                      className="absolute top-2 right-2 inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-background-900/80 text-white whitespace-nowrap backdrop-blur-sm"
+                      title={`Experience Score: ${score.total} / ${MAX_EXPERIENCE_SCORE}`}
+                    >
+                      <i className="ri-award-line"></i>
+                      {score.total}
+                    </span>
                   </div>
 
                   <div className="p-5 flex flex-col flex-1">
@@ -187,7 +197,8 @@ export default function ExperiencesPage() {
                     </span>
                   </div>
                 </Link>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
