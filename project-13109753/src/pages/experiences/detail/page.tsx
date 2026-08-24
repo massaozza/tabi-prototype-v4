@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import Navbar from '@/components/feature/Navbar';
 import Footer from '@/components/feature/Footer';
 import { formatArea, formatMonth, type Experience } from '../types';
+import { computeExperienceScore, MAX_EXPERIENCE_SCORE } from '../score';
 
 const categoryColors: Record<string, string> = {
   Temple: 'bg-accent-100 text-accent-800',
@@ -15,9 +16,27 @@ const categoryColors: Record<string, string> = {
   Other: 'bg-background-200 text-foreground-600',
 };
 
+function ScoreBar({ label, value, max }: { label: string; value: number; max: number }) {
+  const pct = max > 0 ? Math.round((value / max) * 100) : 0;
+  return (
+    <div>
+      <div className="flex items-center justify-between text-xs mb-1">
+        <span className="text-foreground-600">{label}</span>
+        <span className="text-foreground-500 font-medium">
+          {value} / {max}
+        </span>
+      </div>
+      <div className="w-full h-1.5 bg-background-200 rounded-full overflow-hidden">
+        <div className="h-full bg-primary-500 rounded-full" style={{ width: `${pct}%` }}></div>
+      </div>
+    </div>
+  );
+}
+
 export default function ExperienceDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [experience, setExperience] = useState<Experience | null>(null);
+  const [allExperiences, setAllExperiences] = useState<Experience[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -31,6 +50,7 @@ export default function ExperienceDetailPage() {
         if (!cancelled && Array.isArray(list)) {
           const found = list.find((e: Experience) => e.id === id) ?? null;
           setExperience(found);
+          setAllExperiences(list);
         }
       } catch {
         if (!cancelled) setExperience(null);
@@ -43,6 +63,8 @@ export default function ExperienceDetailPage() {
       cancelled = true;
     };
   }, [id]);
+
+  const score = experience ? computeExperienceScore(experience, allExperiences) : null;
 
   return (
     <main className="min-h-screen bg-background-50">
@@ -220,6 +242,42 @@ export default function ExperienceDetailPage() {
                     </>
                   )}
                 </span>
+              </section>
+
+              {/* Experience Score */}
+              <section className="mb-10 bg-background-50 border border-background-200 rounded-lg p-5 md:p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="font-heading font-semibold text-base text-foreground-900 flex items-center gap-2">
+                    <i className="ri-award-line text-primary-500"></i>
+                    Experience Score
+                  </h4>
+                  <span className="font-heading font-bold text-2xl text-foreground-900">
+                    {score?.total ?? 0}
+                    <span className="text-sm font-normal text-foreground-400">
+                      {' '}
+                      / {MAX_EXPERIENCE_SCORE}
+                    </span>
+                  </span>
+                </div>
+
+                <div className="space-y-3">
+                  <ScoreBar label="Detail" value={score?.detail ?? 0} max={score?.maxDetail ?? 1} />
+                  <ScoreBar
+                    label="Authenticity"
+                    value={score?.authenticity ?? 0}
+                    max={score?.maxAuthenticity ?? 1}
+                  />
+                  <ScoreBar
+                    label="Freshness"
+                    value={score?.freshness ?? 0}
+                    max={score?.maxFreshness ?? 1}
+                  />
+                  <ScoreBar label="Rarity" value={score?.rarity ?? 0} max={score?.maxRarity ?? 1} />
+                </div>
+
+                <p className="text-xs text-foreground-400 mt-4 pt-4 border-t border-background-100">
+                  Community & Impact scoring (Helpful votes, AI citations, booking impact) — coming soon.
+                </p>
               </section>
 
               <Link to="/experiences" className="inline-flex items-center gap-2 text-primary-500 hover:text-primary-600 font-semibold text-sm transition-colors whitespace-nowrap">
