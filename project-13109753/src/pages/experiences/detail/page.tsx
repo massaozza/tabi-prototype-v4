@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/feature/Navbar';
 import Footer from '@/components/feature/Footer';
+import { useAuth } from '@/context/AuthContext';
 import { formatArea, formatMonth, type Experience } from '../types';
 import { computeExperienceScore, MAX_EXPERIENCE_SCORE } from '../score';
 
@@ -35,9 +36,15 @@ function ScoreBar({ label, value, max }: { label: string; value: number; max: nu
 
 export default function ExperienceDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [experience, setExperience] = useState<Experience | null>(null);
   const [allExperiences, setAllExperiences] = useState<Experience[]>([]);
   const [loading, setLoading] = useState(true);
+  const [helpfulCount, setHelpfulCount] = useState(0);
+  const [helpfulByMe, setHelpfulByMe] = useState(false);
+  const [helpfulPending, setHelpfulPending] = useState(false);
+  const [citationCount, setCitationCount] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -64,7 +71,65 @@ export default function ExperienceDetailPage() {
     };
   }, [id]);
 
-  const score = experience ? computeExperienceScore(experience, allExperiences) : null;
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchHelpful() {
+      if (!id) return;
+      try {
+        const res = await fetch(
+          `/api/experience-helpful?ids=${encodeURIComponent(id)}`,
+          { credentials: 'include' }
+        );
+        if (!res.ok) return;
+        const json = await res.json();
+        const stat = json.stats?.[id];
+        if (!cancelled && stat) {
+          setHelpfulCount(stat.helpfulCount);
+          setHelpfulByMe(stat.helpfulByMe);
+          setCitationCount(stat.citationCount || 0);
+        }
+      } catch {
+        // 取得失敗時は0件・未押下のまま（致命的ではないため静かに諦める）
+      }
+    }
+    fetchHelpful();
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
+
+  const handleToggleHelpful = async () => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    if (!id || helpfulPending) return;
+    setHelpfulPending(true);
+    try {
+      const res = await fetch('/api/experience-helpful', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ experienceId: id }),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        setHelpfulCount(json.helpfulCount);
+        setHelpfulByMe(json.helpfulByMe);
+      }
+    } catch {
+      // ネットワークエラー時はボタンの状態をそのまま維持する
+    } finally {
+      setHelpfulPending(false);
+    }
+  };
+
+  const score = experience
+    ? computeExperienceScore(experience, allExperiences, {
+        helpfulCount,
+        citationCount,
+      })
+    : null;
 
   return (
     <main className="min-h-screen bg-background-50">
@@ -221,8 +286,8 @@ export default function ExperienceDetailPage() {
                 </section>
               )}
 
-              {/* Would recommend */}
-              <section className="mb-10">
+              {/* Would recommend / Helpful */}
+              <section className="mb-10 flex items-center gap-3 flex-wrap">
                 <span
                   className={`inline-flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-full whitespace-nowrap ${
                     experience.wouldRecommend
@@ -242,6 +307,20 @@ export default function ExperienceDetailPage() {
                     </>
                   )}
                 </span>
+
+                <button
+                  type="button"
+                  onClick={handleToggleHelpful}
+                  disabled={helpfulPending}
+                  className={`inline-flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-full whitespace-nowrap transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed ${
+                    helpfulByMe
+                      ? 'bg-primary-500 text-white'
+                      : 'bg-background-100 text-foreground-600 hover:bg-background-200'
+                  }`}
+                >
+                  <i className={helpfulByMe ? 'ri-thumb-up-fill' : 'ri-thumb-up-line'}></i>
+                  Helpful{helpfulCount > 0 ? ` (${helpfulCount})` : ''}
+                </button>
               </section>
 
               {/* Experience Score */}
@@ -273,10 +352,20 @@ export default function ExperienceDetailPage() {
                     max={score?.maxFreshness ?? 1}
                   />
                   <ScoreBar label="Rarity" value={score?.rarity ?? 0} max={score?.maxRarity ?? 1} />
+                  <ScoreBar
+                    label="Helpfulness"
+                    value={score?.helpfulness ?? 0}
+                    max={score?.maxHelpfulness ?? 1}
+                  />
+                  <ScoreBar
+                    label="AI Contribution"
+                    value={score?.aiContribution ?? 0}
+                    max={score?.maxAiContribution ?? 1}
+                  />
                 </div>
 
                 <p className="text-xs text-foreground-400 mt-4 pt-4 border-t border-background-100">
-                  Community & Impact scoring (Helpful votes, AI citations, booking impact) — coming soon.
+                  Commerce Contribution (booking &amp; affiliate impact) — coming soon.
                 </p>
               </section>
 
