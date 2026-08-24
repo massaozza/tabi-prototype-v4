@@ -18,9 +18,7 @@ const categoryColors: Record<string, string> = {
 
 export default function ExperiencesPage() {
   const [experiences, setExperiences] = useState<Experience[]>([]);
-  const [engagementById, setEngagementById] = useState
-    Record<string, ExperienceEngagementStats>
-  >({});
+  const [engagementById, setEngagementById] = useState<Record<string, ExperienceEngagementStats>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
