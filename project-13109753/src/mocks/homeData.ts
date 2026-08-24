@@ -32,6 +32,22 @@ export const destinations = [
     description: 'Where surf culture, sunsets, and everyday Japanese life meet.',
     image: 'https://readdy.ai/api/search-image?query=Shonan%20coast%20Japan%20sandy%20beach%20with%20surfboards%20and%20palm%20trees%2C%20ocean%20view%20with%20gentle%20waves%2C%20warm%20golden%20sunset%20light%2C%20minimalist%20beach%20town%20vibe%2C%20travel%20lifestyle%20photography&width=800&height=600&seq=shonan-card-03&orientation=landscape',
   },
+  {
+    id: 'hakone',
+    title: 'Hakone',
+    category: 'Hot Springs & Nature',
+    prefecture: 'Kanagawa',
+    description: 'A volcanic hot spring town where you can cruise Lake Ashi and, on clear days, catch unforgettable views of Mount Fuji.',
+    image: 'https://readdy.ai/api/search-image?query=Hakone%20Japan%20Lake%20Ashi%20with%20red%20torii%20gate%20standing%20in%20water%20and%20Mount%20Fuji%20in%20background%20on%20clear%20day%2C%20wooden%20sightseeing%20cruise%20boat%20on%20calm%20lake%2C%20soft%20natural%20light%2C%20serene%20minimalist%20travel%20photography%20with%20clean%20composition&width=800&height=600&seq=hakone-card-04&orientation=landscape',
+  },
+  {
+    id: 'asakusa',
+    title: 'Asakusa',
+    category: 'Culture & History',
+    prefecture: 'Tokyo',
+    description: 'The historic downtown of Tokyo, home to Senso-ji Temple and the lively Nakamise shopping street.',
+    image: 'https://readdy.ai/api/search-image?query=Asakusa%20Japan%20Sensoji%20temple%20with%20giant%20red%20paper%20lantern%20and%20Nakamise%20shopping%20street%20lined%20with%20traditional%20shops%2C%20historic%20downtown%20Tokyo%20atmosphere%2C%20warm%20natural%20light%2C%20minimalist%20travel%20photography%20with%20clean%20composition&width=800&height=600&seq=asakusa-card-05&orientation=landscape',
+  },
 ];
 
 export const localsPlaces = [
