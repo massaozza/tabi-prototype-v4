@@ -15,6 +15,8 @@ interface CreatorStats {
   categoryCount: number;
   areas: string[];
   categories: string[];
+  totalHelpful: number;
+  totalCitations: number;
 }
 
 function formatJoinedDate(iso: string): string {
@@ -107,7 +109,7 @@ export default function CreatorProfilePage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-6">
               <StatCard
                 value={stats.experienceCount}
                 label={stats.experienceCount === 1 ? 'Experience shared' : 'Experiences shared'}
@@ -118,6 +120,16 @@ export default function CreatorProfilePage() {
                 value={stats.categoryCount}
                 label="Categories covered"
                 icon="ri-price-tag-3-line"
+              />
+              <StatCard
+                value={stats.totalHelpful}
+                label="Helpful votes"
+                icon="ri-thumb-up-line"
+              />
+              <StatCard
+                value={stats.totalCitations}
+                label="AI citations"
+                icon="ri-chat-quote-line"
               />
             </div>
 
