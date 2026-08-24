@@ -52,7 +52,7 @@ export default function AffiliateCtaBox({ data, articleSlug }: AffiliateCtaBoxPr
           )}
           <div className="flex flex-wrap items-center gap-3">
             {data.buttonText && (
-              
+               <a 
                 href="#"
                 onClick={handleCtaClick}
                 className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-6 py-3 rounded-md transition-all duration-200 whitespace-nowrap cursor-pointer"
@@ -66,7 +66,7 @@ export default function AffiliateCtaBox({ data, articleSlug }: AffiliateCtaBoxPr
             )}
           </div>
           {data.reviewLinkText && (
-            
+             <a
               href="#review"
               className="inline-block text-primary-500 hover:text-primary-600 text-xs mt-3 transition-colors cursor-pointer"
             >
