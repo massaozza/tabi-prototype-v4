@@ -392,6 +392,19 @@ export default async function handler(req: Request): Promise<Response> {
         photos: e.photos,
       }));
 
+    // Contribution計測：実際に引用されたExperienceの「AIに引用された回数」を
+    // カウントアップする（Creator Profile・Experience Scoreで使用する）。
+    // 失敗しても、チャットの返答自体には影響させない。
+    if (citedExperiences.length > 0) {
+      try {
+        await Promise.all(
+          citedExperiences.map((e) => kv.incr(`experience:${e.id}:citations`))
+        );
+      } catch {
+        // カウント更新の失敗は無視する（回答は正常に返す）
+      }
+    }
+
     return new Response(JSON.stringify({ reply, citedExperiences }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
