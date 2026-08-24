@@ -122,7 +122,13 @@ export default function ExperienceDetailPage() {
               </h1>
 
               <p className="text-foreground-500 text-sm mb-8">
-                Posted by <span className="text-foreground-800 font-medium">{experience.authorName}</span>{' '}
+                Posted by{' '}
+                <Link
+                  to={`/creator/${experience.uid}`}
+                  className="text-foreground-800 font-medium hover:text-primary-600 transition-colors"
+                >
+                  {experience.authorName}
+                </Link>{' '}
                 in {formatMonth(experience.visitedMonth)}
               </p>
 
