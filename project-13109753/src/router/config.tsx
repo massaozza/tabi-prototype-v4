@@ -26,6 +26,7 @@ import FeaturedPage from "../pages/admin/featured/page";
 import UsersPage from "../pages/admin/users/page";
 import CreatorProfilePage from "../pages/creator/page";
 import RegionPage from "../pages/region/page";
+import PrefecturePage from "../pages/prefecture/page";
 
 const routes: RouteObject[] = [
   {
@@ -129,6 +130,10 @@ const routes: RouteObject[] = [
   {
     path: "/regions/:slug",
     element: <RegionPage />,
+  },
+  {
+    path: "/prefectures/:name",
+    element: <PrefecturePage />,
   },
   {
     path: "/:category/:articleSlug",
