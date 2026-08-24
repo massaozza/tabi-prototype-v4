@@ -8,9 +8,11 @@
 // 実行時に "Cannot find module" エラーになることがあるため。
 //
 // 参照するKVキー：
-// - user:{uid}              → ユーザーレコード（公開情報だけを抜き出して返す）
-// - user:{uid}:experiences  → そのユーザーが投稿したExperienceのID一覧（Set）
-// - experience:{id}         → 各Experienceの中身（api/experiences.ts が保存）
+// - user:{uid}                → ユーザーレコード（公開情報だけを抜き出して返す）
+// - user:{uid}:experiences    → そのユーザーが投稿したExperienceのID一覧（Set）
+// - experience:{id}           → 各Experienceの中身（api/experiences.ts が保存）
+// - experience:{id}:helpful   → そのExperienceに「役立った」を押したuidのSet
+// - experience:{id}:citations → AIチャットでの引用回数（整数カウンター）
 //
 // GET /api/creator-profile?uid=xxx
 
@@ -87,6 +89,26 @@ export default async function handler(req: Request): Promise<Response> {
     const areas = uniqueNonEmpty(experiences.map((e) => e.area));
     const categories = uniqueNonEmpty(experiences.map((e) => e.category));
 
+    // Helpful合計・AI引用回数合計を、投稿している全Experienceにわたって集計する
+    let totalHelpful = 0;
+    let totalCitations = 0;
+    if (experiences.length > 0) {
+      const engagementResults = await Promise.all(
+        experiences.map(async (e) => {
+          const [members, citationCount] = await Promise.all([
+            kv.smembers(`experience:${e.id}:helpful`) as Promise<string[] | null>,
+            kv.get<number>(`experience:${e.id}:citations`),
+          ]);
+          return {
+            helpfulCount: members?.length || 0,
+            citationCount: citationCount || 0,
+          };
+        })
+      );
+      totalHelpful = engagementResults.reduce((sum, r) => sum + r.helpfulCount, 0);
+      totalCitations = engagementResults.reduce((sum, r) => sum + r.citationCount, 0);
+    }
+
     return new Response(
       JSON.stringify({
         profile: {
@@ -100,6 +122,8 @@ export default async function handler(req: Request): Promise<Response> {
           categoryCount: categories.length,
           areas,
           categories,
+          totalHelpful,
+          totalCitations,
         },
       }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
