@@ -24,6 +24,7 @@ import EditArticlePage from "../pages/admin/articles/edit/page";
 import ContentPage from "../pages/admin/content/page";
 import FeaturedPage from "../pages/admin/featured/page";
 import UsersPage from "../pages/admin/users/page";
+import CreatorProfilePage from "../pages/creator/page";
 
 const routes: RouteObject[] = [
   {
@@ -119,6 +120,10 @@ const routes: RouteObject[] = [
   {
     path: "/trips",
     element: <TripsPage />,
+  },
+  {
+    path: "/creator/:userId",
+    element: <CreatorProfilePage />,
   },
   {
     path: "/:category/:articleSlug",
