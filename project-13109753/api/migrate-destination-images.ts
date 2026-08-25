@@ -99,7 +99,13 @@ export default async function handler(
         return { id: dest.id, skipped: true, reason: 'Already migrated or not a readdy.ai URL' };
       }
       try {
-        const imgRes = await fetch(dest.image);
+        const imgRes = await fetch(dest.image, {
+          headers: {
+            'User-Agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            Accept: 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
+          },
+        });
         if (!imgRes.ok) {
           return { id: dest.id, error: `Failed to fetch source image (status ${imgRes.status})` };
         }
