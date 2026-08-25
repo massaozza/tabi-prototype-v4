@@ -6,15 +6,20 @@
 // 解決するため、各画像をサーバー側で取得し、Cloudflare R2に保存し直して、
 // 新しいURLのマッピングを返す。
 //
-// 【重要】この処理はサーバー側（Vercel Functions）で行う必要がある。
-// readdy.aiの画像サーバーは、リクエスト元（Referer）を見て拒否するため、
-// ブラウザから直接読み込むことはできないが、サーバー間通信であれば
-// 問題なく取得できる。
+// 【重要】このファイルは自己完結型にしてある（api/内の他ファイルからも、
+// src/内のファイルからもimportしない）。Vercelのビルド環境では、
+// api/配下のNode.js Runtimeファイルが他ファイルをimportすると、
+// 実行時に "Cannot find module" のようなエラーでクラッシュすることがある。
+// そのため、destinationsデータは /api/content?type=destinations を
+// サーバー間通信で呼び出して取得する（すでに動作確認済みのAPIのため安全）。
+//
+// 【重要】readdy.aiの画像サーバーは、リクエスト元（Referer）を見て
+// ブラウザからの読み込みを拒否するが、サーバー間通信であれば問題なく
+// 取得できるため、この移行処理はサーバー側（Vercel Functions）で行う。
 //
 // 使い方：
 // GET /api/migrate-destination-images?offset=0&limit=20
-//   → 現在のdestinationsデータ（/api/content?type=destinations と同じ
-//     データソース）を取得し、offset番目からlimit件だけ処理する
+//   → offset番目からlimit件だけ処理する
 //   → 一度に大量に処理するとVercelの実行時間制限に達する可能性があるため、
 //     20件程度ずつ、offsetを増やして繰り返し呼び出すことを推奨する
 //   → レスポンスで { total, processed, results: [{ id, newUrl } ...] } を返す
@@ -22,10 +27,8 @@
 // 認証は不要（開発者が手動でこのURLを叩く一時的な移行ツールのため）。
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { kv } from '@vercel/kv';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import crypto from 'crypto';
-import { destinations as fallbackDestinations } from '../src/mocks/homeData';
 
 interface Destination {
   id: string;
@@ -54,14 +57,20 @@ export default async function handler(
   const offset = Number(req.query.offset) || 0;
   const limit = Math.min(Number(req.query.limit) || 20, 30); // 1回の上限は30件
 
-  // content.ts と同じ考え方：KVに保存済みのデータがあればそれを使い、
-  // 無ければ homeData.ts のフォールバックを使う
-  let destinations: Destination[] = fallbackDestinations as Destination[];
+  let destinations: Destination[] = [];
   try {
-    const kvData = await kv.get<Destination[]>('content:destinations');
-    if (kvData) destinations = kvData;
-  } catch {
-    // KV取得失敗時はフォールバックのまま
+    const proto = req.headers['x-forwarded-proto'] || 'https';
+    const host = req.headers.host;
+    const contentRes = await fetch(`${proto}://${host}/api/content?type=destinations`);
+    if (!contentRes.ok) {
+      res.status(502).json({ error: 'Failed to fetch destinations from /api/content' });
+      return;
+    }
+    const contentJson = await contentRes.json();
+    destinations = Array.isArray(contentJson?.data) ? contentJson.data : [];
+  } catch (err) {
+    res.status(502).json({ error: 'Failed to fetch destinations', detail: String(err) });
+    return;
   }
 
   const slice = destinations.slice(offset, offset + limit);
@@ -86,7 +95,6 @@ export default async function handler(
 
   const results = await Promise.all(
     slice.map(async (dest) => {
-      // すでにR2（自社ドメイン）の画像になっている場合はスキップする
       if (dest.image.includes(publicUrlBase) || !dest.image.includes('readdy.ai')) {
         return { id: dest.id, skipped: true, reason: 'Already migrated or not a readdy.ai URL' };
       }
