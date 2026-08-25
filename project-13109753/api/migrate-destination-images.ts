@@ -56,6 +56,8 @@ export default async function handler(
 
   const offset = Number(req.query.offset) || 0;
   const limit = Math.min(Number(req.query.limit) || 20, 30); // 1回の上限は30件
+  const idsParam = (req.query.ids as string) || '';
+  const idFilter = idsParam.split(',').map((s) => s.trim()).filter(Boolean);
 
   let destinations: Destination[] = [];
   try {
@@ -73,7 +75,11 @@ export default async function handler(
     return;
   }
 
-  const slice = destinations.slice(offset, offset + limit);
+  // idsが指定されていれば、それを優先して絞り込む（offset/limitは無視する）
+  const slice =
+    idFilter.length > 0
+      ? destinations.filter((d) => idFilter.includes(d.id))
+      : destinations.slice(offset, offset + limit);
 
   const accountId = process.env.R2_ACCOUNT_ID;
   const accessKeyId = process.env.R2_ACCESS_KEY_ID;
