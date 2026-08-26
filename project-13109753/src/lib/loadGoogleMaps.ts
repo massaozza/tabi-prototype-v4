@@ -5,12 +5,12 @@
 // 複数のコンポーネントが同時に呼び出しても、スクリプトタグは1つだけ挿入される
 // （すでに読み込み中・読み込み済みの場合は、そのPromiseを再利用する）。
 //
-// 【重要】loading=async 方式のスクリプトタグは、onload発生時点では
-// google.maps オブジェクト自体は存在するが、placesライブラリの中身
-// （PlaceAutocompleteElement等）がまだ完全に準備できていないことがある
-// （タイミングによる競合状態）。そのため、onload後に必ず
-// google.maps.importLibrary('places') を呼び、その完了を待ってから
-// resolveする（これがGoogle推奨の読み込み完了の待ち方）。
+// 【重要】Googleが推奨する新しい非同期読み込み方式（loading=async +
+// importLibrary）を試したが、動作が不安定だったため、より枯れた・確実な
+// 従来型のスクリプトタグ読み込み方式（&libraries=places をつけた単純な
+// <script src="...">）に戻している。この方式でも、新しい
+// PlaceAutocompleteElement クラス自体は問題なく利用できる
+// （Googleが利用不可としているのは、古い Autocomplete クラスのみ）。
 
 let loadPromise: Promise<void> | null = null;
 
@@ -33,26 +33,12 @@ export function loadGoogleMaps(): Promise<void> {
       return;
     }
 
-    const finishWithImportLibrary = async () => {
-      try {
-        const googleAny = (window as any).google;
-        if (!googleAny?.maps?.importLibrary) {
-          reject(new Error('google.maps.importLibrary is not available'));
-          return;
-        }
-        await googleAny.maps.importLibrary('places');
-        resolve();
-      } catch (err) {
-        reject(err instanceof Error ? err : new Error('Failed to import places library'));
-      }
-    };
-
     const existingScript = document.querySelector('script[data-google-maps-loader="true"]');
     if (existingScript) {
-      if ((window as any).google?.maps?.importLibrary) {
-        finishWithImportLibrary();
+      if ((window as any).google?.maps?.places?.PlaceAutocompleteElement) {
+        resolve();
       } else {
-        existingScript.addEventListener('load', finishWithImportLibrary);
+        existingScript.addEventListener('load', () => resolve());
         existingScript.addEventListener('error', () =>
           reject(new Error('Failed to load Google Maps script'))
         );
@@ -61,11 +47,11 @@ export function loadGoogleMaps(): Promise<void> {
     }
 
     const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&loading=async`;
+    // loading=async は付けず、シンプルな同期的スクリプト読み込みにする
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
     script.async = true;
-    script.defer = true;
     script.dataset.googleMapsLoader = 'true';
-    script.onload = finishWithImportLibrary;
+    script.onload = () => resolve();
     script.onerror = () => reject(new Error('Failed to load Google Maps script'));
     document.head.appendChild(script);
   });
