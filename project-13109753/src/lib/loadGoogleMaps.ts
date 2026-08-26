@@ -4,12 +4,21 @@
 //
 // 複数のコンポーネントが同時に呼び出しても、スクリプトタグは1つだけ挿入される
 // （すでに読み込み中・読み込み済みの場合は、そのPromiseを再利用する）。
+//
+// 【重要】loading=async 方式のスクリプトタグは、onload発生時点では
+// google.maps オブジェクト自体は存在するが、placesライブラリの中身
+// （PlaceAutocompleteElement等）がまだ完全に準備できていないことがある
+// （タイミングによる競合状態）。そのため、onload後に必ず
+// google.maps.importLibrary('places') を呼び、その完了を待ってから
+// resolveする（これがGoogle推奨の読み込み完了の待ち方）。
 
 let loadPromise: Promise<void> | null = null;
 
 export function loadGoogleMaps(): Promise<void> {
-  // すでに読み込み済みの場合は即座に解決する
-  if (typeof window !== 'undefined' && (window as any).google?.maps?.places) {
+  if (
+    typeof window !== 'undefined' &&
+    (window as any).google?.maps?.places?.PlaceAutocompleteElement
+  ) {
     return Promise.resolve();
   }
 
@@ -24,10 +33,30 @@ export function loadGoogleMaps(): Promise<void> {
       return;
     }
 
+    const finishWithImportLibrary = async () => {
+      try {
+        const googleAny = (window as any).google;
+        if (!googleAny?.maps?.importLibrary) {
+          reject(new Error('google.maps.importLibrary is not available'));
+          return;
+        }
+        await googleAny.maps.importLibrary('places');
+        resolve();
+      } catch (err) {
+        reject(err instanceof Error ? err : new Error('Failed to import places library'));
+      }
+    };
+
     const existingScript = document.querySelector('script[data-google-maps-loader="true"]');
     if (existingScript) {
-      existingScript.addEventListener('load', () => resolve());
-      existingScript.addEventListener('error', () => reject(new Error('Failed to load Google Maps script')));
+      if ((window as any).google?.maps?.importLibrary) {
+        finishWithImportLibrary();
+      } else {
+        existingScript.addEventListener('load', finishWithImportLibrary);
+        existingScript.addEventListener('error', () =>
+          reject(new Error('Failed to load Google Maps script'))
+        );
+      }
       return;
     }
 
@@ -36,7 +65,7 @@ export function loadGoogleMaps(): Promise<void> {
     script.async = true;
     script.defer = true;
     script.dataset.googleMapsLoader = 'true';
-    script.onload = () => resolve();
+    script.onload = finishWithImportLibrary;
     script.onerror = () => reject(new Error('Failed to load Google Maps script'));
     document.head.appendChild(script);
   });
