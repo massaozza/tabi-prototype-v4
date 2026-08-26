@@ -28,6 +28,8 @@ const COLLECTION = 'guides';
 
 export interface GuideSpot {
   spotId?: string; // 既存SPOT（destinations）と紐づく場合はそのid
+  googlePlaceId?: string; // Google Places APIの place_id（同一場所の名寄せに使う不変の識別子）
+  address?: string; // Google Places APIから取得した住所（参考情報）
   name: string; // 紐づかない新規スポットの場合、直接名前を記載
   commentJa: string;
   commentEn?: string;
