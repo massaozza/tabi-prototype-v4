@@ -135,7 +135,7 @@ export default function LatestGuidesSection() {
 
         <div className="text-center mt-10">
           <Link
-            to="/guides"
+            to="/blog"
             className="inline-flex items-center gap-2 bg-foreground-900 hover:bg-foreground-800 text-white font-semibold text-sm px-8 py-3.5 rounded-md transition-all duration-200 cursor-pointer whitespace-nowrap"
           >
             View All Guides
