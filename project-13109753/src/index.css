@@ -21,3 +21,26 @@ body {
 h1, h2, h3, h4, h5, h6 {
   font-family: 'Poppins', sans-serif;
 }
+
+/* Google Places Autocompleteの候補リストが、サイト全体のCSSリセット
+   （* { margin: 0; padding: 0; } 等）の影響で見えなくなってしまうのを防ぐ。
+   Googleのウィジェットは document.body 直下に追加されるため、
+   グローバルCSSで明示的に上書きする必要がある。 */
+.pac-container {
+  z-index: 9999 !important;
+  background-color: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12) !important;
+  font-family: 'Open Sans', sans-serif !important;
+}
+
+.pac-item {
+  padding: 8px 12px !important;
+  cursor: pointer !important;
+  font-size: 14px !important;
+}
+
+.pac-item:hover {
+  background-color: #f3f4f6 !important;
+}
