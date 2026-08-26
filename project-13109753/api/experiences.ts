@@ -38,6 +38,9 @@ export interface Experience {
   placeName: string;
   area: string;
   category: string;
+  spotId?: string; // TABI 2.0：既存SPOT（destinations）と紐づく場合のid
+                    // 投稿時にSPOTを検索して選択した場合に設定される。
+                    // 未設定でも投稿自体は成立する（placeNameの自由入力のみでもよい）。
 
   // WHEN
   visitedMonth: string; // "2026-07" 形式
@@ -148,10 +151,19 @@ function userIndexKey(uid: string): string {
   return `user:${uid}:${COLLECTION}`;
 }
 
+function spotExperiencesIndexKey(spotId: string): string {
+  return `spot:${spotId}:experiences`;
+}
+
 async function createExperienceRecord(id: string, data: Experience, uid: string): Promise<void> {
   await kv.set(recordKey(id), data);
   await kv.sadd(collectionIndexKey(), id);
   await kv.sadd(userIndexKey(uid), id);
+  // spotIdが設定されている場合、SPOT側のインデックスにも追加する
+  // （SPOT詳細ページで「旅行者の実体験」を高速に表示するため）
+  if (data.spotId) {
+    await kv.sadd(spotExperiencesIndexKey(data.spotId), id);
+  }
 }
 
 async function getExperienceRecord(id: string): Promise<Experience | null> {
@@ -159,10 +171,13 @@ async function getExperienceRecord(id: string): Promise<Experience | null> {
   return value ?? null;
 }
 
-async function deleteExperienceRecord(id: string, uid: string): Promise<void> {
+async function deleteExperienceRecord(id: string, uid: string, spotId?: string): Promise<void> {
   await kv.del(recordKey(id));
   await kv.srem(collectionIndexKey(), id);
   await kv.srem(userIndexKey(uid), id);
+  if (spotId) {
+    await kv.srem(spotExperiencesIndexKey(spotId), id);
+  }
 }
 
 async function listAllExperiences(): Promise<Experience[]> {
@@ -179,6 +194,13 @@ async function listUserExperiences(uid: string): Promise<Experience[]> {
   return (values || []).filter((v): v is Experience => v !== null && v !== undefined);
 }
 
+async function listExperiencesBySpot(spotId: string): Promise<Experience[]> {
+  const ids = await kv.smembers(spotExperiencesIndexKey(spotId));
+  if (!ids || ids.length === 0) return [];
+  const values = await kv.mget<Experience[]>(...ids.map((id) => recordKey(id)));
+  return (values || []).filter((v): v is Experience => v !== null && v !== undefined);
+}
+
 function isValidMonthFormat(value: string): boolean {
   return /^\d{4}-(0[1-9]|1[0-2])$/.test(value);
 }
@@ -190,6 +212,7 @@ export default async function handler(
   // ── GET: 一覧取得 ──
   if (req.method === 'GET') {
     const mine = req.query.mine === '1' || req.query.mine === 'true';
+    const spotId = typeof req.query.spotId === 'string' ? req.query.spotId : '';
 
     if (mine) {
       const uid = await getAuthenticatedUid(req);
@@ -198,6 +221,12 @@ export default async function handler(
         return;
       }
       const experiences = await listUserExperiences(uid);
+      res.status(200).json({ experiences });
+      return;
+    }
+
+    if (spotId) {
+      const experiences = await listExperiencesBySpot(spotId);
       res.status(200).json({ experiences });
       return;
     }
@@ -220,6 +249,7 @@ export default async function handler(
     const placeName = (body.placeName || '').trim();
     const area = (body.area || '').trim();
     const category = (body.category || '').trim();
+    const spotId = (body.spotId || '').trim() || undefined;
     const visitedMonth = (body.visitedMonth || '').trim();
     const travelStyle = (body.travelStyle || '').trim();
     const whatWasGood = (body.whatWasGood || '').trim();
@@ -286,6 +316,7 @@ export default async function handler(
       placeName,
       area,
       category,
+      spotId,
       visitedMonth,
       travelStyle,
       companions: body.companions?.trim() || undefined,
@@ -332,7 +363,7 @@ export default async function handler(
         return;
       }
 
-      await deleteExperienceRecord(id, uid);
+      await deleteExperienceRecord(id, uid, existing.spotId);
       res.status(200).json({ success: true });
     } catch (err) {
       res.status(500).json({ error: 'Failed to delete experience', detail: String(err) });
