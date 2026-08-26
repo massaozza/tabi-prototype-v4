@@ -38,6 +38,7 @@ export default function SharePage() {
 
       <section className="py-16 md:py-24 px-6 md:px-10 lg:px-20">
         <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+          {/* Share your Trip */}
           <div className="bg-background-50 border border-background-200 rounded-2xl p-8 md:p-10 flex flex-col">
             <span className="w-14 h-14 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center mb-6">
               <i className="ri-suitcase-3-line text-2xl"></i>
@@ -54,7 +55,7 @@ export default function SharePage() {
               The next traveler can save your Trip and customize it with AI.
             </p>
             <Link
-              to={user ? '/trips' : '/login'}
+              to={user ? '/my-trip' : '/login'}
               className="inline-flex items-center justify-center gap-2 bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-6 py-3 rounded-lg transition-colors whitespace-nowrap"
             >
               <i className="ri-arrow-right-line"></i>
@@ -62,6 +63,7 @@ export default function SharePage() {
             </Link>
           </div>
 
+          {/* Share your Japan */}
           <div className="bg-background-50 border border-background-200 rounded-2xl p-8 md:p-10 flex flex-col">
             <span className="w-14 h-14 rounded-full bg-accent-100 text-accent-700 flex items-center justify-center mb-6">
               <i className="ri-heart-line text-2xl"></i>
