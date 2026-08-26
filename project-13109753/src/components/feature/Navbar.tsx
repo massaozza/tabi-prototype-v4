@@ -58,13 +58,26 @@ export default function Navbar() {
         </a>
 
         <div className="hidden md:flex items-center gap-6">
-          {navLinks.map((link) => (
-            <a key={link.label} href={link.href} className={`text-sm font-semibold whitespace-nowrap transition-colors duration-300 hover:opacity-70 ${
-                scrolled ? 'text-foreground-800' : 'text-white'
-              }`}>
-              {link.label}
-            </a>
-          ))}
+          {navLinks.map((link) =>
+            link.label === 'Plan with AI' ? (
+              <button
+                key={link.label}
+                type="button"
+                onClick={() => window.dispatchEvent(new CustomEvent('tabi:open-chat'))}
+                className={`text-sm font-semibold whitespace-nowrap transition-colors duration-300 hover:opacity-70 cursor-pointer ${
+                  scrolled ? 'text-foreground-800' : 'text-white'
+                }`}
+              >
+                {link.label}
+              </button>
+            ) : (
+              <a key={link.label} href={link.href} className={`text-sm font-semibold whitespace-nowrap transition-colors duration-300 hover:opacity-70 ${
+                  scrolled ? 'text-foreground-800' : 'text-white'
+                }`}>
+                {link.label}
+              </a>
+            )
+          )}
 
           {/* My Trip / Profile：ログイン中のユーザーのみ意味を持つため、
               navLinksとは別に、ログイン時だけ動的に追加する */}
@@ -134,11 +147,25 @@ export default function Navbar() {
 
       {mobileOpen && (
         <div className="md:hidden bg-background-50 border-t border-background-200 px-6 py-4 flex flex-col gap-3">
-          {navLinks.map((link) => (
-            <a key={link.label} href={link.href} className="text-foreground-800 text-sm font-semibold whitespace-nowrap hover:text-primary-500 transition-colors" onClick={() => setMobileOpen(false)}>
-              {link.label}
-            </a>
-          ))}
+          {navLinks.map((link) =>
+            link.label === 'Plan with AI' ? (
+              <button
+                key={link.label}
+                type="button"
+                onClick={() => {
+                  setMobileOpen(false);
+                  window.dispatchEvent(new CustomEvent('tabi:open-chat'));
+                }}
+                className="text-left text-foreground-800 text-sm font-semibold whitespace-nowrap hover:text-primary-500 transition-colors cursor-pointer"
+              >
+                {link.label}
+              </button>
+            ) : (
+              <a key={link.label} href={link.href} className="text-foreground-800 text-sm font-semibold whitespace-nowrap hover:text-primary-500 transition-colors" onClick={() => setMobileOpen(false)}>
+                {link.label}
+              </a>
+            )
+          )}
 
           <div className="flex flex-col gap-3 pt-3 border-t border-background-200">
             {loading ? null : user ? (
