@@ -283,6 +283,8 @@ export default async function handler(
       ? body.spots
           .map((s) => ({
             spotId: typeof s.spotId === 'string' ? s.spotId : undefined,
+            googlePlaceId: typeof s.googlePlaceId === 'string' ? s.googlePlaceId : undefined,
+            address: typeof s.address === 'string' ? s.address : undefined,
             name: (s.name || '').trim(),
             commentJa: (s.commentJa || '').trim(),
             localTip: s.localTip?.trim() || undefined,
