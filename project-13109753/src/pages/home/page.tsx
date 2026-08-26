@@ -7,11 +7,7 @@ import DestinationsSection from './components/DestinationsSection';
 // Budget Calculator section temporarily disabled (2026.08) — keep component file intact
 // import BudgetCalculatorSection from './components/BudgetCalculatorSection';
 import LocalsRecommendSection from './components/LocalsRecommendSection';
-import LatestGuidesSection from './components/LatestGuidesSection';
 import FeaturesSection from './components/FeaturesSection';
-import TripsForYouSection from './components/TripsForYouSection';
-import TravelerExperiencesSection from './components/TravelerExperiencesSection';
-import MeetCreatorsSection from './components/MeetCreatorsSection';
 import ShareCtaSection from './components/ShareCtaSection';
 
 export default function Home() {
@@ -20,15 +16,11 @@ export default function Home() {
       <Navbar />
       <HeroSection />
       <BrandPhilosophySection />
-      <TripsForYouSection />
-      <LatestGuidesSection />
-      <DestinationsSection />
-      <JapanMapSection />
-      <LocalsRecommendSection />
-      <TravelerExperiencesSection />
-      <MeetCreatorsSection />
-      <ShareCtaSection />
       <FeaturesSection />
+      <JapanMapSection />
+      <DestinationsSection />
+      <LocalsRecommendSection />
+      <ShareCtaSection />
       {/* Budget Calculator section temporarily hidden */}
       {/* <BudgetCalculatorSection /> */}
       <Footer />
