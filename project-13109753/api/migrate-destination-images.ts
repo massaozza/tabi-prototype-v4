@@ -24,6 +24,10 @@
 //     20件程度ずつ、offsetを増やして繰り返し呼び出すことを推奨する
 //   → レスポンスで { total, processed, results: [{ id, newUrl } ...] } を返す
 //
+// GET /api/migrate-destination-images?testUrl=(URLエンコードした任意の画像URL)
+//   → homeData.tsの内容とは関係なく、そのURL1件だけをその場でテストする
+//     （検証用）
+//
 // 認証は不要（開発者が手動でこのURLを叩く一時的な移行ツールのため）。
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
@@ -58,6 +62,63 @@ export default async function handler(
   const limit = Math.min(Number(req.query.limit) || 20, 30); // 1回の上限は30件
   const idsParam = (req.query.ids as string) || '';
   const idFilter = idsParam.split(',').map((s) => s.trim()).filter(Boolean);
+  const testUrl = req.query.testUrl as string | undefined;
+
+  const accountId = process.env.R2_ACCOUNT_ID;
+  const accessKeyId = process.env.R2_ACCESS_KEY_ID;
+  const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
+  const bucketName = process.env.R2_BUCKET_NAME;
+  const publicUrl = process.env.R2_PUBLIC_URL;
+
+  if (!accountId || !accessKeyId || !secretAccessKey || !bucketName || !publicUrl) {
+    res.status(500).json({ error: 'Server misconfigured: R2 credentials are not set' });
+    return;
+  }
+
+  const s3 = new S3Client({
+    region: 'auto',
+    endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+    credentials: { accessKeyId, secretAccessKey },
+  });
+  const publicUrlBase = publicUrl.replace(/\/$/, '');
+
+  // testUrl が指定されている場合は、homeData.tsの内容とは関係なく、
+  // そのURL1件だけをその場でテストする（動作検証用）
+  if (testUrl) {
+    try {
+      const imgRes = await fetch(decodeURIComponent(testUrl), {
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          Accept: 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
+        },
+      });
+      if (!imgRes.ok) {
+        res.status(200).json({
+          testMode: true,
+          error: `Failed to fetch source image (status ${imgRes.status})`,
+        });
+        return;
+      }
+      const contentType = imgRes.headers.get('content-type') || 'image/jpeg';
+      const buffer = Buffer.from(await imgRes.arrayBuffer());
+      const objectKey = `destinations/test-${crypto.randomUUID()}.${getExtensionFromContentType(
+        contentType
+      )}`;
+      await s3.send(
+        new PutObjectCommand({
+          Bucket: bucketName,
+          Key: objectKey,
+          Body: buffer,
+          ContentType: contentType,
+        })
+      );
+      res.status(200).json({ testMode: true, newUrl: `${publicUrlBase}/${objectKey}` });
+    } catch (err) {
+      res.status(200).json({ testMode: true, error: String(err) });
+    }
+    return;
+  }
 
   let destinations: Destination[] = [];
   try {
@@ -80,24 +141,6 @@ export default async function handler(
     idFilter.length > 0
       ? destinations.filter((d) => idFilter.includes(d.id))
       : destinations.slice(offset, offset + limit);
-
-  const accountId = process.env.R2_ACCOUNT_ID;
-  const accessKeyId = process.env.R2_ACCESS_KEY_ID;
-  const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
-  const bucketName = process.env.R2_BUCKET_NAME;
-  const publicUrl = process.env.R2_PUBLIC_URL;
-
-  if (!accountId || !accessKeyId || !secretAccessKey || !bucketName || !publicUrl) {
-    res.status(500).json({ error: 'Server misconfigured: R2 credentials are not set' });
-    return;
-  }
-
-  const s3 = new S3Client({
-    region: 'auto',
-    endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
-    credentials: { accessKeyId, secretAccessKey },
-  });
-  const publicUrlBase = publicUrl.replace(/\/$/, '');
 
   const results = await Promise.all(
     slice.map(async (dest) => {
