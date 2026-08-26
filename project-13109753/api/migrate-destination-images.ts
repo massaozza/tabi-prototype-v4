@@ -20,13 +20,10 @@
 // 使い方：
 // GET /api/migrate-destination-images?offset=0&limit=20
 //   → offset番目からlimit件だけ処理する
-//   → 一度に大量に処理するとVercelの実行時間制限に達する可能性があるため、
-//     20件程度ずつ、offsetを増やして繰り返し呼び出すことを推奨する
-//   → レスポンスで { total, processed, results: [{ id, newUrl } ...] } を返す
-//
-// GET /api/migrate-destination-images?testUrl=(URLエンコードした任意の画像URL)
-//   → homeData.tsの内容とは関係なく、そのURL1件だけをその場でテストする
-//     （検証用）
+// GET /api/migrate-destination-images?testUrl=(URLエンコードした1件のURL)
+//   → homeData.tsとは関係なく、そのURL1件だけをテストする
+// GET /api/migrate-destination-images?testUrls=(URLエンコードしたURLをパイプ|区切りで複数)
+//   → 複数件を一度にテストする（検証用）
 //
 // 認証は不要（開発者が手動でこのURLを叩く一時的な移行ツールのため）。
 
@@ -63,6 +60,7 @@ export default async function handler(
   const idsParam = (req.query.ids as string) || '';
   const idFilter = idsParam.split(',').map((s) => s.trim()).filter(Boolean);
   const testUrl = req.query.testUrl as string | undefined;
+  const testUrlsParam = req.query.testUrls as string | undefined;
 
   const accountId = process.env.R2_ACCOUNT_ID;
   const accessKeyId = process.env.R2_ACCESS_KEY_ID;
@@ -81,6 +79,46 @@ export default async function handler(
     credentials: { accessKeyId, secretAccessKey },
   });
   const publicUrlBase = publicUrl.replace(/\/$/, '');
+
+  // testUrls（複数、パイプ区切り）が指定されている場合は、それぞれを
+  // その場でテストする（動作検証用）
+  if (testUrlsParam) {
+    const urls = testUrlsParam.split('|').map((u) => decodeURIComponent(u.trim())).filter(Boolean);
+    const results = await Promise.all(
+      urls.map(async (url) => {
+        try {
+          const imgRes = await fetch(url, {
+            headers: {
+              'User-Agent':
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+              Accept: 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
+            },
+          });
+          if (!imgRes.ok) {
+            return { url, error: `status ${imgRes.status}` };
+          }
+          const contentType = imgRes.headers.get('content-type') || 'image/jpeg';
+          const buffer = Buffer.from(await imgRes.arrayBuffer());
+          const objectKey = `destinations/test-${crypto.randomUUID()}.${getExtensionFromContentType(
+            contentType
+          )}`;
+          await s3.send(
+            new PutObjectCommand({
+              Bucket: bucketName,
+              Key: objectKey,
+              Body: buffer,
+              ContentType: contentType,
+            })
+          );
+          return { url, newUrl: `${publicUrlBase}/${objectKey}` };
+        } catch (err) {
+          return { url, error: String(err) };
+        }
+      })
+    );
+    res.status(200).json({ testMode: true, count: urls.length, results });
+    return;
+  }
 
   // testUrl が指定されている場合は、homeData.tsの内容とは関係なく、
   // そのURL1件だけをその場でテストする（動作検証用）
