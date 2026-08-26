@@ -6,13 +6,15 @@
 // これにより、異なる投稿者が同じ場所について書いても、同じ場所として
 // 名寄せ・統合できるようになる（表記の違いによる分裂を防ぐ）。
 //
-// 選択された場所は onPlaceSelected で { name, placeId, address } として渡される。
-// 自由入力（実在しない/候補にない場所名）も許可し、その場合は placeId は
-// 設定されない（フリーテキストでの投稿自体は妨げない）。
+// 【重要・2026年時点の注意】2025年3月1日以降に作成されたGoogle Cloud
+// プロジェクトでは、従来の google.maps.places.Autocomplete クラスが
+// 新規利用不可となっている（エラーは出ないが、候補が一切表示されない）。
+// そのため、新しい google.maps.places.PlaceAutocompleteElement
+// （Web Componentとして提供される）を使用する。
 //
-// 【重要】@types/google.maps をpackage.jsonに追加せずに済むよう、
-// Google Maps関連の型は意図的に any として扱っている
-// （型パッケージの追加は、別のビルド不具合を招くリスクがあるため）。
+// このElementはGoogle側が内部でinput要素を持つカスタム要素のため、
+// 通常の<input>に比べて細かい見た目のカスタマイズは制限される。
+// 候補が一覧にない場所は「手入力する」リンクから、通常の自由入力に切り替えられる。
 
 import { useEffect, useRef, useState } from 'react';
 import { loadGoogleMaps } from '@/lib/loadGoogleMaps';
@@ -32,36 +34,50 @@ export default function PlaceAutocompleteInput({
   placeholder,
   className,
 }: PlaceAutocompleteInputProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const autocompleteRef = useRef<any>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [widgetReady, setWidgetReady] = useState(false);
   const [loadError, setLoadError] = useState(false);
+  const [manualMode, setManualMode] = useState(false);
 
   useEffect(() => {
+    if (manualMode) return;
     let cancelled = false;
 
     loadGoogleMaps()
       .then(() => {
-        if (cancelled || !inputRef.current) return;
+        if (cancelled || !containerRef.current) return;
         const googleAny = (window as any).google;
-        if (!googleAny?.maps?.places) return;
+        if (!googleAny?.maps?.places?.PlaceAutocompleteElement) {
+          setLoadError(true);
+          return;
+        }
 
-        const autocomplete = new googleAny.maps.places.Autocomplete(inputRef.current, {
-          fields: ['place_id', 'name', 'formatted_address'],
-          // 日本国内の場所のみに絞る（TABIは日本旅行に特化しているため）
-          componentRestrictions: { country: 'jp' },
+        containerRef.current.innerHTML = '';
+
+        const element = new googleAny.maps.places.PlaceAutocompleteElement({
+          includedRegionCodes: ['jp'],
         });
-        autocomplete.addListener('place_changed', () => {
-          const place = autocomplete.getPlace();
-          if (place?.place_id && place?.name) {
-            onChange(place.name);
+        element.style.width = '100%';
+
+        element.addEventListener('gmp-select', async (event: any) => {
+          try {
+            const prediction = event.placePrediction;
+            if (!prediction) return;
+            const place = prediction.toPlace();
+            await place.fetchFields({ fields: ['displayName', 'formattedAddress', 'id'] });
+            onChange(place.displayName || '');
             onPlaceSelected({
-              name: place.name,
-              placeId: place.place_id,
-              address: place.formatted_address,
+              name: place.displayName || '',
+              placeId: place.id || '',
+              address: place.formattedAddress || undefined,
             });
+          } catch {
+            // 選択後の詳細取得に失敗しても、投稿自体は止めない
           }
         });
-        autocompleteRef.current = autocomplete;
+
+        containerRef.current.appendChild(element);
+        setWidgetReady(true);
       })
       .catch(() => {
         if (!cancelled) setLoadError(true);
@@ -71,24 +87,40 @@ export default function PlaceAutocompleteInput({
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [manualMode]);
+
+  if (manualMode || loadError) {
+    return (
+      <div>
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          className={className}
+        />
+        {loadError && (
+          <p className="text-xs text-foreground-400 mt-1">
+            場所の検索機能が読み込めませんでした。手入力で入力してください。
+          </p>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div>
-      <input
-        ref={inputRef}
-        type="text"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className={className}
-        autoComplete="off"
-      />
-      {loadError && (
-        <p className="text-xs text-foreground-400 mt-1">
-          場所の検索機能が読み込めませんでした。手入力での投稿は引き続き可能です。
-        </p>
+      <div ref={containerRef} />
+      {!widgetReady && (
+        <input type="text" disabled placeholder="読み込み中..." className={className} />
       )}
+      <button
+        type="button"
+        onClick={() => setManualMode(true)}
+        className="text-xs text-foreground-400 hover:text-foreground-600 mt-1 underline cursor-pointer"
+      >
+        候補に無い場合は手入力する
+      </button>
     </div>
   );
 }
