@@ -64,6 +64,10 @@ export default function TripsPage() {
     }
   };
 
+  const handleTripUpdate = (updatedTrip: Trip) => {
+    setTrips((prev) => prev.map((t) => (t.id === updatedTrip.id ? updatedTrip : t)));
+  };
+
   const handleBookingStatusChange = (tripId: string, targetId: string) => {
     setTrips((prev) =>
       prev.map((t) => {
@@ -190,6 +194,7 @@ export default function TripsPage() {
                   onToggle={() => setExpandedId(expandedId === trip.id ? null : trip.id)}
                   onDelete={() => setDeleteTarget(trip)}
                   onBookingStatusChange={handleBookingStatusChange}
+                  onTripUpdate={handleTripUpdate}
                 />
               ))}
             </div>
