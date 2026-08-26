@@ -28,6 +28,8 @@ import CreatorProfilePage from "../pages/creator/page";
 import RegionPage from "../pages/region/page";
 import PrefecturePage from "../pages/prefecture/page";
 import NewGuidePage from "../pages/guides/new/page";
+import GuidesPage from "../pages/guides/page";
+import GuideDetailPage from "../pages/guides/detail/page";
 
 const routes: RouteObject[] = [
   {
@@ -139,6 +141,14 @@ const routes: RouteObject[] = [
   {
     path: "/guides/new",
     element: <NewGuidePage />,
+  },
+  {
+    path: "/guides/:id",
+    element: <GuideDetailPage />,
+  },
+  {
+    path: "/guides",
+    element: <GuidesPage />,
   },
   {
     path: "/:category/:articleSlug",
