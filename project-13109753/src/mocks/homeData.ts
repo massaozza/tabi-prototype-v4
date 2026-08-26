@@ -1,10 +1,13 @@
 export const navLinks = [
-  { label: 'Explore', href: '#explore' },
-  { label: 'Destinations', href: '#destinations' },
-  // Budget Calculator link temporarily removed to avoid broken anchor (2026.08)
-  // { label: 'Plan Your Trip', href: '#budget-calculator' },
-  { label: 'Experiences', href: '/experiences' },
-  { label: 'About', href: '#features' },
+  // TABI 2.0：グローバルナビの新構成（事業戦略書10章の8項目に準拠）。
+  // 「My Trip」「Profile」は、ログイン中のユーザーのみ意味を持つため、
+  // ここには含めず、Navbar.tsx側でログイン状態に応じて動的に追加している。
+  { label: 'Plan with AI', href: '/' },
+  { label: 'Explore', href: '/experiences' },
+  { label: 'Trips', href: '/trips' },
+  { label: 'Guides', href: '/guides' },
+  { label: 'Spots', href: '/#destinations' },
+  { label: 'Share', href: '/share' },
 ];
 
 export const destinations = [
