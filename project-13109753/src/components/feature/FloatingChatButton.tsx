@@ -241,6 +241,16 @@ export default function FloatingChatButton() {
     return () => window.removeEventListener('tabi:ask-question', handleAskQuestion);
   }, [sendMessage]);
 
+  // カスタムイベント 'tabi:open-chat' を受信して、質問を送らずパネルだけ開く
+  // （「Plan with AI」のような、まず会話を始めたいだけのCTAから使う）
+  useEffect(() => {
+    const handleOpenChat = () => {
+      setIsOpen(true);
+    };
+    window.addEventListener('tabi:open-chat', handleOpenChat);
+    return () => window.removeEventListener('tabi:open-chat', handleOpenChat);
+  }, []);
+
   if (location.pathname.startsWith('/admin')) {
     return null;
   }
