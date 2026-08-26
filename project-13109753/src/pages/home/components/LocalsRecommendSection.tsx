@@ -1,5 +1,6 @@
 import { localsPlaces as fallbackLocalsPlaces } from '@/mocks/homeData';
 import { useRef, useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 
 interface Place {
   id: string;
@@ -8,11 +9,26 @@ interface Place {
   image: string;
 }
 
+interface Guide {
+  id: string;
+  title?: string;
+  titleEn?: string;
+  area?: string;
+  areaEn?: string;
+  theme?: string;
+  authorName?: string;
+  authorExpertiseArea?: string;
+  bodyEn?: string;
+  bodyJa?: string;
+  photos?: string[];
+}
+
 export default function LocalsRecommendSection() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
   const [places, setPlaces] = useState<Place[]>([]);
+  const [guides, setGuides] = useState<Guide[]>([]);
   const [loading, setLoading] = useState(true);
 
   const checkScroll = useCallback(() => {
@@ -51,6 +67,24 @@ export default function LocalsRecommendSection() {
       }
     }
     fetchData();
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchGuides() {
+      try {
+        const res = await fetch('/api/guides');
+        if (!res.ok) return;
+        const json = await res.json();
+        if (!cancelled && Array.isArray(json.guides)) {
+          setGuides(json.guides);
+        }
+      } catch {
+        // Guides are optional — keep showing local places only.
+      }
+    }
+    fetchGuides();
     return () => { cancelled = true; };
   }, []);
 
@@ -109,30 +143,78 @@ export default function LocalsRecommendSection() {
                 ))}
               </>
             ) : (
-              places.map((place) => (
-                <article
-                  key={place.id}
-                  className="flex-shrink-0 w-[300px] md:w-[360px] bg-background-50 rounded-xl overflow-hidden transition-all duration-300 hover:-translate-y-1 cursor-pointer group"
-                  data-product-shop
-                >
-                  <div className="relative w-full h-56 md:h-64 overflow-hidden">
-                    <img
-                      src={place.image}
-                      alt={place.title}
-                      title={`${place.title} — TABI local recommendation`}
-                      className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
-                    />
-                  </div>
-                  <div className="p-5 md:p-6">
-                    <h3 className="font-heading font-bold text-lg text-foreground-900 mb-3">
-                      {place.title}
-                    </h3>
-                    <p className="text-foreground-600 text-sm leading-relaxed line-clamp-4">
-                      {place.story}
-                    </p>
-                  </div>
-                </article>
-              ))
+              <>
+                {places.map((place) => (
+                  <article
+                    key={place.id}
+                    className="flex-shrink-0 w-[300px] md:w-[360px] bg-background-50 rounded-xl overflow-hidden transition-all duration-300 hover:-translate-y-1 cursor-pointer group"
+                    data-product-shop
+                  >
+                    <div className="relative w-full h-56 md:h-64 overflow-hidden">
+                      <img
+                        src={place.image}
+                        alt={place.title}
+                        title={`${place.title} — TABI local recommendation`}
+                        className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
+                      />
+                    </div>
+                    <div className="p-5 md:p-6">
+                      <h3 className="font-heading font-bold text-lg text-foreground-900 mb-3">
+                        {place.title}
+                      </h3>
+                      <p className="text-foreground-600 text-sm leading-relaxed line-clamp-4">
+                        {place.story}
+                      </p>
+                    </div>
+                  </article>
+                ))}
+
+                {guides.map((guide) => {
+                  const title = guide.titleEn || guide.title || 'Untitled Guide';
+                  const area = guide.areaEn || guide.area || '';
+                  const snippet = guide.bodyEn || guide.bodyJa || '';
+                  const image = guide.photos && guide.photos.length > 0 ? guide.photos[0] : undefined;
+                  return (
+                    <Link
+                      key={guide.id}
+                      to={`/guides/${guide.id}`}
+                      className="flex-shrink-0 w-[300px] md:w-[360px] bg-background-50 rounded-xl overflow-hidden transition-all duration-300 hover:-translate-y-1 cursor-pointer group"
+                    >
+                      <div className="relative w-full h-56 md:h-64 overflow-hidden bg-background-200">
+                        {image ? (
+                          <img
+                            src={image}
+                            alt={title}
+                            title={`${title} — TABI`}
+                            className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-foreground-300">
+                            <i className="ri-image-line text-4xl"></i>
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-5 md:p-6">
+                        {area && (
+                          <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full mb-3 bg-background-100 text-foreground-600 whitespace-nowrap">
+                            <i className="ri-map-pin-line"></i>
+                            {area}
+                          </span>
+                        )}
+                        <h3 className="font-heading font-bold text-lg text-foreground-900 mb-3 line-clamp-2">
+                          {title}
+                        </h3>
+                        <p className="text-foreground-600 text-sm leading-relaxed line-clamp-4">
+                          {snippet}
+                        </p>
+                        <p className="text-foreground-400 text-xs mt-3 whitespace-nowrap">
+                          — {guide.authorName || 'Anonymous'}
+                        </p>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </>
             )}
           </div>
 
