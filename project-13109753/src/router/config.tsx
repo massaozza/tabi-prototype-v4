@@ -8,7 +8,7 @@ import AffiliateDisclosurePage from "../pages/affiliate-disclosure/page";
 import DisclaimerPage from "../pages/disclaimer/page";
 import ArticlePage from "../pages/article/page";
 import DestinationPage from "../pages/destination/page";
-import GuidesPage from "../pages/guides/page";
+import PublicArticlesPage from "../pages/blog/page";
 import SignupPage from "../pages/signup/page";
 import LoginPage from "../pages/login/page";
 import NewExperiencePage from "../pages/experiences/new/page";
@@ -27,6 +27,7 @@ import UsersPage from "../pages/admin/users/page";
 import CreatorProfilePage from "../pages/creator/page";
 import RegionPage from "../pages/region/page";
 import PrefecturePage from "../pages/prefecture/page";
+import NewGuidePage from "../pages/guides/new/page";
 
 const routes: RouteObject[] = [
   {
@@ -96,8 +97,8 @@ const routes: RouteObject[] = [
     element: <DestinationPage />,
   },
   {
-    path: "/guides",
-    element: <GuidesPage />,
+    path: "/blog",
+    element: <PublicArticlesPage />,
   },
   {
     path: "/signup",
@@ -134,6 +135,10 @@ const routes: RouteObject[] = [
   {
     path: "/prefectures/:name",
     element: <PrefecturePage />,
+  },
+  {
+    path: "/guides/new",
+    element: <NewGuidePage />,
   },
   {
     path: "/:category/:articleSlug",
