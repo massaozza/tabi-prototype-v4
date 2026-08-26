@@ -46,7 +46,7 @@ export default function DestinationsSection() {
             Destinations
           </span>
           <h2 className="font-heading font-bold text-3xl md:text-5xl text-foreground-900 leading-tight">
-            Experience <span className="text-primary-500">Authentic Japan</span>
+            Trending <span className="text-primary-500">Spots</span>
           </h2>
           <p className="text-foreground-500 text-base mt-3 max-w-xl">
             Go beyond the landmarks to discover the authentic rhythms, flavors, and stories of each place

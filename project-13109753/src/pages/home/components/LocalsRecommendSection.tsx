@@ -70,7 +70,7 @@ export default function LocalsRecommendSection() {
               Local Favorites
             </span>
             <h2 className="font-heading font-bold text-3xl md:text-5xl text-foreground-900 leading-tight">
-              Places Locals Would<br /> Take Their Friends
+              Hidden Japan
             </h2>
           </div>
           <p className="text-foreground-500 text-base md:max-w-xs">
