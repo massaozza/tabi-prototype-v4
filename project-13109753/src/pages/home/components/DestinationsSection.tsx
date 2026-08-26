@@ -10,6 +10,53 @@ interface Destination {
   image: string;
 }
 
+const DISPLAY_LIMIT = 6;
+
+// カテゴリごとに、画像が読み込めない場合の代替アイコン・背景色を決める
+// （写真が用意できていない投稿でも、殺風景にならないようにするため）
+const CATEGORY_PLACEHOLDER: Record<string, { icon: string; bg: string }> = {
+  'Culture & History': { icon: 'ri-ancient-gate-line', bg: 'from-amber-100 to-amber-50' },
+  'Nature & Scenery': { icon: 'ri-leaf-line', bg: 'from-emerald-100 to-emerald-50' },
+  'Hot Springs & Nature': { icon: 'ri-drop-line', bg: 'from-orange-100 to-orange-50' },
+  'City & Food Culture': { icon: 'ri-restaurant-line', bg: 'from-rose-100 to-rose-50' },
+  'Skiing & Winter Sports': { icon: 'ri-snowy-line', bg: 'from-sky-100 to-sky-50' },
+  'Festivals & Events': { icon: 'ri-lantern-line', bg: 'from-red-100 to-red-50' },
+  'Theme Parks & Entertainment': { icon: 'ri-gamepad-line', bg: 'from-violet-100 to-violet-50' },
+  'Pop Culture & Entertainment': { icon: 'ri-sparkling-2-line', bg: 'from-pink-100 to-pink-50' },
+  'Shopping & Fashion': { icon: 'ri-shopping-bag-line', bg: 'from-fuchsia-100 to-fuchsia-50' },
+  'Beach & Lifestyle': { icon: 'ri-sun-line', bg: 'from-cyan-100 to-cyan-50' },
+  'Coastal Escape': { icon: 'ri-ship-line', bg: 'from-blue-100 to-blue-50' },
+};
+
+function getPlaceholder(category: string) {
+  return CATEGORY_PLACEHOLDER[category] || { icon: 'ri-map-pin-line', bg: 'from-background-200 to-background-100' };
+}
+
+function DestinationImage({ dest }: { dest: Destination }) {
+  const [failed, setFailed] = useState(false);
+  const placeholder = getPlaceholder(dest.category);
+
+  if (failed) {
+    return (
+      <div
+        className={`w-full h-full flex items-center justify-center bg-gradient-to-br ${placeholder.bg}`}
+      >
+        <i className={`${placeholder.icon} text-5xl text-foreground-400`}></i>
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={dest.image}
+      alt={`${dest.title} — ${dest.category}`}
+      title={`${dest.title} travel experience — TABI`}
+      onError={() => setFailed(true)}
+      className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
+    />
+  );
+}
+
 export default function DestinationsSection() {
   const [destinations, setDestinations] = useState<Destination[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,6 +84,8 @@ export default function DestinationsSection() {
     fetchData();
     return () => { cancelled = true; };
   }, []);
+
+  const displayedDestinations = destinations.slice(0, DISPLAY_LIMIT);
 
   return (
     <section id="destinations" className="py-16 md:py-24 px-6 md:px-10 lg:px-20 bg-background-50">
@@ -73,19 +122,14 @@ export default function DestinationsSection() {
               ))}
             </>
           ) : (
-            destinations.map((dest) => (
+            displayedDestinations.map((dest) => (
               <article
                 key={dest.id}
                 className="group bg-background-100 rounded-xl overflow-hidden transition-all duration-300 hover:-translate-y-1 cursor-pointer"
                 data-product-shop
               >
                 <div className="relative w-full h-56 md:h-64 overflow-hidden">
-                  <img
-                    src={dest.image}
-                    alt={`${dest.title} — ${dest.category}`}
-                    title={`${dest.title} travel experience — TABI`}
-                    className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
-                  />
+                  <DestinationImage dest={dest} />
                   <span className="absolute top-4 left-4 bg-background-50/90 text-foreground-800 text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap">
                     {dest.category}
                   </span>
