@@ -30,6 +30,7 @@ import PrefecturePage from "../pages/prefecture/page";
 import NewGuidePage from "../pages/guides/new/page";
 import GuidesPage from "../pages/guides/page";
 import GuideDetailPage from "../pages/guides/detail/page";
+import SharePage from "../pages/share/page";
 
 const routes: RouteObject[] = [
   {
@@ -149,6 +150,10 @@ const routes: RouteObject[] = [
   {
     path: "/guides",
     element: <GuidesPage />,
+  },
+  {
+    path: "/share",
+    element: <SharePage />,
   },
   {
     path: "/:category/:articleSlug",
