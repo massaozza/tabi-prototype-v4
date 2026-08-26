@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { BookingStatus, Trip, TripDay, TripMeal, TripStay, TransportMode } from '../types';
 import { formatSavedDate } from '../types';
+import ReflectionModal from './ReflectionModal';
 
 const TRANSPORT_ICONS: Record<TransportMode, string> = {
   walk: 'ri-walk-line',
@@ -14,6 +15,13 @@ const TRANSPORT_ICONS: Record<TransportMode, string> = {
 function transportIcon(mode?: TransportMode): string {
   return TRANSPORT_ICONS[mode ?? 'other'] || TRANSPORT_ICONS.other;
 }
+
+const STATUS_BADGE: Record<string, { label: string; className: string }> = {
+  planning: { label: 'Planning', className: 'bg-background-100 text-foreground-600' },
+  traveling: { label: 'Traveling', className: 'bg-accent-100 text-accent-700' },
+  completed: { label: 'Completed', className: 'bg-secondary-100 text-secondary-700' },
+  published: { label: 'Published', className: 'bg-primary-100 text-primary-700' },
+};
 
 interface DayRow {
   day: TripDay;
@@ -59,6 +67,7 @@ interface TripCardProps {
   onToggle: () => void;
   onDelete: () => void;
   onBookingStatusChange: (tripId: string, targetId: string) => void;
+  onTripUpdate: (updatedTrip: Trip) => void;
 }
 
 export default function TripCard({
@@ -67,10 +76,37 @@ export default function TripCard({
   onToggle,
   onDelete,
   onBookingStatusChange,
+  onTripUpdate,
 }: TripCardProps) {
   const dayCount = trip.days?.length || 0;
   const [pendingBookingId, setPendingBookingId] = useState<string | null>(null);
   const [bookingErrors, setBookingErrors] = useState<Record<string, string>>({});
+  const [showReflectionModal, setShowReflectionModal] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [publishError, setPublishError] = useState('');
+
+  const status = trip.status || 'planning';
+  const statusBadge = STATUS_BADGE[status] || STATUS_BADGE.planning;
+
+  const handlePublish = async () => {
+    setPublishing(true);
+    setPublishError('');
+    try {
+      const res = await fetch(
+        `/api/trips?id=${encodeURIComponent(trip.id)}&action=publish`,
+        { method: 'PATCH', credentials: 'include' }
+      );
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to publish');
+      }
+      onTripUpdate(data.trip);
+    } catch (err) {
+      setPublishError(err instanceof Error ? err.message : 'Failed to publish this trip.');
+    } finally {
+      setPublishing(false);
+    }
+  };
 
   const handleMarkBooked = async (targetId: string) => {
     setPendingBookingId(targetId);
@@ -131,6 +167,9 @@ export default function TripCard({
       >
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-2 flex-wrap">
+            <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap ${statusBadge.className}`}>
+              {statusBadge.label}
+            </span>
             <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-primary-100 text-primary-800 whitespace-nowrap">
               <i className="ri-calendar-line"></i>
               {dayCount} {dayCount === 1 ? 'day' : 'days'}
@@ -300,7 +339,73 @@ export default function TripCard({
               </tbody>
             </table>
           </div>
+
+          {/* 振り返り・公開アクション */}
+          <div className="mt-6 pt-5 border-t border-background-200">
+            {status === 'planning' || status === 'traveling' ? (
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <p className="text-foreground-500 text-xs">
+                  Been on this trip already? Add your reflection to publish it and help
+                  other travelers.
+                </p>
+                <button
+                  onClick={() => setShowReflectionModal(true)}
+                  className="bg-background-100 hover:bg-background-200 text-foreground-800 font-semibold text-xs px-4 py-2 rounded-md transition-colors cursor-pointer whitespace-nowrap"
+                >
+                  <i className="ri-quill-pen-line mr-1"></i>
+                  Add Reflection
+                </button>
+              </div>
+            ) : status === 'completed' ? (
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <p className="text-foreground-500 text-xs">
+                  Your reflection is saved. Publish this Trip so other travelers can find,
+                  save, and copy it.
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setShowReflectionModal(true)}
+                    className="text-foreground-500 hover:text-foreground-700 font-semibold text-xs px-3 py-2 transition-colors cursor-pointer whitespace-nowrap"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={handlePublish}
+                    disabled={publishing}
+                    className="bg-primary-500 hover:bg-primary-600 disabled:opacity-60 text-white font-semibold text-xs px-4 py-2 rounded-md transition-colors cursor-pointer whitespace-nowrap"
+                  >
+                    {publishing ? 'Publishing...' : 'Publish this Trip'}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-4 text-xs text-foreground-500">
+                <span className="inline-flex items-center gap-1">
+                  <i className="ri-bookmark-line"></i>
+                  Saved by {trip.saveCount || 0}
+                </span>
+                <span className="inline-flex items-center gap-1">
+                  <i className="ri-file-copy-line"></i>
+                  Copied by {trip.copyCount || 0}
+                </span>
+              </div>
+            )}
+            {publishError && (
+              <p className="text-red-500 text-xs mt-2">{publishError}</p>
+            )}
+          </div>
         </div>
+      )}
+
+      {showReflectionModal && (
+        <ReflectionModal
+          trip={trip}
+          onClose={() => setShowReflectionModal(false)}
+          onSaved={(updatedTrip) => {
+            onTripUpdate(updatedTrip);
+            setShowReflectionModal(false);
+          }}
+        />
       )}
     </div>
   );
