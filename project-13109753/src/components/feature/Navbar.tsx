@@ -1,180 +1,77 @@
-import { useState, useEffect } from 'react';
-import { navLinks } from '@/mocks/homeData';
-import LogoMark from '@/components/feature/LogoMark';
-import { useAuth } from '@/context/AuthContext';
+import { useTranslation } from 'react-i18next';
 
-export default function Navbar() {
-  const [scrolled, setScrolled] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const { user, loading, logout } = useAuth();
+export default function HeroSection() {
+  const { t } = useTranslation();
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 60);
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const handleLogout = async () => {
-    setUserMenuOpen(false);
-    await logout();
+  const handleOpenChat = () => {
+    window.dispatchEvent(new CustomEvent('tabi:open-chat'));
   };
 
   return (
-    <header
-      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
-        scrolled
-          ? 'bg-background-50 shadow-sm'
-          : 'bg-transparent'
-      }`}
-    >
-      <div className={`hidden md:flex items-center justify-end px-6 md:px-10 py-2 text-xs gap-4 transition-colors duration-300 ${
-        scrolled ? 'text-foreground-600 border-b border-background-200' : 'text-white/80'
-      }`}>
-        <span className="whitespace-nowrap">Follow our journey</span>
-        <a href="#" className="w-5 h-5 flex items-center justify-center hover:opacity-70 transition-opacity" aria-label="Instagram"><i className="ri-instagram-line text-sm"></i></a>
-        <a href="#" className="w-5 h-5 flex items-center justify-center hover:opacity-70 transition-opacity" aria-label="Pinterest"><i className="ri-pinterest-line text-sm"></i></a>
-        <a href="#" className="w-5 h-5 flex items-center justify-center hover:opacity-70 transition-opacity" aria-label="Reddit"><i className="ri-reddit-line text-sm"></i></a>
-        <a href="#" className="w-5 h-5 flex items-center justify-center hover:opacity-70 transition-opacity" aria-label="YouTube"><i className="ri-youtube-line text-sm"></i></a>
+    <section className="relative w-full h-[600px] md:h-[700px] flex items-center overflow-hidden">
+      <img
+        src="https://readdy.ai/api/search-image?query=Stunning%20Japanese%20landscape%20with%20Mount%20Fuji%20in%20the%20distance%20visible%20across%20a%20calm%20ocean%20bay%2C%20traditional%20wooden%20temple%20roof%20silhouette%20in%20foreground%2C%20golden%20hour%20warm%20sunlight%20washing%20over%20the%20scene%2C%20cherry%20blossom%20branches%20framing%20the%20edges%2C%20soft%20atmospheric%20haze%2C%20moody%20and%20inviting%20travel%20photography%20aesthetic&width=1600&height=900&seq=hero-japan-01&orientation=landscape"
+        alt="Discover Japan beyond the guidebooks — TABI"
+        title="TABI — Discover Japan Beyond the Guidebooks"
+        className="absolute inset-0 w-full h-full object-cover object-top"
+      />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/35 to-black/55"></div>
+
+      <div className="relative z-10 w-full px-6 md:px-10 lg:px-20">
+        <div className="max-w-3xl mx-auto text-center">
+          <div className="flex items-center justify-center gap-3 mb-6">
+            <div className="flex -space-x-2">
+              <div className="w-9 h-9 rounded-full border-2 border-white/60 overflow-hidden">
+                <img src="https://readdy.ai/api/search-image?query=Friendly%20traveler%20portrait%20young%20Asian%20woman%20smiling%2C%20clean%20white%20background%2C%20professional%20headshot%20style%2C%20natural%20lighting&width=72&height=72&seq=avatar-01&orientation=squarish" alt="" className="w-full h-full object-cover" />
+              </div>
+              <div className="w-9 h-9 rounded-full border-2 border-white/60 overflow-hidden">
+                <img src="https://readdy.ai/api/search-image?query=Friendly%20male%20traveler%20portrait%20European%20man%20smiling%2C%20clean%20white%20background%2C%20professional%20headshot%20style%2C%20natural%20lighting&width=72&height=72&seq=avatar-02&orientation=squarish" alt="" className="w-full h-full object-cover" />
+              </div>
+              <div className="w-9 h-9 rounded-full border-2 border-white/60 overflow-hidden">
+                <img src="https://readdy.ai/api/search-image?query=Friendly%20female%20traveler%20portrait%20young%20woman%20with%20glasses%20smiling%2C%20clean%20white%20background%2C%20professional%20headshot%20style%2C%20natural%20lighting&width=72&height=72&seq=avatar-03&orientation=squarish" alt="" className="w-full h-full object-cover" />
+              </div>
+            </div>
+            <span className="text-white/90 text-sm">Trusted by travelers and locals across Japan</span>
+          </div>
+
+          <h2 className="font-heading font-bold text-4xl md:text-6xl lg:text-7xl text-white leading-tight mb-6">
+            Discover Japan<br className="hidden sm:block" /> your way.
+          </h2>
+
+          <p className="text-white/85 text-base md:text-lg leading-relaxed max-w-xl mx-auto mb-10">
+            Powered by AI, real travelers, and the people who know Japan best.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <button
+              type="button"
+              onClick={handleOpenChat}
+              className="inline-flex flex-col items-start gap-1 bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-8 py-4 rounded-md transition-all duration-200 whitespace-nowrap cursor-pointer text-left"
+            >
+              <span className="flex items-center gap-2 text-base">
+                <i className="ri-sparkling-2-line"></i>
+                Plan with AI
+              </span>
+              <span className="text-white/80 text-xs font-normal">
+                Create a Japan trip made for you
+              </span>
+            </button>
+
+            
+              href="#destinations"
+              className="inline-flex flex-col items-start gap-1 border-2 border-white/80 text-white hover:bg-white/10 font-semibold text-sm px-8 py-4 rounded-md transition-all duration-200 whitespace-nowrap cursor-pointer text-left"
+            >
+              <span className="flex items-center gap-2 text-base">
+                <i className="ri-compass-3-line"></i>
+                Discover Japan
+              </span>
+              <span className="text-white/70 text-xs font-normal">
+                Explore real trips and local knowledge
+              </span>
+            </a>
+          </div>
+        </div>
       </div>
-
-      <nav className="flex items-center justify-between px-6 md:px-10 py-3 md:py-4">
-        <a href="/" className="flex items-center gap-3">
-          <LogoMark />
-          <span className="flex flex-col">
-            <h1 className={`font-heading font-bold text-xl md:text-2xl tracking-[0.08em] leading-none transition-colors duration-300 ${
-              scrolled ? 'text-foreground-900' : 'text-white'
-            }`}>
-              TABI
-            </h1>
-            <span className={`text-xs mt-1 transition-colors duration-300 whitespace-nowrap ${
-              scrolled ? 'text-foreground-500' : 'text-white/70'
-            }`}>
-              Explore Japan Deeply
-            </span>
-          </span>
-        </a>
-
-        <div className="hidden md:flex items-center gap-8">
-          {navLinks.map((link) => (
-            <a key={link.label} href={link.href} className={`text-sm font-semibold whitespace-nowrap transition-colors duration-300 hover:opacity-70 ${
-                scrolled ? 'text-foreground-800' : 'text-white'
-              }`}>
-              {link.label}
-            </a>
-          ))}
-
-          <a href="/experiences/new" className={`flex items-center gap-1.5 text-sm font-semibold whitespace-nowrap transition-colors duration-300 hover:opacity-70 ${
-              scrolled ? 'text-foreground-800' : 'text-white'
-            }`}>
-            <i className="ri-add-line text-base"></i>
-            Share Experience
-          </a>
-
-          <div className="hidden md:flex items-center gap-5">
-            {loading ? null : user ? (
-              <div className="relative">
-                <button
-                  onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className={`flex items-center gap-1.5 text-sm font-semibold whitespace-nowrap transition-colors duration-300 hover:opacity-70 ${
-                    scrolled ? 'text-foreground-800' : 'text-white'
-                  }`}
-                >
-                  {user.displayName}
-                  <i className={`text-sm transition-transform ${userMenuOpen ? 'ri-arrow-up-s-line' : 'ri-arrow-down-s-line'}`}></i>
-                </button>
-                {userMenuOpen && (
-                  <div className="absolute right-0 top-full mt-2 min-w-[160px] bg-background-50 border border-background-200 rounded-md py-1">
-                    <a href="/trips" onClick={() => setUserMenuOpen(false)} className="block w-full text-left px-4 py-2.5 text-sm text-foreground-700 hover:bg-background-100 hover:text-foreground-900 transition-colors whitespace-nowrap">
-                      My Trips
-                    </a>
-                    <button
-                      onClick={handleLogout}
-                      className="w-full text-left px-4 py-2.5 text-sm text-foreground-700 hover:bg-background-100 hover:text-foreground-900 transition-colors whitespace-nowrap cursor-pointer"
-                    >
-                      Logout
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <>
-                <a href="/login" className={`text-sm font-semibold whitespace-nowrap transition-colors duration-300 hover:opacity-70 ${
-                    scrolled ? 'text-foreground-800' : 'text-white'
-                  }`}>
-                  Log in
-                </a>
-                <a href="/signup" className="bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-4 py-2 rounded-md transition-all duration-200 whitespace-nowrap cursor-pointer">
-                  Sign up
-                </a>
-              </>
-            )}
-          </div>
-        </div>
-
-        <button
-          className={`md:hidden w-8 h-8 flex items-center justify-center transition-colors duration-300 ${
-            scrolled ? 'text-foreground-900' : 'text-white'
-          }`}
-          onClick={() => setMobileOpen(!mobileOpen)}
-          aria-label="Toggle menu"
-        >
-          <i className={`text-xl ${mobileOpen ? 'ri-close-line' : 'ri-menu-line'}`}></i>
-        </button>
-      </nav>
-
-      {mobileOpen && (
-        <div className="md:hidden bg-background-50 border-t border-background-200 px-6 py-4 flex flex-col gap-3">
-          {navLinks.map((link) => (
-            <a key={link.label} href={link.href} className="text-foreground-800 text-sm font-semibold whitespace-nowrap hover:text-primary-500 transition-colors" onClick={() => setMobileOpen(false)}>
-              {link.label}
-            </a>
-          ))}
-
-          <a href="/experiences/new" className="flex items-center gap-1.5 text-foreground-800 text-sm font-semibold whitespace-nowrap hover:text-primary-500 transition-colors" onClick={() => setMobileOpen(false)}>
-            <i className="ri-add-line"></i>
-            Share Experience
-          </a>
-
-          <div className="flex flex-col gap-3 pt-3 border-t border-background-200">
-            {loading ? null : user ? (
-              <>
-                <span className="text-foreground-500 text-sm">{user.displayName}</span>
-                <a href="/trips" onClick={() => setMobileOpen(false)} className="text-foreground-800 text-sm font-semibold whitespace-nowrap hover:text-primary-500 transition-colors">
-                  My Trips
-                </a>
-                <button
-                  onClick={() => {
-                    setMobileOpen(false);
-                    handleLogout();
-                  }}
-                  className="text-left text-primary-500 hover:text-primary-600 text-sm font-semibold whitespace-nowrap transition-colors cursor-pointer"
-                >
-                  Logout
-                </button>
-              </>
-            ) : (
-              <div className="flex items-center gap-4">
-                <a href="/login" className="text-foreground-800 text-sm font-semibold whitespace-nowrap hover:text-primary-500 transition-colors" onClick={() => setMobileOpen(false)}>
-                  Log in
-                </a>
-                <a href="/signup" className="bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-4 py-2 rounded-md transition-all duration-200 whitespace-nowrap cursor-pointer" onClick={() => setMobileOpen(false)}>
-                  Sign up
-                </a>
-              </div>
-            )}
-          </div>
-
-          <div className="flex items-center gap-4 pt-2 border-t border-background-200">
-            <a href="#" className="w-6 h-6 flex items-center justify-center text-foreground-500 hover:text-primary-500 transition-colors" aria-label="Instagram"><i className="ri-instagram-line"></i></a>
-            <a href="#" className="w-6 h-6 flex items-center justify-center text-foreground-500 hover:text-primary-500 transition-colors" aria-label="Pinterest"><i className="ri-pinterest-line"></i></a>
-            <a href="#" className="w-6 h-6 flex items-center justify-center text-foreground-500 hover:text-primary-500 transition-colors" aria-label="Reddit"><i className="ri-reddit-line"></i></a>
-            <a href="#" className="w-6 h-6 flex items-center justify-center text-foreground-500 hover:text-primary-500 transition-colors" aria-label="YouTube"><i className="ri-youtube-line"></i></a>
-          </div>
-        </div>
-      )}
-    </header>
+    </section>
   );
 }
