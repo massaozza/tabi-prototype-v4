@@ -4,12 +4,15 @@ import HeroSection from './components/HeroSection';
 import BrandPhilosophySection from './components/BrandPhilosophySection';
 import JapanMapSection from './components/JapanMapSection';
 import DestinationsSection from './components/DestinationsSection';
-import FeaturedSection from './components/FeaturedSection';
 // Budget Calculator section temporarily disabled (2026.08) — keep component file intact
 // import BudgetCalculatorSection from './components/BudgetCalculatorSection';
 import LocalsRecommendSection from './components/LocalsRecommendSection';
 import LatestGuidesSection from './components/LatestGuidesSection';
 import FeaturesSection from './components/FeaturesSection';
+import TripsForYouSection from './components/TripsForYouSection';
+import TravelerExperiencesSection from './components/TravelerExperiencesSection';
+import MeetCreatorsSection from './components/MeetCreatorsSection';
+import ShareCtaSection from './components/ShareCtaSection';
 
 export default function Home() {
   return (
@@ -17,14 +20,17 @@ export default function Home() {
       <Navbar />
       <HeroSection />
       <BrandPhilosophySection />
-      <JapanMapSection />
+      <TripsForYouSection />
+      <LatestGuidesSection />
       <DestinationsSection />
-      <FeaturedSection />
+      <JapanMapSection />
+      <LocalsRecommendSection />
+      <TravelerExperiencesSection />
+      <MeetCreatorsSection />
+      <ShareCtaSection />
+      <FeaturesSection />
       {/* Budget Calculator section temporarily hidden */}
       {/* <BudgetCalculatorSection /> */}
-      <LocalsRecommendSection />
-      <LatestGuidesSection />
-      <FeaturesSection />
       <Footer />
     </main>
   );
