@@ -2,22 +2,31 @@
 // Vercel Serverless Function（Edge Runtime）
 // 構造化された旅程（Trip）の保存・一覧取得・予約状況の更新・削除を扱うAPI。
 //
-// 【今回の変更】
-// 単純な「Day毎のitems配列」から、以下の形式に変更：
-// - stays（宿泊）: ホテルごとに何日目から何日目まで宿泊するか。
-//   連泊・日ごとに違うホテル、どちらも表現できる。各stayにidと
-//   予約状況（status）を付与し、後から個別に「予約済み」にできる。
-// - days（日程）: 各日の朝食・昼食・夕食（提案＋予約状況）とアクティビティ。
-//   各食事にもidとstatusを付与する。
+// 【TABI 2.0での拡張】
+// これまでの「計画としてのTrip」に、以下を追加する：
+// - status（'planning' | 'traveling' | 'completed' | 'published'）による
+//   ライフサイクル管理
+// - 旅行者属性（国籍・旅行スタイル・初回/リピート・予算感）
+// - 実績・振り返り（実際の総費用、良かった点、もう一度なら変えること）
+// - 公開・Copy機能（isPublic, copiedFromTripId, copyCount, saveCount）
+// - 各アクティビティにspotId（既存SPOT/destinationsとの紐づけ）
 //
-// アフィリエイト登録が済んでいない現段階では、実際の予約サイトへの
-// リンクは無い。「予約済みにする」は、あくまでユーザーが手動で
-// チェックする自己申告のステータス管理として実装する。
+// 既存フィールドは一切変更・削除していない。既存のTripデータ（新フィールドを
+// 持たない）を読み込んだ場合、status等はデフォルト値で補って返す。
 //
-// GET    /api/trips             → 自分が保存したTripを取得（認証必須）
-// POST   /api/trips             → 新規保存（認証必須）
-// PATCH  /api/trips?id=xxx      → 宿泊・食事の予約状況を更新（認証必須、本人のみ）
-// DELETE /api/trips?id=xxx      → 削除（認証必須、本人のみ）
+// GET    /api/trips                       → 自分が保存したTripを取得（認証必須）
+// GET    /api/trips?public=1              → 公開済み（published）のTrip一覧を取得
+//                                            （認証不要、Explore/Trips一覧用）
+// GET    /api/trips?saved=1               → 自分がSaveした公開Tripの一覧（認証必須）
+// POST   /api/trips                       → 新規保存（認証必須）
+// POST   /api/trips?action=copy&sourceTripId=xxx
+//                                          → 他人の公開TripをCopyして自分用に保存
+// POST   /api/trips?action=save&tripId=xxx
+//                                          → 他人の公開TripをMy Tripに保存（Save）
+// PATCH  /api/trips?id=xxx                → 宿泊・食事の予約状況を更新（既存の挙動）
+// PATCH  /api/trips?id=xxx&action=reflect → status・振り返り・旅行者属性を更新
+// PATCH  /api/trips?id=xxx&action=publish → 振り返り入力済みのTripを公開する
+// DELETE /api/trips?id=xxx                → 削除（認証必須、本人のみ）
 
 import { kv } from '@vercel/kv';
 
@@ -26,6 +35,7 @@ export const config = { runtime: 'edge' };
 const COLLECTION = 'trips';
 
 type BookingStatus = 'not_booked' | 'booked';
+export type TripStatus = 'planning' | 'traveling' | 'completed' | 'published';
 
 interface TripStay {
   id: string;
@@ -33,12 +43,14 @@ interface TripStay {
   checkInDay: number;
   checkOutDay: number;
   status: BookingStatus;
+  actualCost?: number;
 }
 
 interface TripMeal {
   id: string;
   suggestion: string;
   status: BookingStatus;
+  actualCost?: number;
 }
 
 interface TripActivity {
@@ -47,6 +59,7 @@ interface TripActivity {
   time?: string;
   title: string;
   description?: string;
+  spotId?: string;
 }
 
 interface TripDay {
@@ -68,6 +81,24 @@ export interface Trip {
   stays: TripStay[];
   days: TripDay[];
   createdAt: string;
+
+  // TABI 2.0 追加フィールド（既存データには存在しない場合があるため、
+  // 読み込み時に applyDefaults() でデフォルト値を補う）
+  status: TripStatus;
+  nationality?: string;
+  travelStyle?: string;
+  isFirstVisit?: boolean;
+  budgetLevel?: string;
+  totalDays: number;
+
+  actualTotalCost?: number;
+  reflectionWhatWorked?: string;
+  reflectionWhatToChange?: string;
+
+  isPublic: boolean;
+  copiedFromTripId?: string;
+  copyCount: number;
+  saveCount: number;
 }
 
 interface SessionRecord {
@@ -100,11 +131,45 @@ function userIndexKey(uid: string): string {
   return `user:${uid}:${COLLECTION}`;
 }
 
+function publishedIndexKey(): string {
+  return `${COLLECTION}:published`;
+}
+
+function savedIndexKey(uid: string): string {
+  return `user:${uid}:savedTrips`;
+}
+
+/** 既存データ（新フィールドを持たない）にデフォルト値を補う */
+function applyDefaults(trip: Trip): Trip {
+  return {
+    ...trip,
+    status: trip.status || 'planning',
+    totalDays: trip.totalDays || trip.days.length,
+    isPublic: trip.isPublic ?? false,
+    copyCount: trip.copyCount ?? 0,
+    saveCount: trip.saveCount ?? 0,
+  };
+}
+
 async function listUserTrips(uid: string): Promise<Trip[]> {
   const ids = await kv.smembers(userIndexKey(uid));
   if (!ids || ids.length === 0) return [];
   const values = await kv.mget<Trip[]>(...ids.map((id) => recordKey(id)));
-  return (values || []).filter((v): v is Trip => v !== null && v !== undefined);
+  return (values || []).filter((v): v is Trip => v !== null && v !== undefined).map(applyDefaults);
+}
+
+async function listPublishedTrips(): Promise<Trip[]> {
+  const ids = await kv.smembers(publishedIndexKey());
+  if (!ids || ids.length === 0) return [];
+  const values = await kv.mget<Trip[]>(...ids.map((id) => recordKey(id)));
+  return (values || []).filter((v): v is Trip => v !== null && v !== undefined).map(applyDefaults);
+}
+
+async function listSavedTrips(uid: string): Promise<Trip[]> {
+  const ids = await kv.smembers(savedIndexKey(uid));
+  if (!ids || ids.length === 0) return [];
+  const values = await kv.mget<Trip[]>(...ids.map((id) => recordKey(id)));
+  return (values || []).filter((v): v is Trip => v !== null && v !== undefined).map(applyDefaults);
 }
 
 function jsonResponse(body: Record<string, unknown>, status: number): Response {
@@ -130,6 +195,7 @@ interface RawActivityInput {
   time?: string;
   title?: string;
   description?: string;
+  spotId?: string;
 }
 
 interface RawDayInput {
@@ -202,6 +268,7 @@ function buildDays(raw: unknown, tripId: string): TripDay[] {
           time: item.time?.trim() || undefined,
           title: (item.title as string).trim(),
           description: item.description?.trim() || undefined,
+          spotId: item.spotId?.trim() || undefined,
         };
       });
 
@@ -221,9 +288,33 @@ function buildDays(raw: unknown, tripId: string): TripDay[] {
 }
 
 export default async function handler(req: Request): Promise<Response> {
+  const url = new URL(req.url);
+
+  // ── GET: 公開Trip一覧（認証不要） ──
+  if (req.method === 'GET' && url.searchParams.get('public') === '1') {
+    try {
+      const trips = await listPublishedTrips();
+      trips.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+      return jsonResponse({ trips }, 200);
+    } catch (err) {
+      return jsonResponse({ error: 'Failed to load published trips', detail: String(err) }, 500);
+    }
+  }
+
   const uid = await getAuthenticatedUid(req);
   if (!uid) {
     return jsonResponse({ error: 'You must be logged in to access trips' }, 401);
+  }
+
+  // ── GET: 自分がSaveした公開Trip一覧 ──
+  if (req.method === 'GET' && url.searchParams.get('saved') === '1') {
+    try {
+      const trips = await listSavedTrips(uid);
+      trips.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+      return jsonResponse({ trips }, 200);
+    } catch (err) {
+      return jsonResponse({ error: 'Failed to load saved trips', detail: String(err) }, 500);
+    }
   }
 
   // ── GET: 自分のTrip一覧 ──
@@ -237,9 +328,82 @@ export default async function handler(req: Request): Promise<Response> {
     }
   }
 
+  // ── POST: Copy（他人の公開Tripを自分用にコピー） ──
+  if (req.method === 'POST' && url.searchParams.get('action') === 'copy') {
+    const sourceTripId = url.searchParams.get('sourceTripId') || '';
+    if (!sourceTripId) {
+      return jsonResponse({ error: 'sourceTripId is required' }, 400);
+    }
+    try {
+      const source = await kv.get<Trip>(recordKey(sourceTripId));
+      if (!source || !source.isPublic) {
+        return jsonResponse({ error: 'Source trip not found or not public' }, 404);
+      }
+
+      const id = crypto.randomUUID();
+      const copy: Trip = {
+        ...source,
+        id,
+        uid,
+        status: 'planning',
+        createdAt: new Date().toISOString(),
+        isPublic: false,
+        copiedFromTripId: source.id,
+        copyCount: 0,
+        saveCount: 0,
+        actualTotalCost: undefined,
+        reflectionWhatWorked: undefined,
+        reflectionWhatToChange: undefined,
+      };
+
+      await kv.set(recordKey(id), copy);
+      await kv.sadd(userIndexKey(uid), id);
+
+      // 元TripのcopyCountを+1する
+      const updatedSource = { ...source, copyCount: (source.copyCount || 0) + 1 };
+      await kv.set(recordKey(source.id), updatedSource);
+
+      return jsonResponse({ success: true, trip: copy }, 200);
+    } catch (err) {
+      return jsonResponse({ error: 'Failed to copy trip', detail: String(err) }, 500);
+    }
+  }
+
+  // ── POST: Save（他人の公開TripをMy Tripに保存） ──
+  if (req.method === 'POST' && url.searchParams.get('action') === 'save') {
+    const tripId = url.searchParams.get('tripId') || '';
+    if (!tripId) {
+      return jsonResponse({ error: 'tripId is required' }, 400);
+    }
+    try {
+      const trip = await kv.get<Trip>(recordKey(tripId));
+      if (!trip || !trip.isPublic) {
+        return jsonResponse({ error: 'Trip not found or not public' }, 404);
+      }
+
+      await kv.sadd(savedIndexKey(uid), tripId);
+
+      const updatedTrip = { ...trip, saveCount: (trip.saveCount || 0) + 1 };
+      await kv.set(recordKey(tripId), updatedTrip);
+
+      return jsonResponse({ success: true }, 200);
+    } catch (err) {
+      return jsonResponse({ error: 'Failed to save trip', detail: String(err) }, 500);
+    }
+  }
+
   // ── POST: 新規保存 ──
   if (req.method === 'POST') {
-    let body: { title?: string; summary?: string; stays?: unknown; days?: unknown };
+    let body: {
+      title?: string;
+      summary?: string;
+      stays?: unknown;
+      days?: unknown;
+      nationality?: string;
+      travelStyle?: string;
+      isFirstVisit?: boolean;
+      budgetLevel?: string;
+    };
     try {
       body = await req.json();
     } catch {
@@ -266,6 +430,15 @@ export default async function handler(req: Request): Promise<Response> {
       stays,
       days,
       createdAt: new Date().toISOString(),
+      status: 'planning',
+      nationality: body.nationality?.trim() || undefined,
+      travelStyle: body.travelStyle?.trim() || undefined,
+      isFirstVisit: typeof body.isFirstVisit === 'boolean' ? body.isFirstVisit : undefined,
+      budgetLevel: body.budgetLevel?.trim() || undefined,
+      totalDays: days.length,
+      isPublic: false,
+      copyCount: 0,
+      saveCount: 0,
     };
 
     try {
@@ -277,15 +450,100 @@ export default async function handler(req: Request): Promise<Response> {
     }
   }
 
-  // ── PATCH: 宿泊・食事の予約状況を更新 ──
-  if (req.method === 'PATCH') {
-    const url = new URL(req.url);
+  // ── PATCH: status・振り返り・旅行者属性を更新 ──
+  if (req.method === 'PATCH' && url.searchParams.get('action') === 'reflect') {
     const id = url.searchParams.get('id') || '';
     if (!id) {
       return jsonResponse({ error: 'id is required' }, 400);
     }
 
-    let body: { targetId?: string; status?: string };
+    let body: {
+      status?: TripStatus;
+      actualTotalCost?: number;
+      reflectionWhatWorked?: string;
+      reflectionWhatToChange?: string;
+      nationality?: string;
+      travelStyle?: string;
+      isFirstVisit?: boolean;
+      budgetLevel?: string;
+    };
+    try {
+      body = await req.json();
+    } catch {
+      return jsonResponse({ error: 'Invalid JSON body' }, 400);
+    }
+
+    try {
+      const trip = await kv.get<Trip>(recordKey(id));
+      if (!trip) {
+        return jsonResponse({ error: 'Trip not found' }, 404);
+      }
+      if (trip.uid !== uid) {
+        return jsonResponse({ error: 'You can only update your own trips' }, 403);
+      }
+
+      const updated: Trip = applyDefaults({
+        ...trip,
+        status: body.status || trip.status,
+        actualTotalCost:
+          typeof body.actualTotalCost === 'number' ? body.actualTotalCost : trip.actualTotalCost,
+        reflectionWhatWorked: body.reflectionWhatWorked?.trim() || trip.reflectionWhatWorked,
+        reflectionWhatToChange:
+          body.reflectionWhatToChange?.trim() || trip.reflectionWhatToChange,
+        nationality: body.nationality?.trim() || trip.nationality,
+        travelStyle: body.travelStyle?.trim() || trip.travelStyle,
+        isFirstVisit:
+          typeof body.isFirstVisit === 'boolean' ? body.isFirstVisit : trip.isFirstVisit,
+        budgetLevel: body.budgetLevel?.trim() || trip.budgetLevel,
+      });
+
+      await kv.set(recordKey(id), updated);
+      return jsonResponse({ success: true, trip: updated }, 200);
+    } catch (err) {
+      return jsonResponse({ error: 'Failed to update trip', detail: String(err) }, 500);
+    }
+  }
+
+  // ── PATCH: 公開する ──
+  if (req.method === 'PATCH' && url.searchParams.get('action') === 'publish') {
+    const id = url.searchParams.get('id') || '';
+    if (!id) {
+      return jsonResponse({ error: 'id is required' }, 400);
+    }
+
+    try {
+      const trip = await kv.get<Trip>(recordKey(id));
+      if (!trip) {
+        return jsonResponse({ error: 'Trip not found' }, 404);
+      }
+      if (trip.uid !== uid) {
+        return jsonResponse({ error: 'You can only publish your own trips' }, 403);
+      }
+      if (trip.status !== 'completed') {
+        return jsonResponse(
+          { error: 'Only trips with status "completed" can be published. Please add your reflection first.' },
+          400
+        );
+      }
+
+      const updated: Trip = { ...trip, status: 'published', isPublic: true };
+      await kv.set(recordKey(id), updated);
+      await kv.sadd(publishedIndexKey(), id);
+
+      return jsonResponse({ success: true, trip: updated }, 200);
+    } catch (err) {
+      return jsonResponse({ error: 'Failed to publish trip', detail: String(err) }, 500);
+    }
+  }
+
+  // ── PATCH: 宿泊・食事の予約状況を更新（既存の挙動） ──
+  if (req.method === 'PATCH') {
+    const id = url.searchParams.get('id') || '';
+    if (!id) {
+      return jsonResponse({ error: 'id is required' }, 400);
+    }
+
+    let body: { targetId?: string; status?: string; actualCost?: number };
     try {
       body = await req.json();
     } catch {
@@ -315,7 +573,7 @@ export default async function handler(req: Request): Promise<Response> {
       trip.stays = trip.stays.map((s) => {
         if (s.id === targetId) {
           updated = true;
-          return { ...s, status };
+          return { ...s, status, actualCost: body.actualCost ?? s.actualCost };
         }
         return s;
       });
@@ -326,7 +584,7 @@ export default async function handler(req: Request): Promise<Response> {
           const meal = meals[key];
           if (meal && meal.id === targetId) {
             updated = true;
-            meals[key] = { ...meal, status };
+            meals[key] = { ...meal, status, actualCost: body.actualCost ?? meal.actualCost };
           }
         });
         return { ...d, meals };
@@ -345,7 +603,6 @@ export default async function handler(req: Request): Promise<Response> {
 
   // ── DELETE: 削除（本人のみ） ──
   if (req.method === 'DELETE') {
-    const url = new URL(req.url);
     const id = url.searchParams.get('id') || '';
     if (!id) {
       return jsonResponse({ error: 'id is required' }, 400);
@@ -362,6 +619,9 @@ export default async function handler(req: Request): Promise<Response> {
 
       await kv.del(recordKey(id));
       await kv.srem(userIndexKey(uid), id);
+      if (existing.isPublic) {
+        await kv.srem(publishedIndexKey(), id);
+      }
       return jsonResponse({ success: true }, 200);
     } catch (err) {
       return jsonResponse({ error: 'Failed to delete trip', detail: String(err) }, 500);
