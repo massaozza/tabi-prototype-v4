@@ -36,6 +36,8 @@ export interface TripDay {
   };
 }
 
+export type TripStatus = 'planning' | 'traveling' | 'completed' | 'published';
+
 export interface Trip {
   id: string;
   uid: string;
@@ -44,6 +46,22 @@ export interface Trip {
   stays: TripStay[];
   days: TripDay[];
   createdAt: string;
+
+  status?: TripStatus;
+  nationality?: string;
+  travelStyle?: string;
+  isFirstVisit?: boolean;
+  budgetLevel?: string;
+  totalDays?: number;
+
+  actualTotalCost?: number;
+  reflectionWhatWorked?: string;
+  reflectionWhatToChange?: string;
+
+  isPublic?: boolean;
+  copiedFromTripId?: string;
+  copyCount?: number;
+  saveCount?: number;
 }
 
 const MONTH_NAMES = [
