@@ -4,6 +4,7 @@ import Navbar from '@/components/feature/Navbar';
 import Footer from '@/components/feature/Footer';
 import { destinations as fallbackDestinations } from '@/mocks/homeData';
 import { type Experience } from '@/pages/experiences/types';
+import type { Guide } from '@/pages/guides/page';
 
 interface Destination {
   id: string;
@@ -11,6 +12,14 @@ interface Destination {
   category: string;
   description: string;
   image: string;
+}
+
+interface RelatedTrip {
+  id: string;
+  title: string;
+  summary?: string;
+  tripType?: 'recommended' | 'actual';
+  days: { day: number; activities: { spotId?: string }[] }[];
 }
 
 const categoryColors: Record<string, string> = {
@@ -28,6 +37,8 @@ export default function DestinationPage() {
   const { id } = useParams<{ id: string }>();
   const [destination, setDestination] = useState<Destination | null>(null);
   const [experiences, setExperiences] = useState<Experience[]>([]);
+  const [guides, setGuides] = useState<Guide[]>([]);
+  const [trips, setTrips] = useState<RelatedTrip[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
@@ -37,6 +48,8 @@ export default function DestinationPage() {
     setNotFound(false);
     setDestination(null);
     setExperiences([]);
+    setGuides([]);
+    setTrips([]);
 
     async function fetchData() {
       let list: Destination[] = fallbackDestinations;
@@ -59,22 +72,52 @@ export default function DestinationPage() {
       if (found) {
         setDestination(found);
 
-        // 関連するExperienceを取得（area === destination.id で絞り込み）
+        // 関連するExperienceを取得（spotId で正しく絞り込む）
         try {
-          const expRes = await fetch('/api/experiences');
+          const expRes = await fetch(`/api/experiences?spotId=${encodeURIComponent(found.id)}`);
           if (expRes.ok) {
             const json = await expRes.json();
             const all = Array.isArray(json) ? json : json.experiences;
             if (!cancelled && Array.isArray(all)) {
-              const matching = all
-                .filter((e: Experience) => e.area === found.id)
+              const sorted = [...all]
                 .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''))
                 .slice(0, 6);
-              setExperiences(matching);
+              setExperiences(sorted);
             }
           }
         } catch {
           // Experience取得失敗時はセクション非表示のまま
+        }
+
+        // このSpotを紹介しているGuideを取得
+        try {
+          const guideRes = await fetch(`/api/guides?spotId=${encodeURIComponent(found.id)}`);
+          if (guideRes.ok) {
+            const json = await guideRes.json();
+            if (!cancelled && Array.isArray(json.guides)) {
+              setGuides(json.guides.slice(0, 4));
+            }
+          }
+        } catch {
+          // Guide取得失敗時はセクション非表示のまま
+        }
+
+        // このSpotを含む公開Tripを取得（クライアント側でspotIdに一致するものを絞り込む）
+        try {
+          const tripRes = await fetch('/api/trips?public=1');
+          if (tripRes.ok) {
+            const json = await tripRes.json();
+            if (!cancelled && Array.isArray(json.trips)) {
+              const matching = json.trips
+                .filter((t: RelatedTrip) =>
+                  t.days.some((d) => d.activities.some((a) => a.spotId === found.id))
+                )
+                .slice(0, 4);
+              setTrips(matching);
+            }
+          }
+        } catch {
+          // Trip取得失敗時はセクション非表示のまま
         }
       } else {
         setNotFound(true);
@@ -193,6 +236,72 @@ export default function DestinationPage() {
               <p className="text-foreground-600 text-base md:text-lg leading-relaxed">
                 {destination.description}
               </p>
+
+              {guides.length > 0 && (
+                <section className="mt-12">
+                  <h2 className="font-heading font-bold text-xl md:text-2xl text-foreground-900 mb-6">
+                    Guides Featuring {destination.title}
+                  </h2>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 md:gap-6">
+                    {guides.map((guide) => (
+                      <Link
+                        key={guide.id}
+                        to={`/guides/${guide.id}`}
+                        className="group flex flex-col bg-background-50 rounded-xl overflow-hidden border border-background-200 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer p-5"
+                      >
+                        <span className="inline-block text-xs font-semibold px-2.5 py-1 rounded-full bg-accent-100 text-accent-800 whitespace-nowrap mb-3 self-start">
+                          {guide.theme}
+                        </span>
+                        <h3 className="font-heading font-bold text-base text-foreground-900 mb-2 leading-snug">
+                          {guide.titleEn || guide.title}
+                        </h3>
+                        <p className="text-foreground-600 text-sm leading-relaxed line-clamp-2 mb-3">
+                          {guide.bodyEn || guide.bodyJa}
+                        </p>
+                        <span className="mt-auto text-foreground-400 text-xs whitespace-nowrap">
+                          By {guide.authorName}
+                        </span>
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {trips.length > 0 && (
+                <section className="mt-12">
+                  <h2 className="font-heading font-bold text-xl md:text-2xl text-foreground-900 mb-6">
+                    Trips Including {destination.title}
+                  </h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 md:gap-6">
+                    {trips.map((trip) => (
+                      <Link
+                        key={trip.id}
+                        to={`/trips/${trip.id}`}
+                        className="group flex flex-col bg-background-50 border border-background-200 rounded-xl overflow-hidden hover:-translate-y-0.5 transition-all duration-300 cursor-pointer p-5"
+                      >
+                        <span
+                          className={`inline-block text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap mb-3 self-start ${
+                            trip.tripType === 'recommended'
+                              ? 'bg-accent-50 text-accent-700'
+                              : 'bg-primary-50 text-primary-700'
+                          }`}
+                        >
+                          {trip.tripType === 'recommended' ? 'Recommended Trip' : 'Actual Trip'}
+                        </span>
+                        <h3 className="font-heading font-bold text-base text-foreground-900 mb-2 leading-snug">
+                          {trip.title}
+                        </h3>
+                        {trip.summary && (
+                          <p className="text-foreground-600 text-sm leading-relaxed line-clamp-2">
+                            {trip.summary}
+                          </p>
+                        )}
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+              )}
 
               {experiences.length > 0 && (
                 <section className="mt-12">
