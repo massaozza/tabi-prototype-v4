@@ -37,6 +37,7 @@ export interface TripDay {
 }
 
 export type TripStatus = 'planning' | 'traveling' | 'completed' | 'published';
+export type TripKind = 'recommended' | 'actual';
 
 export interface Trip {
   id: string;
@@ -48,6 +49,7 @@ export interface Trip {
   createdAt: string;
 
   status?: TripStatus;
+  tripType?: TripKind;
   nationality?: string;
   travelStyle?: string;
   isFirstVisit?: boolean;
