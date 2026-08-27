@@ -5,6 +5,7 @@ export interface Experience {
   createdAt: string;
   placeName: string;
   area: string;
+  spotId?: string;
   category: string;
   visitedMonth: string;
   travelStyle: string;
