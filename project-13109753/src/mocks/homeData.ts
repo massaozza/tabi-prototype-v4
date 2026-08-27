@@ -3,7 +3,7 @@ export const navLinks = [
   // 「My Trip」「Profile」は、ログイン中のユーザーのみ意味を持つため、
   // ここには含めず、Navbar.tsx側でログイン状態に応じて動的に追加している。
   { label: 'Plan with AI', href: '/' },
-  { label: 'Explore', href: '/experiences' },
+   { label: 'Explore', href: '/explore' },
   { label: 'Trips', href: '/trips' },
   { label: 'Guides', href: '/guides' },
   { label: 'Spots', href: '/#destinations' },
