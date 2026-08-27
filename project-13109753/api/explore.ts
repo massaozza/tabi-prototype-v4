@@ -111,7 +111,7 @@ async function fetchTrips(req: VercelRequest): Promise<ExploreResult[]> {
       contentType: 'trip' as const,
       title: t.title,
       summary: t.summary,
-      href: `/trips`,
+      href: `/trips/${t.id}`,
     }));
   } catch {
     return [];
