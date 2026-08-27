@@ -85,6 +85,10 @@ export interface Trip {
   // TABI 2.0 追加フィールド（既存データには存在しない場合があるため、
   // 読み込み時に applyDefaults() でデフォルト値を補う）
   status: TripStatus;
+  // TABI 3.0：Recommended Trip（日本人Creatorが設計する、実際に旅行した
+  // 必要のないおすすめ旅程）と、Actual Trip（外国人Travelerの実体験）を区別する。
+  // 既存データは全て 'actual'（実際の旅程）として扱う。
+  tripType: 'recommended' | 'actual';
   nationality?: string;
   travelStyle?: string;
   isFirstVisit?: boolean;
@@ -144,6 +148,7 @@ function applyDefaults(trip: Trip): Trip {
   return {
     ...trip,
     status: trip.status || 'planning',
+    tripType: trip.tripType || 'actual',
     totalDays: trip.totalDays || trip.days.length,
     isPublic: trip.isPublic ?? false,
     copyCount: trip.copyCount ?? 0,
@@ -403,6 +408,7 @@ export default async function handler(req: Request): Promise<Response> {
       travelStyle?: string;
       isFirstVisit?: boolean;
       budgetLevel?: string;
+      tripType?: 'recommended' | 'actual';
     };
     try {
       body = await req.json();
@@ -431,6 +437,7 @@ export default async function handler(req: Request): Promise<Response> {
       days,
       createdAt: new Date().toISOString(),
       status: 'planning',
+      tripType: body.tripType === 'recommended' ? 'recommended' : 'actual',
       nationality: body.nationality?.trim() || undefined,
       travelStyle: body.travelStyle?.trim() || undefined,
       isFirstVisit: typeof body.isFirstVisit === 'boolean' ? body.isFirstVisit : undefined,
@@ -526,13 +533,49 @@ export default async function handler(req: Request): Promise<Response> {
         );
       }
 
-      const updated: Trip = { ...trip, status: 'published', isPublic: true };
+      const updated: Trip = { ...trip, status: 'published', isPublic: true, tripType: 'actual' };
       await kv.set(recordKey(id), updated);
       await kv.sadd(publishedIndexKey(), id);
 
       return jsonResponse({ success: true, trip: updated }, 200);
     } catch (err) {
       return jsonResponse({ error: 'Failed to publish trip', detail: String(err) }, 500);
+    }
+  }
+
+  // ── PATCH: Recommended Tripとして公開する（振り返り不要） ──
+  // TABI 3.0：日本人Creatorが「実際に旅行していなくても」設計できる
+  // おすすめ旅程。Actual Tripのような振り返り・実費用の入力は求めない。
+  if (req.method === 'PATCH' && url.searchParams.get('action') === 'publishRecommended') {
+    const id = url.searchParams.get('id') || '';
+    if (!id) {
+      return jsonResponse({ error: 'id is required' }, 400);
+    }
+
+    try {
+      const trip = await kv.get<Trip>(recordKey(id));
+      if (!trip) {
+        return jsonResponse({ error: 'Trip not found' }, 404);
+      }
+      if (trip.uid !== uid) {
+        return jsonResponse({ error: 'You can only publish your own trips' }, 403);
+      }
+
+      const updated: Trip = {
+        ...trip,
+        status: 'published',
+        isPublic: true,
+        tripType: 'recommended',
+      };
+      await kv.set(recordKey(id), updated);
+      await kv.sadd(publishedIndexKey(), id);
+
+      return jsonResponse({ success: true, trip: updated }, 200);
+    } catch (err) {
+      return jsonResponse(
+        { error: 'Failed to publish recommended trip', detail: String(err) },
+        500
+      );
     }
   }
 
