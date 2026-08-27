@@ -6,6 +6,20 @@ import { useAuth } from '@/context/AuthContext';
 import { formatArea, formatMonth, type Experience } from '../types';
 import { computeExperienceScore, MAX_EXPERIENCE_SCORE } from '../score';
 
+interface RelatedSpot {
+  id: string;
+  title: string;
+  category: string;
+  image: string;
+}
+
+interface RelatedTrip {
+  id: string;
+  title: string;
+  tripType?: 'recommended' | 'actual';
+  days: { activities: { spotId?: string }[] }[];
+}
+
 const categoryColors: Record<string, string> = {
   Temple: 'bg-accent-100 text-accent-800',
   Restaurant: 'bg-secondary-100 text-secondary-800',
@@ -45,6 +59,8 @@ export default function ExperienceDetailPage() {
   const [helpfulByMe, setHelpfulByMe] = useState(false);
   const [helpfulPending, setHelpfulPending] = useState(false);
   const [citationCount, setCitationCount] = useState(0);
+  const [relatedSpot, setRelatedSpot] = useState<RelatedSpot | null>(null);
+  const [relatedTrips, setRelatedTrips] = useState<RelatedTrip[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -58,6 +74,40 @@ export default function ExperienceDetailPage() {
           const found = list.find((e: Experience) => e.id === id) ?? null;
           setExperience(found);
           setAllExperiences(list);
+
+          if (found?.spotId) {
+            // Related Spot（このExperienceが紐づいているSPOTの基本情報）
+            try {
+              const spotRes = await fetch('/api/content?type=destinations');
+              if (spotRes.ok) {
+                const spotJson = await spotRes.json();
+                const spot = Array.isArray(spotJson?.data)
+                  ? spotJson.data.find((d: RelatedSpot) => d.id === found.spotId)
+                  : null;
+                if (!cancelled && spot) setRelatedSpot(spot);
+              }
+            } catch {
+              // 取得失敗時はセクション非表示のまま
+            }
+
+            // Trips including this Experience（同じSpotを含む公開Trip）
+            try {
+              const tripRes = await fetch('/api/trips?public=1');
+              if (tripRes.ok) {
+                const tripJson = await tripRes.json();
+                if (!cancelled && Array.isArray(tripJson.trips)) {
+                  const matching = tripJson.trips
+                    .filter((t: RelatedTrip) =>
+                      t.days.some((d) => d.activities.some((a) => a.spotId === found.spotId))
+                    )
+                    .slice(0, 4);
+                  setRelatedTrips(matching);
+                }
+              }
+            } catch {
+              // 取得失敗時はセクション非表示のまま
+            }
+          }
         }
       } catch {
         if (!cancelled) setExperience(null);
@@ -283,6 +333,67 @@ export default function ExperienceDetailPage() {
                   <p className="text-accent-900 text-base leading-relaxed whitespace-pre-wrap">
                     {experience.tip}
                   </p>
+                </section>
+              )}
+
+              {/* Related Spot */}
+              {relatedSpot && (
+                <section className="mb-8">
+                  <h4 className="font-heading font-semibold text-base text-foreground-900 mb-3">
+                    Related Spot
+                  </h4>
+                  <Link
+                    to={`/destinations/${relatedSpot.id}`}
+                    className="group flex items-center gap-4 bg-background-50 border border-background-200 rounded-xl overflow-hidden hover:-translate-y-0.5 transition-all duration-300 cursor-pointer p-4"
+                  >
+                    <div className="w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden bg-background-100">
+                      <img
+                        src={relatedSpot.image}
+                        alt={relatedSpot.title}
+                        className="w-full h-full object-cover object-top"
+                      />
+                    </div>
+                    <div>
+                      <span className="inline-block text-xs font-semibold px-2 py-0.5 rounded-full bg-secondary-100 text-secondary-800 whitespace-nowrap mb-1">
+                        {relatedSpot.category}
+                      </span>
+                      <h5 className="font-heading font-bold text-sm text-foreground-900">
+                        {relatedSpot.title}
+                      </h5>
+                    </div>
+                    <i className="ri-arrow-right-line text-foreground-400 ml-auto group-hover:text-primary-500 transition-colors"></i>
+                  </Link>
+                </section>
+              )}
+
+              {/* Trips including this Experience */}
+              {relatedTrips.length > 0 && (
+                <section className="mb-8">
+                  <h4 className="font-heading font-semibold text-base text-foreground-900 mb-3">
+                    Trips Including This Spot
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {relatedTrips.map((trip) => (
+                      <Link
+                        key={trip.id}
+                        to={`/trips/${trip.id}`}
+                        className="flex flex-col bg-background-50 border border-background-200 rounded-lg p-4 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer"
+                      >
+                        <span
+                          className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full whitespace-nowrap mb-1.5 self-start ${
+                            trip.tripType === 'recommended'
+                              ? 'bg-accent-50 text-accent-700'
+                              : 'bg-primary-50 text-primary-700'
+                          }`}
+                        >
+                          {trip.tripType === 'recommended' ? 'Recommended Trip' : 'Actual Trip'}
+                        </span>
+                        <span className="font-heading font-semibold text-sm text-foreground-900">
+                          {trip.title}
+                        </span>
+                      </Link>
+                    ))}
+                  </div>
                 </section>
               )}
 
