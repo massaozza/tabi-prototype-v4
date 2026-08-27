@@ -70,9 +70,12 @@ function PublicTripCard({ trip }: { trip: PublicTrip }) {
 
   return (
     <div className="bg-background-50 border border-background-200 rounded-xl p-6 flex flex-col">
-      <h3 className="font-heading font-bold text-lg text-foreground-900 mb-2">
+      <Link
+        to={`/trips/${trip.id}`}
+        className="font-heading font-bold text-lg text-foreground-900 mb-2 hover:text-primary-600 transition-colors block"
+      >
         {trip.title}
-      </h3>
+      </Link>
       <p className="text-foreground-600 text-sm leading-relaxed mb-4 line-clamp-3 flex-1">
         {trip.summary || ''}
       </p>
