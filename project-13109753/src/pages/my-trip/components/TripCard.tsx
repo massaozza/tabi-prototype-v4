@@ -23,6 +23,11 @@ const STATUS_BADGE: Record<string, { label: string; className: string }> = {
   published: { label: 'Published', className: 'bg-primary-100 text-primary-700' },
 };
 
+const TRIP_TYPE_BADGE: Record<string, { label: string; className: string }> = {
+  recommended: { label: 'Recommended Trip', className: 'bg-accent-50 text-accent-700 border border-accent-200' },
+  actual: { label: 'Actual Trip', className: 'bg-primary-50 text-primary-700 border border-primary-200' },
+};
+
 interface DayRow {
   day: TripDay;
   stay?: TripStay;
@@ -108,6 +113,26 @@ export default function TripCard({
     }
   };
 
+  const handlePublishRecommended = async () => {
+    setPublishing(true);
+    setPublishError('');
+    try {
+      const res = await fetch(
+        `/api/trips?id=${encodeURIComponent(trip.id)}&action=publishRecommended`,
+        { method: 'PATCH', credentials: 'include' }
+      );
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to publish');
+      }
+      onTripUpdate(data.trip);
+    } catch (err) {
+      setPublishError(err instanceof Error ? err.message : 'Failed to publish this trip.');
+    } finally {
+      setPublishing(false);
+    }
+  };
+
   const handleMarkBooked = async (targetId: string) => {
     setPendingBookingId(targetId);
     setBookingErrors((prev) => {
@@ -170,6 +195,15 @@ export default function TripCard({
             <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap ${statusBadge.className}`}>
               {statusBadge.label}
             </span>
+            {trip.status === 'published' && (
+              <span
+                className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap ${
+                  TRIP_TYPE_BADGE[trip.tripType || 'actual'].className
+                }`}
+              >
+                {TRIP_TYPE_BADGE[trip.tripType || 'actual'].label}
+              </span>
+            )}
             <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-primary-100 text-primary-800 whitespace-nowrap">
               <i className="ri-calendar-line"></i>
               {dayCount} {dayCount === 1 ? 'day' : 'days'}
@@ -344,17 +378,28 @@ export default function TripCard({
           <div className="mt-6 pt-5 border-t border-background-200">
             {status === 'planning' || status === 'traveling' ? (
               <div className="flex items-center justify-between gap-3 flex-wrap">
-                <p className="text-foreground-500 text-xs">
-                  Been on this trip already? Add your reflection to publish it and help
-                  other travelers.
+                <p className="text-foreground-500 text-xs max-w-xs">
+                  Been on this trip already? Add your reflection to publish it as an Actual
+                  Trip. Designing a route for others without traveling it yourself? Publish
+                  it directly as a Recommended Trip.
                 </p>
-                <button
-                  onClick={() => setShowReflectionModal(true)}
-                  className="bg-background-100 hover:bg-background-200 text-foreground-800 font-semibold text-xs px-4 py-2 rounded-md transition-colors cursor-pointer whitespace-nowrap"
-                >
-                  <i className="ri-quill-pen-line mr-1"></i>
-                  Add Reflection
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handlePublishRecommended}
+                    disabled={publishing}
+                    className="border border-accent-300 text-accent-700 hover:bg-accent-50 disabled:opacity-60 font-semibold text-xs px-4 py-2 rounded-md transition-colors cursor-pointer whitespace-nowrap"
+                  >
+                    <i className="ri-lightbulb-line mr-1"></i>
+                    {publishing ? 'Publishing...' : 'Publish as Recommended Trip'}
+                  </button>
+                  <button
+                    onClick={() => setShowReflectionModal(true)}
+                    className="bg-background-100 hover:bg-background-200 text-foreground-800 font-semibold text-xs px-4 py-2 rounded-md transition-colors cursor-pointer whitespace-nowrap"
+                  >
+                    <i className="ri-quill-pen-line mr-1"></i>
+                    Add Reflection
+                  </button>
+                </div>
               </div>
             ) : status === 'completed' ? (
               <div className="flex items-center justify-between gap-3 flex-wrap">
