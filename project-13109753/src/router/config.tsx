@@ -16,6 +16,7 @@ import ExperienceDetailPage from "../pages/experiences/detail/page";
 import ExperiencesPage from "../pages/experiences/page";
 import MyTripPage from "../pages/my-trip/page";
 import PublicTripsPage from "../pages/trips/page";
+import PublicTripDetailPage from "../pages/trips/detail/page";
 import { AdminAuthProvider } from "../pages/admin/components/AdminAuth";
 import AdminLayout from "../pages/admin/components/AdminLayout";
 import DashboardPage from "../pages/admin/dashboard/page";
@@ -128,6 +129,10 @@ const routes: RouteObject[] = [
   {
     path: "/trips",
     element: <PublicTripsPage />,
+  },
+  {
+    path: "/trips/:id",
+    element: <PublicTripDetailPage />,
   },
   {
     path: "/my-trip",
