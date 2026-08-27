@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import ContentList from './components/ContentList';
+import { PREFECTURE_REGIONS } from '@/mocks/prefectureData';
 
 type ContentTab = 'localsPlaces' | 'latestGuides' | 'destinations';
 
@@ -11,6 +12,7 @@ export interface ContentItem {
   category?: string;
   description?: string;
   href?: string;
+  prefecture?: string;
 }
 
 const TAB_LABELS: Record<ContentTab, string> = {
@@ -42,6 +44,7 @@ export default function ContentPage() {
   const [formCategory, setFormCategory] = useState('');
   const [formDescription, setFormDescription] = useState('');
   const [formHref, setFormHref] = useState('');
+  const [formPrefecture, setFormPrefecture] = useState('');
 
   const hasChanges = JSON.stringify(items) !== JSON.stringify(originalItems);
 
@@ -80,6 +83,7 @@ export default function ContentPage() {
     setFormCategory('');
     setFormDescription('');
     setFormHref('');
+    setFormPrefecture('');
     setIsNewItem(true);
     setEditingItem(null);
     setShowForm(true);
@@ -92,6 +96,7 @@ export default function ContentPage() {
     setFormCategory(item.category || '');
     setFormDescription(item.description || '');
     setFormHref(item.href || '');
+    setFormPrefecture(item.prefecture || '');
     setIsNewItem(false);
     setEditingItem(item);
     setShowForm(true);
@@ -114,6 +119,7 @@ export default function ContentPage() {
       ...(activeTab === 'localsPlaces' ? { story: formStory.trim() } : {}),
       ...(activeTab !== 'localsPlaces' ? { category: formCategory.trim(), description: formDescription.trim() } : {}),
       ...(activeTab === 'latestGuides' ? { href: formHref.trim() } : {}),
+      ...(activeTab === 'destinations' ? { prefecture: formPrefecture.trim() } : {}),
     };
 
     if (isNewItem) {
@@ -246,6 +252,32 @@ export default function ContentPage() {
                     className="w-full px-3 py-2 rounded-lg border border-background-200 bg-background-50 text-foreground-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
                     placeholder="Enter category..."
                   />
+                </div>
+              )}
+              {activeTab === 'destinations' && (
+                <div>
+                  <label className="block text-sm font-medium text-foreground-700 mb-1">
+                    Prefecture
+                  </label>
+                  <select
+                    value={formPrefecture}
+                    onChange={(e) => setFormPrefecture(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg border border-background-200 bg-background-50 text-foreground-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
+                  >
+                    <option value="">Select a prefecture...</option>
+                    {PREFECTURE_REGIONS.map((region) => (
+                      <optgroup key={region.slug} label={region.region}>
+                        {region.prefectures.map((pref) => (
+                          <option key={pref} value={pref}>
+                            {pref}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ))}
+                  </select>
+                  <p className="text-xs text-foreground-400 mt-1">
+                    Required for this destination to appear on its prefecture page.
+                  </p>
                 </div>
               )}
               {activeTab === 'latestGuides' && (
