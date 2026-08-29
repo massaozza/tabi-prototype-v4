@@ -27,7 +27,7 @@ export default function CreatorNavbar() {
             マイページ
           </a>
           {!loading && user && (
-            
+            <a
               href={`/creator/${user.uid}`}
               className="text-sm font-semibold text-white/90 hover:text-white transition-colors whitespace-nowrap"
             >
@@ -42,14 +42,14 @@ export default function CreatorNavbar() {
               ログアウト
             </button>
           ) : (
-            
+            <a
               href="/login"
               className="bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-4 py-2 rounded-md transition-colors whitespace-nowrap cursor-pointer"
             >
               ログイン
             </a>
           )}
-          
+          <a
             href="/"
             className="text-xs text-white/40 hover:text-white/70 transition-colors whitespace-nowrap"
           >
