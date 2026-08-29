@@ -74,6 +74,13 @@ export default function ExperienceDetailPage() {
           const found = list.find((e: Experience) => e.id === id) ?? null;
           setExperience(found);
           setAllExperiences(list);
+          if (found) {
+            fetch('/api/track-view', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ contentType: 'experience', id: found.id }),
+            }).catch(() => {});
+          }
 
           if (found?.spotId) {
             // Related Spot（このExperienceが紐づいているSPOTの基本情報）
