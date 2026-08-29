@@ -34,6 +34,8 @@ import GuidesPage from "../pages/guides/page";
 import GuideDetailPage from "../pages/guides/detail/page";
 import SharePage from "../pages/share/page";
 import ExplorePage from "../pages/explore/page";
+import CreatorsHomePage from "../pages/creators/page";
+import CreatorDashboardPage from "../pages/creators/dashboard/page";
 
 const routes: RouteObject[] = [
   {
@@ -169,6 +171,14 @@ const routes: RouteObject[] = [
   {
     path: "/explore",
     element: <ExplorePage />,
+  },
+  {
+    path: "/creators",
+    element: <CreatorsHomePage />,
+  },
+  {
+    path: "/creators/dashboard",
+    element: <CreatorDashboardPage />,
   },
   {
     path: "/:category/:articleSlug",
