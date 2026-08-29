@@ -140,9 +140,17 @@ export default function TripsPage() {
           <h1 className="font-heading font-bold text-3xl md:text-5xl text-white leading-tight mb-4">
             My Trips
           </h1>
-          <p className="text-white/60 text-base max-w-xl mx-auto leading-relaxed">
+          <p className="text-white/60 text-base max-w-xl mx-auto leading-relaxed mb-6">
             Your saved itineraries, ready whenever you need them.
           </p>
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new CustomEvent('tabi:open-chat'))}
+            className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-6 py-3 rounded-lg transition-colors cursor-pointer whitespace-nowrap"
+          >
+            <i className="ri-add-line"></i>
+            新しい旅程を作る
+          </button>
         </div>
       </section>
 
