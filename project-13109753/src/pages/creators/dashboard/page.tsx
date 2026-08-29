@@ -4,16 +4,6 @@ import CreatorNavbar from '@/components/feature/CreatorNavbar';
 import Footer from '@/components/feature/Footer';
 import { useAuth } from '@/context/AuthContext';
 
-// TABI 3.0：Creator Dashboard。
-// 日本人クリエイターが、自分の投稿（Trip・Guide/SPOT Review・Experience）と
-// 簡易的な実績（Analytics）を、1つの画面で確認できるようにする。
-//
-// 【正直な設計の限界】
-// 「Views（閲覧数）」を計測する仕組みは、まだTABIには無い（ページ表示の
-// たびに記録するような新しいトラッキング基盤が必要になるため）。
-// そのため Analytics タブは、既存の実績データ（Save数・Copy数・Helpful数・
-// AI引用回数）の合計値を表示するにとどめている。
-
 type TabKey =
   | 'overview'
   | 'trips'
@@ -23,14 +13,26 @@ type TabKey =
   | 'earnings'
   | 'profile';
 
+const STATUS_LABEL_JA: Record<string, string> = {
+  planning: '計画中',
+  traveling: '旅行中',
+  completed: '振り返り済み',
+  published: '公開済み',
+};
+
+const TRIP_TYPE_LABEL_JA: Record<string, string> = {
+  recommended: 'おすすめ旅程',
+  actual: '実体験の旅程',
+};
+
 const TABS: { key: TabKey; label: string; icon: string }[] = [
   { key: 'overview', label: '概要', icon: 'ri-dashboard-line' },
-  { key: 'trips', label: 'My Trips', icon: 'ri-map-2-line' },
-  { key: 'spotReviews', label: 'My Spot Reviews', icon: 'ri-map-pin-line' },
-  { key: 'experiences', label: 'My Experiences', icon: 'ri-camera-3-line' },
-  { key: 'analytics', label: 'Analytics', icon: 'ri-bar-chart-line' },
-  { key: 'earnings', label: 'Earnings', icon: 'ri-money-dollar-circle-line' },
-  { key: 'profile', label: 'Profile', icon: 'ri-user-line' },
+  { key: 'trips', label: '旅程', icon: 'ri-map-2-line' },
+  { key: 'spotReviews', label: 'スポットの口コミ', icon: 'ri-map-pin-line' },
+  { key: 'experiences', label: '体験', icon: 'ri-camera-3-line' },
+  { key: 'analytics', label: '実績', icon: 'ri-bar-chart-line' },
+  { key: 'earnings', label: '収益', icon: 'ri-money-dollar-circle-line' },
+  { key: 'profile', label: 'プロフィール', icon: 'ri-user-line' },
 ];
 
 interface TripSummary {
@@ -125,25 +127,32 @@ export default function CreatorDashboardPage() {
     <main className="min-h-screen bg-background-50">
       <CreatorNavbar />
 
-      <section className="bg-foreground-900 pt-10 pb-8 px-6 md:px-10">
-        <div className="max-w-5xl mx-auto">
-          <h1 className="font-heading font-bold text-2xl md:text-3xl text-white mb-1">
+      <section className="relative bg-foreground-900 pt-10 pb-10 px-6 md:px-10 overflow-hidden">
+        <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-primary-500/10 blur-3xl pointer-events-none"></div>
+        <div className="absolute -bottom-24 -left-16 w-72 h-72 rounded-full bg-accent-500/10 blur-3xl pointer-events-none"></div>
+        <div className="relative max-w-5xl mx-auto">
+          <h1 className="font-heading font-bold text-2xl md:text-3xl text-white mb-2">
             マイページ
           </h1>
-          <p className="text-white/60 text-sm">{user.displayName} さんの投稿・実績</p>
+          <p className="text-white/60 text-sm flex items-center gap-2">
+            <span className="w-7 h-7 rounded-full bg-primary-500 text-white text-xs font-semibold flex items-center justify-center">
+              {user.displayName ? user.displayName.charAt(0).toUpperCase() : '?'}
+            </span>
+            {user.displayName} さんの投稿・実績
+          </p>
         </div>
       </section>
 
-      <section className="px-6 md:px-10 -mt-5">
-        <div className="max-w-5xl mx-auto bg-background-50 border border-background-200 rounded-xl shadow-sm p-1.5 flex gap-1 overflow-x-auto">
+      <section className="px-6 md:px-10 -mt-5 relative z-10">
+        <div className="max-w-5xl mx-auto bg-background-50 border border-background-200 rounded-xl p-1.5 flex gap-1 overflow-x-auto">
           {TABS.map((tab) => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-colors cursor-pointer ${
+              className={`flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer ${
                 activeTab === tab.key
-                  ? 'bg-foreground-900 text-white'
-                  : 'text-foreground-600 hover:bg-background-100'
+                  ? 'bg-primary-500 text-white'
+                  : 'text-foreground-600 hover:bg-background-100 hover:text-foreground-900'
               }`}
             >
               <i className={tab.icon}></i>
@@ -166,16 +175,25 @@ export default function CreatorDashboardPage() {
               {activeTab === 'overview' && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {[
-                    { label: 'Trips', value: trips.length, icon: 'ri-map-2-line' },
-                    { label: 'Spot Reviews', value: guides.length, icon: 'ri-map-pin-line' },
-                    { label: 'Experiences', value: experiences.length, icon: 'ri-camera-3-line' },
-                    { label: 'Published Trips', value: publishedTrips, icon: 'ri-global-line' },
+                    { label: '旅程', value: trips.length, icon: 'ri-map-2-line', color: 'primary' },
+                    { label: 'スポットの口コミ', value: guides.length, icon: 'ri-map-pin-line', color: 'accent' },
+                    { label: '体験', value: experiences.length, icon: 'ri-camera-3-line', color: 'secondary' },
+                    { label: '公開中の旅程', value: publishedTrips, icon: 'ri-global-line', color: 'primary' },
                   ].map((stat) => (
                     <div
                       key={stat.label}
-                      className="bg-background-50 border border-background-200 rounded-xl p-5"
+                      className="relative bg-background-50 border border-background-200 rounded-xl p-5 hover:border-background-300 transition-colors overflow-hidden"
                     >
-                      <i className={`${stat.icon} text-2xl text-primary-500 mb-3 block`}></i>
+                      <span className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-transparent via-primary-400/50 to-transparent"></span>
+                      <span className={`w-10 h-10 rounded-lg flex items-center justify-center mb-3 ${
+                        stat.color === 'accent'
+                          ? 'bg-accent-100 text-accent-700'
+                          : stat.color === 'secondary'
+                          ? 'bg-secondary-100 text-secondary-700'
+                          : 'bg-primary-100 text-primary-600'
+                      }`}>
+                        <i className={`${stat.icon} text-lg`}></i>
+                      </span>
                       <p className="text-2xl font-heading font-bold text-foreground-900">
                         {stat.value}
                       </p>
@@ -197,13 +215,19 @@ export default function CreatorDashboardPage() {
                     trips.map((t) => (
                       <div
                         key={t.id}
-                        className="flex items-center justify-between bg-background-50 border border-background-200 rounded-lg p-4"
+                        className="flex items-center justify-between bg-background-50 border border-background-200 rounded-lg p-4 hover:border-primary-200 hover:-translate-y-0.5 transition-all"
                       >
-                        <div>
-                          <p className="font-semibold text-sm text-foreground-900">{t.title}</p>
-                          <p className="text-xs text-foreground-400 mt-1">
-                            {t.status} {t.tripType ? `・${t.tripType}` : ''}
-                          </p>
+                        <div className="flex items-center gap-3">
+                          <span className="w-9 h-9 rounded-lg bg-primary-100 text-primary-600 flex items-center justify-center shrink-0">
+                            <i className="ri-map-2-line"></i>
+                          </span>
+                          <div>
+                            <p className="font-semibold text-sm text-foreground-900">{t.title}</p>
+                            <p className="text-xs text-foreground-400 mt-1">
+                              {STATUS_LABEL_JA[t.status || ''] || t.status}
+                              {t.tripType ? `・${TRIP_TYPE_LABEL_JA[t.tripType] || t.tripType}` : ''}
+                            </p>
+                          </div>
                         </div>
                         <Link
                           to="/my-trip"
@@ -230,15 +254,25 @@ export default function CreatorDashboardPage() {
                       <Link
                         key={g.id}
                         to={`/guides/${g.id}`}
-                        className="flex items-center justify-between bg-background-50 border border-background-200 rounded-lg p-4 hover:-translate-y-0.5 transition-all"
+                        className="flex items-center justify-between bg-background-50 border border-background-200 rounded-lg p-4 hover:border-accent-200 hover:-translate-y-0.5 transition-all"
                       >
-                        <div>
-                          <p className="font-semibold text-sm text-foreground-900">
-                            {g.titleEn || g.title}
-                          </p>
-                          <p className="text-xs text-foreground-400 mt-1">
-                            {g.spots.length}件のスポット・{g.translationStatus}
-                          </p>
+                        <div className="flex items-center gap-3">
+                          <span className="w-9 h-9 rounded-lg bg-accent-100 text-accent-700 flex items-center justify-center shrink-0">
+                            <i className="ri-map-pin-line"></i>
+                          </span>
+                          <div>
+                            <p className="font-semibold text-sm text-foreground-900">
+                              {g.titleEn || g.title}
+                            </p>
+                            <p className="text-xs text-foreground-400 mt-1">
+                              {g.spots.length}件のスポット・
+                              {g.translationStatus === 'translated'
+                                ? '翻訳済み'
+                                : g.translationStatus === 'pending'
+                                ? '翻訳待ち'
+                                : '翻訳失敗'}
+                            </p>
+                          </div>
                         </div>
                         <i className="ri-arrow-right-line text-foreground-400"></i>
                       </Link>
@@ -260,11 +294,16 @@ export default function CreatorDashboardPage() {
                       <Link
                         key={e.id}
                         to={`/experiences/${e.id}`}
-                        className="flex items-center justify-between bg-background-50 border border-background-200 rounded-lg p-4 hover:-translate-y-0.5 transition-all"
+                        className="flex items-center justify-between bg-background-50 border border-background-200 rounded-lg p-4 hover:border-secondary-200 hover:-translate-y-0.5 transition-all"
                       >
-                        <p className="font-semibold text-sm text-foreground-900">
-                          {e.placeName}
-                        </p>
+                        <div className="flex items-center gap-3">
+                          <span className="w-9 h-9 rounded-lg bg-secondary-100 text-secondary-700 flex items-center justify-center shrink-0">
+                            <i className="ri-camera-3-line"></i>
+                          </span>
+                          <p className="font-semibold text-sm text-foreground-900">
+                            {e.placeName}
+                          </p>
+                        </div>
                         <i className="ri-arrow-right-line text-foreground-400"></i>
                       </Link>
                     ))
@@ -280,20 +319,24 @@ export default function CreatorDashboardPage() {
                   </p>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {[
-                      { label: 'Trip Saves', value: totalSaves, icon: 'ri-bookmark-line' },
-                      { label: 'Trip Copies', value: totalCopies, icon: 'ri-file-copy-line' },
+                      { label: '旅程の保存数', value: totalSaves, icon: 'ri-bookmark-line', color: 'accent' },
+                      { label: '旅程のコピー数', value: totalCopies, icon: 'ri-file-copy-line', color: 'accent' },
                       {
-                        label: 'Translated Guides',
+                        label: '翻訳済みの口コミ',
                         value: translatedGuides,
                         icon: 'ri-translate-2',
+                        color: 'accent',
                       },
-                      { label: 'Published Trips', value: publishedTrips, icon: 'ri-global-line' },
+                      { label: '公開中の旅程', value: publishedTrips, icon: 'ri-global-line', color: 'accent' },
                     ].map((stat) => (
                       <div
                         key={stat.label}
-                        className="bg-background-50 border border-background-200 rounded-xl p-5"
+                        className="relative bg-background-50 border border-background-200 rounded-xl p-5 hover:border-accent-200 transition-colors overflow-hidden"
                       >
-                        <i className={`${stat.icon} text-2xl text-accent-600 mb-3 block`}></i>
+                        <span className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-transparent via-accent-400/50 to-transparent"></span>
+                        <span className="w-10 h-10 rounded-lg bg-accent-100 text-accent-700 flex items-center justify-center mb-3">
+                          <i className={`${stat.icon} text-lg`}></i>
+                        </span>
                         <p className="text-2xl font-heading font-bold text-foreground-900">
                           {stat.value}
                         </p>
@@ -306,7 +349,7 @@ export default function CreatorDashboardPage() {
 
               {activeTab === 'earnings' && (
                 <div className="text-center py-16">
-                  <span className="w-16 h-16 rounded-full bg-background-100 flex items-center justify-center mx-auto mb-6">
+                  <span className="w-16 h-16 rounded-full bg-gradient-to-br from-background-100 to-background-200 flex items-center justify-center mx-auto mb-6">
                     <i className="ri-money-dollar-circle-line text-3xl text-foreground-400"></i>
                   </span>
                   <h2 className="font-heading font-bold text-lg text-foreground-900 mb-2">
