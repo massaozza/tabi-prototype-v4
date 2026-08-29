@@ -36,6 +36,7 @@ import SharePage from "../pages/share/page";
 import ExplorePage from "../pages/explore/page";
 import CreatorsHomePage from "../pages/creators/page";
 import CreatorDashboardPage from "../pages/creators/dashboard/page";
+import NewRecommendedTripPage from "../pages/creators/trips/new/page";
 
 const routes: RouteObject[] = [
   {
@@ -179,6 +180,10 @@ const routes: RouteObject[] = [
   {
     path: "/creators/dashboard",
     element: <CreatorDashboardPage />,
+  },
+  {
+    path: "/creators/trips/new",
+    element: <NewRecommendedTripPage />,
   },
   {
     path: "/:category/:articleSlug",
