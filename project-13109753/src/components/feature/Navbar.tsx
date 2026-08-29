@@ -30,14 +30,19 @@ export default function Navbar() {
           : 'bg-transparent'
       }`}
     >
-      <div className={`hidden md:flex items-center justify-end px-6 md:px-10 py-2 text-xs gap-4 transition-colors duration-300 ${
+      <div className={`hidden md:flex items-center justify-between px-6 md:px-10 py-2 text-xs gap-4 transition-colors duration-300 ${
         scrolled ? 'text-foreground-600 border-b border-background-200' : 'text-white/80'
       }`}>
-        <span className="whitespace-nowrap">Follow our journey</span>
-        <a href="#" className="w-5 h-5 flex items-center justify-center hover:opacity-70 transition-opacity" aria-label="Instagram"><i className="ri-instagram-line text-sm"></i></a>
-        <a href="#" className="w-5 h-5 flex items-center justify-center hover:opacity-70 transition-opacity" aria-label="Pinterest"><i className="ri-pinterest-line text-sm"></i></a>
-        <a href="#" className="w-5 h-5 flex items-center justify-center hover:opacity-70 transition-opacity" aria-label="Reddit"><i className="ri-reddit-line text-sm"></i></a>
-        <a href="#" className="w-5 h-5 flex items-center justify-center hover:opacity-70 transition-opacity" aria-label="YouTube"><i className="ri-youtube-line text-sm"></i></a>
+        <a href="/creators" className="hover:opacity-70 transition-opacity whitespace-nowrap">
+          日本の方はこちら →
+        </a>
+        <div className="flex items-center gap-4">
+          <span className="whitespace-nowrap">Follow our journey</span>
+          <a href="#" className="w-5 h-5 flex items-center justify-center hover:opacity-70 transition-opacity" aria-label="Instagram"><i className="ri-instagram-line text-sm"></i></a>
+          <a href="#" className="w-5 h-5 flex items-center justify-center hover:opacity-70 transition-opacity" aria-label="Pinterest"><i className="ri-pinterest-line text-sm"></i></a>
+          <a href="#" className="w-5 h-5 flex items-center justify-center hover:opacity-70 transition-opacity" aria-label="Reddit"><i className="ri-reddit-line text-sm"></i></a>
+          <a href="#" className="w-5 h-5 flex items-center justify-center hover:opacity-70 transition-opacity" aria-label="YouTube"><i className="ri-youtube-line text-sm"></i></a>
+        </div>
       </div>
 
       <nav className="flex items-center justify-between px-6 md:px-10 py-3 md:py-4">
