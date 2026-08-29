@@ -1,17 +1,16 @@
 import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 
-// TABI 3.0：日本人クリエイター向けの、既存の（英語・外国人向け）Navbarとは
-// 別の専用ナビゲーション。/creators 以下のページでのみ使用する。
 export default function CreatorNavbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { user, loading, logout } = useAuth();
 
   return (
-    <header className="bg-foreground-900 text-white">
+    <header className="bg-foreground-900 text-white relative">
+      <div className="h-0.5 w-full bg-gradient-to-r from-primary-500 via-accent-400 to-primary-500" />
       <nav className="flex items-center justify-between px-6 md:px-10 py-4">
-        <a href="/creators" className="flex items-center gap-2">
-          <span className="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center">
+        <a href="/creators" className="flex items-center gap-2.5 group">
+          <span className="w-9 h-9 rounded-full bg-primary-500 flex items-center justify-center ring-1 ring-white/20 transition-transform duration-300 group-hover:scale-105">
             <i className="ri-store-2-line text-white text-sm"></i>
           </span>
           <span className="font-heading font-bold text-lg tracking-wide">
@@ -51,9 +50,10 @@ export default function CreatorNavbar() {
           )}
           <a
             href="/"
-            className="text-xs text-white/40 hover:text-white/70 transition-colors whitespace-nowrap"
+            className="inline-flex items-center gap-1 text-xs font-medium text-white/40 hover:text-white/80 transition-colors whitespace-nowrap border border-white/15 rounded-full px-3 py-1.5 hover:border-white/30"
           >
-            International site →
+            International site
+            <i className="ri-arrow-right-up-line text-[11px]"></i>
           </a>
         </div>
 
