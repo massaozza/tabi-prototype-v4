@@ -3,8 +3,6 @@ import CreatorNavbar from '@/components/feature/CreatorNavbar';
 import Footer from '@/components/feature/Footer';
 import { useAuth } from '@/context/AuthContext';
 
-// TABI 3.0：日本人クリエイター向けHOME。
-// 既存の英語・外国人向けHOMEとは別の、独立した「面」として用意する。
 export default function CreatorsHomePage() {
   const { user } = useAuth();
 
@@ -12,16 +10,28 @@ export default function CreatorsHomePage() {
     <main className="min-h-screen bg-background-50">
       <CreatorNavbar />
 
-      <section className="bg-gradient-to-b from-foreground-900 to-foreground-800 pt-16 pb-20 md:pt-24 md:pb-28">
-        <div className="max-w-4xl mx-auto px-6 md:px-10 text-center">
-          <span className="inline-block text-xs font-semibold tracking-widest uppercase text-accent-400 mb-4">
+      <section className="relative pt-16 pb-20 md:pt-28 md:pb-32 overflow-hidden">
+        <div className="absolute inset-0">
+          <img
+            src="https://readdy.ai/api/search-image?query=Serene%20Japanese%20landscape%20with%20a%20red%20torii%20gate%20and%20Mount%20Fuji%20at%20golden%20hour%2C%20soft%20gradient%20sky%20in%20warm%20amber%20and%20deep%20indigo%2C%20delicate%20cherry%20blossom%20petals%20floating%20in%20the%20air%2C%20misty%20atmosphere%2C%20artistic%20digital%20illustration%2C%20elegant%20minimal%20composition%2C%20high%20detail%2C%20cinematic%20lighting&width=1600&height=900&seq=creators-hero-01&orientation=landscape"
+            alt="日本の風景"
+            title="日本の風景 TABI Creators"
+            className="w-full h-full object-cover object-top"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-foreground-950/85 via-foreground-900/70 to-foreground-800/85"></div>
+        </div>
+
+        <div className="relative max-w-4xl mx-auto px-6 md:px-10 text-center">
+          <span className="inline-flex items-center gap-3 text-xs font-semibold tracking-widest uppercase text-accent-300 mb-6">
+            <span className="w-10 h-px bg-accent-400/60"></span>
             TABI Creators
+            <span className="w-10 h-px bg-accent-400/60"></span>
           </span>
-          <h1 className="font-heading font-bold text-3xl md:text-5xl text-white leading-tight mb-5">
+          <h1 className="font-heading font-bold text-3xl md:text-5xl text-white leading-tight mb-6">
             あなたの日本を、<br className="sm:hidden" />
             世界の旅に。
           </h1>
-          <p className="text-white/70 text-base md:text-lg max-w-xl mx-auto leading-relaxed">
+          <p className="text-white/75 text-base md:text-lg max-w-xl mx-auto leading-relaxed">
             あなたが知っている日本の魅力を、世界中の旅行者に届けましょう。
             日本語で書くだけで、AIが翻訳・整形します。
           </p>
@@ -32,9 +42,10 @@ export default function CreatorsHomePage() {
         <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
           <Link
             to={user ? '/my-trip' : '/login'}
-            className="group flex flex-col bg-background-50 border border-background-200 rounded-2xl p-7 hover:-translate-y-1 hover:shadow-md transition-all duration-300 cursor-pointer"
+            className="group relative flex flex-col bg-background-50 border border-background-200 rounded-2xl p-7 hover:-translate-y-1.5 hover:border-primary-300 transition-all duration-300 cursor-pointer overflow-hidden"
           >
-            <span className="w-12 h-12 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center mb-5">
+            <span className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary-400 to-primary-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+            <span className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-100 to-primary-200 text-primary-600 flex items-center justify-center mb-5 ring-1 ring-primary-200 group-hover:scale-110 transition-transform duration-300">
               <i className="ri-map-2-line text-xl"></i>
             </span>
             <h2 className="font-heading font-bold text-lg text-foreground-900 mb-2">
@@ -52,9 +63,10 @@ export default function CreatorsHomePage() {
 
           <Link
             to={user ? '/guides/new' : '/login'}
-            className="group flex flex-col bg-background-50 border border-background-200 rounded-2xl p-7 hover:-translate-y-1 hover:shadow-md transition-all duration-300 cursor-pointer"
+            className="group relative flex flex-col bg-background-50 border border-background-200 rounded-2xl p-7 hover:-translate-y-1.5 hover:border-accent-300 transition-all duration-300 cursor-pointer overflow-hidden"
           >
-            <span className="w-12 h-12 rounded-full bg-accent-100 text-accent-700 flex items-center justify-center mb-5">
+            <span className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-accent-400 to-accent-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+            <span className="w-12 h-12 rounded-full bg-gradient-to-br from-accent-100 to-accent-200 text-accent-700 flex items-center justify-center mb-5 ring-1 ring-accent-200 group-hover:scale-110 transition-transform duration-300">
               <i className="ri-map-pin-line text-xl"></i>
             </span>
             <h2 className="font-heading font-bold text-lg text-foreground-900 mb-2">
@@ -72,9 +84,10 @@ export default function CreatorsHomePage() {
 
           <Link
             to={user ? '/experiences/new' : '/login'}
-            className="group flex flex-col bg-background-50 border border-background-200 rounded-2xl p-7 hover:-translate-y-1 hover:shadow-md transition-all duration-300 cursor-pointer"
+            className="group relative flex flex-col bg-background-50 border border-background-200 rounded-2xl p-7 hover:-translate-y-1.5 hover:border-secondary-300 transition-all duration-300 cursor-pointer overflow-hidden"
           >
-            <span className="w-12 h-12 rounded-full bg-secondary-100 text-secondary-700 flex items-center justify-center mb-5">
+            <span className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-secondary-400 to-secondary-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+            <span className="w-12 h-12 rounded-full bg-gradient-to-br from-secondary-100 to-secondary-200 text-secondary-700 flex items-center justify-center mb-5 ring-1 ring-secondary-200 group-hover:scale-110 transition-transform duration-300">
               <i className="ri-camera-3-line text-xl"></i>
             </span>
             <h2 className="font-heading font-bold text-lg text-foreground-900 mb-2">
@@ -94,10 +107,11 @@ export default function CreatorsHomePage() {
           <div className="max-w-5xl mx-auto mt-10 text-center">
             <Link
               to="/creators/dashboard"
-              className="inline-flex items-center gap-2 text-foreground-600 hover:text-foreground-900 font-semibold text-sm transition-colors"
+              className="inline-flex items-center gap-2 text-foreground-600 hover:text-foreground-900 font-semibold text-sm transition-colors group"
             >
-              <i className="ri-dashboard-line"></i>
+              <i className="ri-dashboard-line group-hover:text-primary-500 transition-colors"></i>
               マイページ（投稿・実績の確認）へ
+              <i className="ri-arrow-right-line text-xs opacity-0 -ml-2 group-hover:opacity-100 group-hover:ml-0 transition-all"></i>
             </Link>
           </div>
         )}
