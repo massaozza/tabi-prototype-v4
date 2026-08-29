@@ -41,7 +41,7 @@ export default function CreatorsHomePage() {
       <section className="py-14 md:py-20 px-6 md:px-10">
         <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
           <Link
-            to={user ? '/my-trip' : '/login'}
+            to={user ? '/creators/trips/new' : '/login'}
             className="group relative flex flex-col bg-background-50 border border-background-200 rounded-2xl p-7 hover:-translate-y-1.5 hover:border-primary-300 transition-all duration-300 cursor-pointer overflow-hidden"
           >
             <span className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary-400 to-primary-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
