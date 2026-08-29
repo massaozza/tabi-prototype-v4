@@ -19,6 +19,14 @@ export default function GuideDetailPage() {
         if (!cancelled && Array.isArray(json.guides)) {
           const found = json.guides.find((g: Guide) => g.id === id) ?? null;
           setGuide(found);
+          if (found) {
+            // 閲覧数を記録する（失敗してもページ表示には影響させない）
+            fetch('/api/track-view', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ contentType: 'guide', id: found.id }),
+            }).catch(() => {});
+          }
         }
       } catch {
         if (!cancelled) setGuide(null);
@@ -41,7 +49,7 @@ export default function GuideDetailPage() {
     window.dispatchEvent(
       new CustomEvent('tabi:ask-question', {
         detail: {
-          question: `Tell me more about ${guide.area} — I'm interested in ${guide.theme}.`,
+          question: `Tell me more about ${guide.areaEn || guide.area} — I'm interested in ${guide.theme}.`,
         },
       })
     );
@@ -112,7 +120,7 @@ export default function GuideDetailPage() {
                 </span>
                 <span className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1 rounded-full bg-background-100 text-foreground-700 whitespace-nowrap">
                   <i className="ri-map-pin-line"></i>
-                  {guide.area}
+                  {guide.areaEn || guide.area}
                 </span>
                 {guide.season && (
                   <span className="inline-block text-xs font-semibold px-3 py-1 rounded-full bg-background-100 text-foreground-700 whitespace-nowrap">
@@ -122,7 +130,7 @@ export default function GuideDetailPage() {
               </div>
 
               <h1 className="font-heading font-bold text-3xl md:text-4xl text-foreground-900 leading-tight mb-3">
-                {guide.title}
+                {guide.titleEn || guide.title}
               </h1>
 
               <p className="text-foreground-500 text-sm mb-8">
@@ -196,7 +204,7 @@ export default function GuideDetailPage() {
                 className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-5 py-2.5 rounded-lg transition-colors cursor-pointer whitespace-nowrap mb-10"
               >
                 <i className="ri-chat-3-line"></i>
-                Ask TABI about {guide.area}
+                Ask TABI about {guide.areaEn || guide.area}
               </button>
 
               <div>
