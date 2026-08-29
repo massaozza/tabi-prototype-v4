@@ -1,8 +1,4 @@
-import { useTranslation } from 'react-i18next';
-
 export default function HeroSection() {
-  const { t } = useTranslation();
-
   const handleOpenChat = () => {
     window.dispatchEvent(new CustomEvent('tabi:open-chat'));
   };
@@ -57,7 +53,7 @@ export default function HeroSection() {
               </span>
             </button>
 
-            <a
+            
               href="#destinations"
               className="inline-flex flex-col items-start gap-1 border-2 border-white/80 text-white hover:bg-white/10 font-semibold text-sm px-8 py-4 rounded-md transition-all duration-200 whitespace-nowrap cursor-pointer text-left"
             >
