@@ -63,11 +63,30 @@ export default function CreatorDashboardPage() {
   const [trips, setTrips] = useState<TripSummary[]>([]);
   const [guides, setGuides] = useState<GuideSummary[]>([]);
   const [experiences, setExperiences] = useState<ExperienceSummary[]>([]);
+  const [totalViews, setTotalViews] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (authLoading || !user) return;
     let cancelled = false;
+
+    async function fetchViewsFor(
+      contentType: 'guide' | 'experience' | 'trip',
+      ids: string[]
+    ): Promise<number> {
+      if (ids.length === 0) return 0;
+      try {
+        const res = await fetch(
+          `/api/track-view?contentType=${contentType}&ids=${ids.map(encodeURIComponent).join(',')}`
+        );
+        if (!res.ok) return 0;
+        const json = await res.json();
+        const values = Object.values(json.views || {}) as number[];
+        return values.reduce((sum, v) => sum + (v || 0), 0);
+      } catch {
+        return 0;
+      }
+    }
 
     async function fetchAll() {
       try {
@@ -76,19 +95,36 @@ export default function CreatorDashboardPage() {
           fetch('/api/guides?mine=1', { credentials: 'include' }),
           fetch('/api/experiences?mine=1', { credentials: 'include' }),
         ]);
+        let tripList: TripSummary[] = [];
+        let guideList: GuideSummary[] = [];
+        let experienceList: ExperienceSummary[] = [];
+
         if (!cancelled) {
           if (tripsRes.ok) {
             const json = await tripsRes.json();
-            setTrips(Array.isArray(json.trips) ? json.trips : []);
+            tripList = Array.isArray(json.trips) ? json.trips : [];
+            setTrips(tripList);
           }
           if (guidesRes.ok) {
             const json = await guidesRes.json();
-            setGuides(Array.isArray(json.guides) ? json.guides : []);
+            guideList = Array.isArray(json.guides) ? json.guides : [];
+            setGuides(guideList);
           }
           if (expRes.ok) {
             const json = await expRes.json();
             const list = Array.isArray(json) ? json : json.experiences;
-            setExperiences(Array.isArray(list) ? list : []);
+            experienceList = Array.isArray(list) ? list : [];
+            setExperiences(experienceList);
+          }
+
+          // 3種類のコンテンツの閲覧数を合算する
+          const [tripViews, guideViews, expViews] = await Promise.all([
+            fetchViewsFor('trip', tripList.map((t) => t.id)),
+            fetchViewsFor('guide', guideList.map((g) => g.id)),
+            fetchViewsFor('experience', experienceList.map((e) => e.id)),
+          ]);
+          if (!cancelled) {
+            setTotalViews(tripViews + guideViews + expViews);
           }
         }
       } catch {
@@ -173,12 +209,13 @@ export default function CreatorDashboardPage() {
           ) : (
             <>
               {activeTab === 'overview' && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                   {[
                     { label: '旅程', value: trips.length, icon: 'ri-map-2-line', color: 'primary' },
                     { label: 'スポットの口コミ', value: guides.length, icon: 'ri-map-pin-line', color: 'accent' },
                     { label: '体験', value: experiences.length, icon: 'ri-camera-3-line', color: 'secondary' },
                     { label: '公開中の旅程', value: publishedTrips, icon: 'ri-global-line', color: 'primary' },
+                    { label: '総閲覧数', value: totalViews, icon: 'ri-eye-line', color: 'accent' },
                   ].map((stat) => (
                     <div
                       key={stat.label}
@@ -313,11 +350,14 @@ export default function CreatorDashboardPage() {
 
               {activeTab === 'analytics' && (
                 <div>
-                  <p className="text-foreground-500 text-sm mb-6">
-                    ページ閲覧数（Views）の計測は、今後の実装で対応予定です。
-                    現時点では、実際の行動につながった実績のみを表示しています。
-                  </p>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    <div className="bg-background-50 border border-background-200 rounded-xl p-5">
+                      <i className="ri-eye-line text-2xl text-primary-500 mb-3 block"></i>
+                      <p className="text-2xl font-heading font-bold text-foreground-900">
+                        {totalViews}
+                      </p>
+                      <p className="text-foreground-500 text-xs mt-1">総閲覧数</p>
+                    </div>
                     {[
                       { label: '旅程の保存数', value: totalSaves, icon: 'ri-bookmark-line', color: 'accent' },
                       { label: '旅程のコピー数', value: totalCopies, icon: 'ri-file-copy-line', color: 'accent' },
