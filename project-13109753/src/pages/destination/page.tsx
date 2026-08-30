@@ -71,6 +71,11 @@ export default function DestinationPage() {
       const found = list.find((d) => d.id === id);
       if (found) {
         setDestination(found);
+        fetch('/api/track-view', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contentType: 'spot', id: found.id }),
+        }).catch(() => {});
 
         // 関連するExperienceを取得（spotId で正しく絞り込む）
         try {
