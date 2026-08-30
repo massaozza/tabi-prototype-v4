@@ -81,6 +81,13 @@ export default function PublicTripDetailPage() {
         if (!cancelled && Array.isArray(json.trips)) {
           const found = json.trips.find((t: PublicTrip) => t.id === id) ?? null;
           setTrip(found);
+          if (found) {
+            fetch('/api/track-view', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ contentType: 'trip', id: found.id }),
+            }).catch(() => {});
+          }
         }
       } catch {
         if (!cancelled) setTrip(null);
