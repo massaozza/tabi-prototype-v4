@@ -18,8 +18,12 @@ import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import crypto from 'crypto';
 
-const ALLOWED_CONTENT_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic'];
-const MAX_FILE_SIZE_BYTES = 15 * 1024 * 1024; // 15MB
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic'];
+const ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/quicktime', 'video/webm'];
+const ALLOWED_CONTENT_TYPES = [...ALLOWED_IMAGE_TYPES, ...ALLOWED_VIDEO_TYPES];
+
+const MAX_IMAGE_SIZE_BYTES = 15 * 1024 * 1024; // 15MB
+const MAX_VIDEO_SIZE_BYTES = 100 * 1024 * 1024; // 100MB（動画は容量が大きいため上限を広げる）
 
 interface SessionRecord {
   uid: string;
@@ -53,6 +57,12 @@ function getExtension(contentType: string): string {
       return 'webp';
     case 'image/heic':
       return 'heic';
+    case 'video/mp4':
+      return 'mp4';
+    case 'video/quicktime':
+      return 'mov';
+    case 'video/webm':
+      return 'webm';
     default:
       return 'bin';
   }
@@ -84,9 +94,12 @@ export default async function handler(
     return;
   }
 
-  if (fileSize <= 0 || fileSize > MAX_FILE_SIZE_BYTES) {
+  const isVideo = ALLOWED_VIDEO_TYPES.includes(contentType);
+  const maxSize = isVideo ? MAX_VIDEO_SIZE_BYTES : MAX_IMAGE_SIZE_BYTES;
+
+  if (fileSize <= 0 || fileSize > maxSize) {
     res.status(400).json({
-      error: `File size must be between 1 byte and ${MAX_FILE_SIZE_BYTES / (1024 * 1024)}MB`,
+      error: `File size must be between 1 byte and ${maxSize / (1024 * 1024)}MB`,
     });
     return;
   }
@@ -108,7 +121,7 @@ export default async function handler(
     credentials: { accessKeyId, secretAccessKey },
   });
 
-  const objectKey = `experiences/${uid}/${crypto.randomUUID()}.${getExtension(contentType)}`;
+  const objectKey = `experiences/${isVideo ? 'videos' : 'photos'}/${uid}/${crypto.randomUUID()}.${getExtension(contentType)}`;
 
   try {
     const command = new PutObjectCommand({
