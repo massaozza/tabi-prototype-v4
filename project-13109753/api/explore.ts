@@ -13,6 +13,7 @@
 //   → 認証不要（公開情報のみを対象にする）
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { kv } from '@vercel/kv';
 
 type ContentType = 'trip' | 'guide' | 'spot';
 
@@ -151,6 +152,23 @@ export default async function handler(
 
     if (area) {
       results = results.filter((r) => (r.area || '').toLowerCase().includes(area));
+    }
+
+    // TRIP・GUIDE・SPOTを横断して公平に比較できる指標は「閲覧数」のみのため、
+    // これを使って並び替える（Trip単体の一覧では、より詳細なスコア
+    // 〈Copy数・Save数等〉を使っているが、ここでは種類を跨ぐ比較のため
+    // シンプルに閲覧数のみで統一している）。
+    // views:{contentType}:{id} キーは api/track-view.ts と共通のKVストアを参照する。
+    try {
+      const viewValues = await kv.mget<number[]>(
+        ...results.map((r) => `views:${r.contentType}:${r.id}`)
+      );
+      results = results
+        .map((r, idx) => ({ result: r, views: viewValues?.[idx] ?? 0 }))
+        .sort((a, b) => b.views - a.views)
+        .map((x) => x.result);
+    } catch {
+      // 閲覧数の取得に失敗しても、並び替え無しでそのまま返す
     }
 
     res.status(200).json({ results, total: results.length });

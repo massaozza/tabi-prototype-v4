@@ -163,11 +163,37 @@ async function listUserTrips(uid: string): Promise<Trip[]> {
   return (values || []).filter((v): v is Trip => v !== null && v !== undefined).map(applyDefaults);
 }
 
+/**
+ * 公開Tripの「おすすめ順」スコアを計算する。
+ * Copy数（最も強いシグナル：実際に使いたいと思われた）を最も重視し、
+ * 次にSave数、閲覧数は補助的な重みにとどめる。
+ * また、新しく投稿されたTripが埋もれないよう、30日かけて減衰する
+ * 「新しさボーナス」を加える。
+ */
+function computeTripScore(trip: Trip, views: number): number {
+  const daysSinceCreated =
+    (Date.now() - new Date(trip.createdAt).getTime()) / (1000 * 60 * 60 * 24);
+  const recencyBonus = Math.max(0, 15 - daysSinceCreated * 0.5);
+  return (trip.copyCount || 0) * 5 + (trip.saveCount || 0) * 3 + views * 0.1 + recencyBonus;
+}
+
 async function listPublishedTrips(): Promise<Trip[]> {
   const ids = await kv.smembers(publishedIndexKey());
   if (!ids || ids.length === 0) return [];
   const values = await kv.mget<Trip[]>(...ids.map((id) => recordKey(id)));
-  return (values || []).filter((v): v is Trip => v !== null && v !== undefined).map(applyDefaults);
+  const trips = (values || [])
+    .filter((v): v is Trip => v !== null && v !== undefined)
+    .map(applyDefaults);
+
+  // 閲覧数を取得し、スコア順に並び替える
+  // （views:trip:{id} キーは api/track-view.ts と共通のKVストアを参照している）
+  const viewValues = await kv.mget<number[]>(...trips.map((t) => `views:trip:${t.id}`));
+  const scored = trips.map((trip, idx) => ({
+    trip,
+    score: computeTripScore(trip, viewValues?.[idx] ?? 0),
+  }));
+  scored.sort((a, b) => b.score - a.score);
+  return scored.map((s) => s.trip);
 }
 
 async function listSavedTrips(uid: string): Promise<Trip[]> {
@@ -299,7 +325,6 @@ export default async function handler(req: Request): Promise<Response> {
   if (req.method === 'GET' && url.searchParams.get('public') === '1') {
     try {
       const trips = await listPublishedTrips();
-      trips.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
       return jsonResponse({ trips }, 200);
     } catch (err) {
       return jsonResponse({ error: 'Failed to load published trips', detail: String(err) }, 500);
