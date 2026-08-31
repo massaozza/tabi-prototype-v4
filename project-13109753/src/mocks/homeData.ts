@@ -3,7 +3,7 @@ export const navLinks = [
   // 「My Trip」「Profile」は、ログイン中のユーザーのみ意味を持つため、
   // ここには含めず、Navbar.tsx側でログイン状態に応じて動的に追加している。
   { label: 'Plan with AI', href: '/' },
-   { label: 'Explore', href: '/explore' },
+  { label: 'Explore', href: '/explore' },
   { label: 'Trips', href: '/trips' },
   { label: 'Guides', href: '/guides' },
   { label: 'Spots', href: '/#destinations' },
@@ -17,6 +17,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Ibaraki',
     description: "One of Japan's three great gardens, famous for its thousands of plum trees blooming in late winter and early spring.",
+    lat: 36.3754136,
+    lng: 140.4538299,
     image: 'https://readdy.ai/api/search-image?query=A%20vast%20traditional%20Japanese%20landscape%20garden%20filled%20with%20hundreds%20of%20blooming%20red%20and%20white%20plum%20trees%20in%20early%20spring%2C%20wooden%20viewing%20pavilion%20with%20thatched%20roof%20on%20a%20gentle%20hill%2C%20stone%20lanterns%20and%20winding%20gravel%20paths%2C%20soft%20morning%20mist%2C%20Mito%20Ibaraki%20Japan%2C%20serene%20and%20elegant%20editorial%20travel%20photography%20with%20soft%20warm%20natural%20light&width=800&height=600&seq=imagetest-kairakuen-01&orientation=landscape',
   },
   {
@@ -25,6 +27,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Ibaraki',
     description: 'A coastal shrine famous for its torii gate standing directly in the ocean, especially striking at sunrise.',
+    lat: 36.3158351,
+    lng: 140.5874772,
     image: 'https://readdy.ai/api/search-image?query=A%20bright%20vermilion%20Shinto%20torii%20gate%20standing%20on%20rugged%20coastal%20rocks%20surrounded%20by%20turquoise%20ocean%20waves%20and%20white%20sea%20foam%2C%20clear%20blue%20sky%20with%20soft%20clouds%2C%20dramatic%20seaside%20shrine%20entrance%20in%20Oarai%20Ibaraki%20Japan%2C%20vivid%20and%20serene%20editorial%20travel%20photography%20with%20crisp%20natural%20light&width=800&height=600&seq=imagetest-oarai-02&orientation=landscape',
   },
   {
@@ -33,6 +37,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Ibaraki',
     description: 'A coastal park famous for its rolling hills of blue nemophila flowers in spring and red kochia bushes in autumn.',
+    lat: 36.405864,
+    lng: 140.5964868,
     image: 'https://readdy.ai/api/search-image?query=A%20gently%20rolling%20hillside%20completely%20covered%20in%20millions%20of%20vivid%20blue%20nemophila%20baby%20blue%20eyes%20flowers%20stretching%20to%20the%20horizon%20under%20a%20bright%20blue%20sky%2C%20a%20few%20visitors%20walking%20along%20narrow%20paths%2C%20Hitachi%20Seaside%20Park%20Ibaraki%20Japan%2C%20breathtaking%20panoramic%20spring%20flower%20field%2C%20bright%20cheerful%20editorial%20travel%20photography&width=800&height=600&seq=imagetest-hitachi-03&orientation=landscape',
   },
   {
@@ -41,6 +47,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Tochigi',
     description: 'A UNESCO World Heritage shrine complex famous for its ornate, richly decorated architecture honoring the Tokugawa shogunate.',
+    lat: 36.7580878,
+    lng: 139.5987466,
     image: 'https://readdy.ai/api/search-image?query=The%20ornate%20golden%20and%20vividly%20painted%20Yomeimon%20gate%20of%20Nikko%20Toshogu%20Shrine%20with%20intricate%20carvings%20and%20gold%20leaf%20details%2C%20surrounded%20by%20ancient%20towering%20cedar%20trees%2C%20UNESCO%20world%20heritage%20site%20in%20Nikko%20Tochigi%20Japan%2C%20majestic%20and%20detailed%20cultural%20architecture%2C%20rich%20warm%20editorial%20travel%20photography&width=800&height=600&seq=imagetest-nikko-04&orientation=landscape',
   },
   {
@@ -49,6 +57,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Tochigi',
     description: "One of Japan's three great waterfalls, dropping dramatically into a forested gorge near Nikko.",
+    lat: 36.7380893,
+    lng: 139.501941,
     image: 'https://readdy.ai/api/search-image?query=A%20majestic%20tall%20waterfall%20cascading%20down%20steep%20mossy%20volcanic%20cliffs%20into%20a%20deep%20turquoise%20pool%20below%2C%20surrounded%20by%20lush%20green%20forest%20with%20autumn%20red%20and%20orange%20leaves%2C%20wooden%20observation%20platform%20in%20foreground%2C%20Kegon%20Falls%20Nikko%20Tochigi%20Japan%2C%20powerful%20and%20serene%20nature%20landscape%2C%20vivid%20editorial%20travel%20photography%20with%20soft%20daylight&width=800&height=600&seq=imagetest-kegon-05&orientation=landscape',
   },
   {
@@ -57,6 +67,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Tochigi',
     description: 'Famous for its enormous wisteria trees in bloom each spring, and a dazzling winter illumination display.',
+    lat: 36.3141561,
+    lng: 139.5200222,
     image: 'https://readdy.ai/api/search-image?query=A%20breathtaking%20wisteria%20garden%20with%20long%20cascading%20clusters%20of%20purple%2C%20pink%20and%20white%20wisteria%20flowers%20hanging%20like%20waterfalls%20from%20a%20wooden%20trellis%20tunnel%2C%20visitors%20strolling%20underneath%2C%20Ashikaga%20Flower%20Park%20Tochigi%20Japan%2C%20dreamy%20and%20romantic%20spring%20bloom%2C%20bright%20cheerful%20editorial%20travel%20photography%20with%20soft%20natural%20light&width=800&height=600&seq=imagetest2-01&orientation=landscape',
   },
   {
@@ -65,6 +77,8 @@ export const destinations = [
     category: 'Hot Springs & Nature',
     prefecture: 'Gunma',
     description: "One of Japan's most celebrated hot spring towns, centered on a steaming public bathing field called Yubatake.",
+    lat: 36.6229647,
+    lng: 138.5967231,
     image: 'https://readdy.ai/api/search-image?query=The%20iconic%20Yubatake%20hot%20water%20field%20in%20Kusatsu%20Onsen%20town%20center%2C%20steaming%20emerald%20green%20water%20cascading%20over%20wooden%20channels%2C%20clouds%20of%20white%20steam%20rising%20into%20the%20evening%20sky%2C%20traditional%20Japanese%20wooden%20ryokan%20buildings%20around%20the%20square%2C%20Gunma%20Japan%2C%20atmospheric%20and%20mystical%2C%20warm%20editorial%20travel%20photography%20with%20dramatic%20lighting&width=800&height=600&seq=imagetest2-02&orientation=landscape',
   },
   {
@@ -73,6 +87,8 @@ export const destinations = [
     category: 'Hot Springs & Nature',
     prefecture: 'Gunma',
     description: 'A historic hot spring town built along a long stone staircase lined with shops and traditional inns.',
+    lat: 36.4981947,
+    lng: 138.9165884,
     image: 'https://readdy.ai/api/search-image?query=A%20long%20steep%20stone%20staircase%20climbing%20a%20hillside%20lined%20on%20both%20sides%20with%20traditional%20Japanese%20ryokan%20inns%2C%20lanterns%20and%20small%20souvenir%20shops%2C%20steam%20rising%20from%20hot%20spring%20vents%2C%20Ikaho%20Onsen%20Gunma%20Japan%2C%20nostalgic%20and%20charming%20atmosphere%2C%20warm%20golden%20editorial%20travel%20photography%20with%20soft%20evening%20light&width=800&height=600&seq=imagetest2-03&orientation=landscape',
   },
   {
@@ -81,6 +97,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Gunma',
     description: "A UNESCO World Heritage industrial site that played a key role in Japan's modernization of silk production.",
+    lat: 36.2551925,
+    lng: 138.8875796,
     image: 'https://readdy.ai/api/search-image?query=A%20grand%20red%20brick%20industrial%20building%20with%20white%20window%20frames%20and%20a%20long%20ridged%20roof%2C%20the%20historic%20Tomioka%20Silk%20Mill%2C%20surrounded%20by%20green%20trees%20and%20a%20clear%20blue%20sky%2C%20UNESCO%20world%20heritage%20site%20in%20Gunma%20Japan%2C%20elegant%20and%20historic%20architecture%2C%20bright%20editorial%20travel%20photography%20with%20crisp%20daylight&width=800&height=600&seq=imagetest2-04&orientation=landscape',
   },
   {
@@ -89,6 +107,8 @@ export const destinations = [
     category: 'Hot Springs & Nature',
     prefecture: 'Gunma',
     description: 'A nostalgic hot spring town tucked in the mountains, known for its retro atmosphere and traditional inns.',
+    lat: 36.6832232,
+    lng: 138.7769096,
     image: 'https://readdy.ai/api/search-image?query=A%20nostalgic%20hot%20spring%20town%20nestled%20in%20a%20lush%20green%20mountain%20valley%20with%20traditional%20wooden%20ryokan%20inns%2C%20a%20clear%20river%20flowing%20through%20the%20center%2C%20stone%20bridges%20and%20steam%20rising%20gently%2C%20Shima%20Onsen%20Gunma%20Japan%2C%20peaceful%20and%20retro%20atmosphere%2C%20soft%20morning%20editorial%20travel%20photography%20with%20fresh%20natural%20light&width=800&height=600&seq=imagetest2-05&orientation=landscape',
   },
   {
@@ -97,6 +117,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Saitama',
     description: "Known as 'Little Edo' for its well-preserved district of traditional clay-walled merchant warehouses.",
+    lat: 35.9251335,
+    lng: 139.4858042,
     image: 'https://readdy.ai/api/search-image?query=A%20historic%20Japanese%20street%20lined%20with%20traditional%20kura%20storehouse%20buildings%20featuring%20dark%20clay%20walls%20and%20white%20window%20grids%2C%20an%20old%20clock%20tower%20in%20the%20distance%2C%20Kawagoe%20Little%20Edo%20Saitama%20Japan%2C%20nostalgic%20and%20elegant%20townscape%2C%20warm%20golden%20editorial%20travel%20photography%20with%20soft%20afternoon%20light&width=800&height=600&seq=imagetest2-06&orientation=landscape',
   },
   {
@@ -105,6 +127,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Saitama',
     description: 'A mountaintop shrine deep in the Chichibu mountains, long associated with wolf worship and mountain faith.',
+    lat: 35.8616486,
+    lng: 139.6454782,
     image: 'https://readdy.ai/api/search-image?query=A%20mystical%20Shinto%20shrine%20nestled%20on%20a%20forested%20mountain%20top%20with%20ornate%20wooden%20carvings%20and%20a%20tall%20vermilion%20gate%2C%20surrounded%20by%20misty%20cedar%20trees%20and%20mountain%20ridges%2C%20Mitsumine%20Shrine%20Chichibu%20Saitama%20Japan%2C%20serene%20and%20spiritual%20atmosphere%2C%20atmospheric%20editorial%20travel%20photography%20with%20soft%20fog%20and%20gentle%20light&width=800&height=600&seq=imagetest2-07&orientation=landscape',
   },
   {
@@ -113,6 +137,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Saitama',
     description: 'A scenic river gorge with flat, tatami-mat-like rock formations, popular for traditional boat rides.',
+    lat: 36.0948604,
+    lng: 139.1156638,
     image: 'https://readdy.ai/api/search-image?query=Layered%20geometric%20rock%20slabs%20along%20the%20banks%20of%20a%20clear%20turquoise%20river%20flowing%20through%20a%20lush%20green%20gorge%2C%20smooth%20flat%20stones%20known%20as%20Iwadatami%2C%20visitors%20walking%20across%20the%20rocks%2C%20Nagatoro%20Saitama%20Japan%2C%20striking%20natural%20geology%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20natural%20light&width=800&height=600&seq=imagetest2-08&orientation=landscape',
   },
   {
@@ -121,6 +147,8 @@ export const destinations = [
     category: 'Festivals & Events',
     prefecture: 'Saitama',
     description: 'A UNESCO-listed winter festival featuring elaborately decorated floats paraded through the streets after dark.',
+    lat: 35.9916443,
+    lng: 139.0855869,
     image: 'https://readdy.ai/api/search-image?query=A%20spectacular%20Japanese%20winter%20night%20festival%20with%20huge%20illuminated%20wooden%20floats%20covered%20in%20lanterns%20and%20gold%20ornaments%20being%20pulled%20through%20the%20street%2C%20crowds%20of%20people%20and%20colorful%20fireworks%20bursting%20in%20the%20dark%20sky%2C%20Chichibu%20Saitama%20Japan%2C%20vibrant%20and%20festive%20atmosphere%2C%20dramatic%20editorial%20travel%20photography%20with%20rich%20warm%20light&width=800&height=600&seq=imagetest2-09&orientation=landscape',
   },
   {
@@ -129,6 +157,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Saitama',
     description: "A museum tracing the history of Japan's railways, including retired bullet trains and interactive exhibits.",
+    lat: 35.9214247,
+    lng: 139.6179197,
     image: 'https://readdy.ai/api/search-image?query=A%20large%20modern%20railway%20museum%20interior%20with%20rows%20of%20historic%20steam%20locomotives%20and%20sleek%20shinkansen%20bullet%20trains%20displayed%20on%20polished%20floors%2C%20warm%20spot%20lighting%20and%20high%20ceiling%2C%20the%20Railway%20Museum%20Omiya%20Saitama%20Japan%2C%20impressive%20and%20educational%2C%20bright%20editorial%20travel%20photography%20with%20clean%20even%20light&width=800&height=600&seq=imagetest2-10&orientation=landscape',
   },
   {
@@ -137,6 +167,8 @@ export const destinations = [
     category: 'Theme Parks & Entertainment',
     prefecture: 'Chiba',
     description: 'A pair of internationally famous theme parks in Urayasu, drawing visitors from across the world year-round.',
+    lat: 35.6306579,
+    lng: 139.8828695,
     image: 'https://readdy.ai/api/search-image?query=The%20majestic%20Cinderella%20Castle%20with%20white%20and%20blue%20towers%20rising%20against%20a%20bright%20blue%20sky%20with%20fluffy%20clouds%2C%20a%20colorful%20crowd%20of%20visitors%20in%20the%20foreground%20plaza%2C%20Tokyo%20Disney%20Resort%20Maihama%20Chiba%20Japan%2C%20magical%20and%20cheerful%20atmosphere%2C%20vivid%20editorial%20travel%20photography%20with%20crisp%20daylight&width=800&height=600&seq=imagetest2-11&orientation=landscape',
   },
   {
@@ -145,6 +177,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Chiba',
     description: 'A major Buddhist temple near Narita Airport, with a lively approach street of shops and traditional eel restaurants.',
+    lat: 35.7860511,
+    lng: 140.3182485,
     image: 'https://readdy.ai/api/search-image?query=A%20grand%20Buddhist%20temple%20complex%20with%20a%20tall%20vermilion%20multi-story%20pagoda%2C%20ornate%20temple%20halls%20with%20curved%20roofs%2C%20stone%20lanterns%20and%20a%20wide%20approach%20path%20lined%20with%20cedar%20trees%2C%20Naritasan%20Shinshoji%20Chiba%20Japan%2C%20serene%20and%20majestic%2C%20bright%20editorial%20travel%20photography%20with%20warm%20natural%20light&width=800&height=600&seq=imagetest2-12&orientation=landscape',
   },
   {
@@ -153,6 +187,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Chiba',
     description: 'Home to a giant carved Buddha statue and the famous "Peering into Hell" cliffside viewpoint.',
+    lat: 35.1602977,
+    lng: 139.8407663,
     image: 'https://readdy.ai/api/search-image?query=A%20giant%20ancient%20stone%20Buddha%20statue%20carved%20into%20a%20forested%20mountainside%2C%20with%20dramatic%20jagged%20cliffs%20and%20a%20viewing%20platform%20overlooking%20a%20vast%20blue%20bay%2C%20Mt.%20Nokogiri%20Nihon-ji%20Chiba%20Japan%2C%20awe-inspiring%20and%20rugged%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight%20and%20deep%20blue%20sea&width=800&height=600&seq=imagetest2-13&orientation=landscape',
   },
   {
@@ -161,6 +197,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Tokyo',
     description: "Tokyo's oldest and most famous temple, marked by its giant red lantern at the Kaminarimon gate.",
+    lat: 35.7147651,
+    lng: 139.7966553,
     image: 'https://readdy.ai/api/search-image?query=The%20iconic%20Kaminarimon%20gate%20of%20Senso-ji%20Temple%20with%20its%20massive%20red%20paper%20lantern%20hanging%20beneath%20an%20ornate%20vermilion%20gate%2C%20crowds%20of%20visitors%20walking%20toward%20the%20temple%20main%20hall%2C%20a%20five-story%20pagoda%20in%20the%20distance%2C%20Asakusa%20Tokyo%20Japan%2C%20vibrant%20and%20historic%2C%20bright%20editorial%20travel%20photography%20with%20warm%20daylight&width=800&height=600&seq=imagetest3-01&orientation=landscape',
   },
   {
@@ -169,6 +207,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Tokyo',
     description: 'A lively shopping street leading up to Senso-ji, lined with traditional snacks and souvenir shops.',
+    lat: 35.6939906,
+    lng: 139.7020812,
     image: 'https://readdy.ai/api/search-image?query=A%20long%20traditional%20shopping%20street%20lined%20with%20colorful%20souvenir%20shops%20and%20food%20stalls%2C%20red%20lanterns%20and%20white%20shoji%20shutters%20overhead%2C%20crowds%20of%20tourists%20sampling%20snacks%2C%20Nakamise%20Street%20Asakusa%20Tokyo%20Japan%2C%20lively%20and%20nostalgic%2C%20vivid%20editorial%20travel%20photography%20with%20warm%20daylight&width=800&height=600&seq=imagetest3-02&orientation=landscape',
   },
   {
@@ -177,6 +217,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Tokyo',
     description: "One of Tokyo's most famous cherry blossom spots, also home to a cluster of major museums and a zoo.",
+    lat: 35.7147557,
+    lng: 139.7734312,
     image: 'https://readdy.ai/api/search-image?query=A%20wide%20tree%20lined%20park%20path%20completely%20framed%20by%20blooming%20pink%20cherry%20blossom%20trees%20in%20full%20bloom%2C%20people%20strolling%20and%20picnicking%20on%20blue%20tarps%20below%2C%20a%20large%20pond%20and%20museum%20building%20in%20the%20background%2C%20Ueno%20Park%20Tokyo%20Japan%2C%20cheerful%20and%20picturesque%2C%20bright%20editorial%20travel%20photography%20with%20soft%20spring%20light&width=800&height=600&seq=imagetest3-03&orientation=landscape',
   },
   {
@@ -185,6 +227,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Tokyo',
     description: "Japan's oldest and largest museum, holding an extensive collection of Japanese art and antiquities.",
+    lat: 35.7188351,
+    lng: 139.7765215,
     image: 'https://readdy.ai/api/search-image?query=A%20grand%20classical%20museum%20building%20with%20a%20long%20facade%20and%20central%20dome%2C%20wide%20stone%20steps%20and%20a%20formal%20entrance%2C%20surrounded%20by%20manicured%20trees%2C%20a%20few%20visitors%20entering%2C%20Tokyo%20National%20Museum%20Ueno%20Japan%2C%20elegant%20and%20scholarly%2C%20bright%20editorial%20travel%20photography%20with%20clear%20daylight&width=800&height=600&seq=imagetest3-04&orientation=landscape',
   },
   {
@@ -193,6 +237,8 @@ export const destinations = [
     category: 'Pop Culture & Entertainment',
     prefecture: 'Tokyo',
     description: "Tokyo's famed electronics and pop culture district, known for anime, gaming, and electronics shops.",
+    lat: 35.6996473,
+    lng: 139.7713703,
     image: 'https://readdy.ai/api/search-image?query=A%20bustling%20Tokyo%20street%20packed%20with%20towering%20colorful%20anime%20billboards%2C%20neon%20signs%20and%20electronics%20stores%2C%20multistory%20game%20arcades%20and%20crowds%20of%20shoppers%2C%20Akihabara%20electric%20town%20Tokyo%20Japan%2C%20energetic%20and%20vibrant%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20neon%20light%20at%20dusk&width=800&height=600&seq=imagetest3-05&orientation=landscape',
   },
   {
@@ -201,6 +247,8 @@ export const destinations = [
     category: 'City & Food Culture',
     prefecture: 'Tokyo',
     description: "One of the world's busiest pedestrian crossings, and a symbol of Tokyo's urban energy.",
+    lat: 35.659482,
+    lng: 139.7005596,
     image: 'https://readdy.ai/api/search-image?query=The%20famous%20Shibuya%20scramble%20crossing%20filled%20with%20hundreds%20of%20pedestrians%20crossing%20in%20every%20direction%2C%20surrounded%20by%20giant%20glowing%20billboards%20and%20neon%20video%20screens%20on%20tall%20buildings%2C%20Shibuya%20Tokyo%20Japan%2C%20iconic%20and%20electric%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20night%20lights&width=800&height=600&seq=imagetest3-06&orientation=landscape',
   },
   {
@@ -209,6 +257,8 @@ export const destinations = [
     category: 'City & Food Culture',
     prefecture: 'Tokyo',
     description: 'An open-air observation deck offering panoramic views across Tokyo, including Mt. Fuji on clear days.',
+    lat: 35.6586719,
+    lng: 139.7019848,
     image: 'https://readdy.ai/api/search-image?query=An%20open%20air%20rooftop%20observation%20deck%20with%20glass%20barriers%20offering%20a%20sweeping%20panoramic%20view%20of%20the%20vast%20Tokyo%20cityscape%20stretching%20to%20the%20horizon%2C%20a%20couple%20standing%20at%20the%20edge%2C%20Shibuya%20Sky%20Tokyo%20Japan%2C%20dramatic%20and%20breathtaking%2C%20vivid%20editorial%20travel%20photography%20with%20golden%20sunset%20light&width=800&height=600&seq=imagetest3-07&orientation=landscape',
   },
   {
@@ -217,6 +267,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Tokyo',
     description: 'A serene forested shrine near Harajuku, dedicated to Emperor Meiji and Empress Shoken.',
+    lat: 35.6763976,
+    lng: 139.6993259,
     image: 'https://readdy.ai/api/search-image?query=A%20grand%20vermilion%20torii%20gate%20standing%20among%20a%20peaceful%20forest%20of%20towering%20trees%2C%20a%20shaded%20gravel%20path%20leading%20toward%20a%20wooden%20Shinto%20shrine%2C%20soft%20dappled%20sunlight%20filtering%20through%20the%20leaves%2C%20Meiji%20Shrine%20Tokyo%20Japan%2C%20calm%20and%20spiritual%2C%20serene%20editorial%20travel%20photography%20with%20gentle%20forest%20light&width=800&height=600&seq=imagetest3-08&orientation=landscape',
   },
   {
@@ -225,6 +277,8 @@ export const destinations = [
     category: 'Shopping & Fashion',
     prefecture: 'Tokyo',
     description: "Harajuku's colorful main street, a hub of youth fashion, crepe stands, and pop culture shops.",
+    lat: 35.6710335,
+    lng: 139.7051821,
     image: 'https://readdy.ai/api/search-image?query=A%20narrow%20crowded%20street%20filled%20with%20colorful%20fashion%20boutiques%2C%20rainbow%20signs%20and%20quirky%20storefronts%2C%20young%20people%20in%20stylish%20street%20fashion%20walking%20through%2C%20Takeshita%20Street%20Harajuku%20Tokyo%20Japan%2C%20playful%20and%20trendy%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest3-09&orientation=landscape',
   },
   {
@@ -233,6 +287,8 @@ export const destinations = [
     category: 'City & Food Culture',
     prefecture: 'Tokyo',
     description: 'A maze of tiny alleyways in Shinjuku packed with dozens of miniature, atmospheric bars.',
+    lat: 35.6941118,
+    lng: 139.7047611,
     image: 'https://readdy.ai/api/search-image?query=A%20maze%20of%20narrow%20atmospheric%20alleys%20lined%20with%20tiny%20glowing%20bars%20and%20izakaya%2C%20warm%20lanterns%20and%20small%20neon%20signs%2C%20wooden%20facades%20and%20compact%20doorways%2C%20Golden%20Gai%20Shinjuku%20Tokyo%20Japan%2C%20intimate%20and%20nostalgic%2C%20atmospheric%20editorial%20travel%20photography%20with%20warm%20evening%20light&width=800&height=600&seq=imagetest3-10&orientation=landscape',
   },
   {
@@ -241,6 +297,8 @@ export const destinations = [
     category: 'Shopping & Fashion',
     prefecture: 'Tokyo',
     description: "Tokyo's most upscale shopping district, known for flagship stores and elegant architecture.",
+    lat: 35.6712228,
+    lng: 139.7664859,
     image: 'https://readdy.ai/api/search-image?query=A%20wide%20elegant%20shopping%20avenue%20lined%20with%20luxury%20flagship%20stores%20and%20modern%20glass%20architecture%2C%20bright%20window%20displays%20and%20designer%20brands%2C%20well%20dressed%20pedestrians%20strolling%2C%20Ginza%20Tokyo%20Japan%2C%20sophisticated%20and%20upscale%2C%20bright%20editorial%20travel%20photography%20with%20clean%20daylight&width=800&height=600&seq=imagetest3-11&orientation=landscape',
   },
   {
@@ -249,6 +307,8 @@ export const destinations = [
     category: 'City & Food Culture',
     prefecture: 'Tokyo',
     description: "Tokyo's massive wholesale fish market, famous for its early morning tuna auctions and fresh sushi stalls.",
+    lat: 35.6440911,
+    lng: 139.784281,
     image: 'https://readdy.ai/api/search-image?query=The%20interior%20of%20a%20large%20modern%20fish%20market%20with%20rows%20of%20huge%20frozen%20tuna%20laid%20out%20on%20the%20floor%2C%20workers%20in%20white%20coats%20and%20rubber%20boots%20inspecting%20the%20fish%2C%20bright%20overhead%20lighting%2C%20Toyosu%20Market%20Tokyo%20Japan%2C%20bustling%20and%20authentic%2C%20bright%20editorial%20travel%20photography%20with%20even%20indoor%20light&width=800&height=600&seq=imagetest3-12&orientation=landscape',
   },
   {
@@ -257,6 +317,8 @@ export const destinations = [
     category: 'Pop Culture & Entertainment',
     prefecture: 'Tokyo',
     description: 'An immersive digital art museum where visitors walk barefoot through water and light installations.',
+    lat: 35.6491207,
+    lng: 139.7897739,
     image: 'https://readdy.ai/api/search-image?query=An%20immersive%20digital%20art%20room%20filled%20with%20ankle%20deep%20reflecting%20water%20and%20infinite%20projections%20of%20glowing%20flowers%20and%20lights%2C%20a%20visitor%20walking%20through%20the%20mirrored%20space%2C%20teamLab%20Planets%20Tokyo%20Japan%2C%20surreal%20and%20dreamlike%2C%20vivid%20editorial%20travel%20photography%20with%20ethereal%20colorful%20light&width=800&height=600&seq=imagetest3-13&orientation=landscape',
   },
   {
@@ -265,6 +327,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Tokyo',
     description: "The public gardens surrounding Japan's Imperial Palace, built on the former grounds of Edo Castle.",
+    lat: 35.6867824,
+    lng: 139.7571445,
     image: 'https://readdy.ai/api/search-image?query=Beautiful%20manicured%20palace%20gardens%20with%20a%20historic%20stone%20foundation%20wall%20and%20a%20curved%20moat%2C%20carefully%20pruned%20pine%20trees%20and%20seasonal%20flowers%2C%20a%20wide%20gravel%20path%2C%20Imperial%20Palace%20East%20Gardens%20Tokyo%20Japan%2C%20serene%20and%20elegant%2C%20bright%20editorial%20travel%20photography%20with%20soft%20daylight&width=800&height=600&seq=imagetest3-14&orientation=landscape',
   },
   {
@@ -273,6 +337,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Tokyo',
     description: 'An easily accessible mountain popular for hiking, autumn foliage, and sweeping views back toward the city.',
+    lat: 35.6254126,
+    lng: 139.2437385,
     image: 'https://readdy.ai/api/search-image?query=A%20lush%20forested%20mountain%20trail%20with%20wooden%20steps%20climbing%20through%20dense%20green%20trees%2C%20a%20cable%20car%20track%20and%20a%20small%20shrine%2C%20a%20sweeping%20view%20of%20the%20Tokyo%20skyline%20and%20Mount%20Fuji%20on%20the%20horizon%2C%20Mt.%20Takao%20Tokyo%20Japan%2C%20fresh%20and%20scenic%2C%20vivid%20editorial%20travel%20photography%20with%20clear%20daylight&width=800&height=600&seq=imagetest3-15&orientation=landscape',
   },
   {
@@ -281,6 +347,8 @@ export const destinations = [
     category: 'City & Food Culture',
     prefecture: 'Kanagawa',
     description: "Yokohama's waterfront district, known for its night skyline, shopping, and harborside promenades.",
+    lat: 35.4600798,
+    lng: 139.6324577,
     image: 'https://readdy.ai/api/search-image?query=A%20modern%20waterfront%20skyline%20with%20sleek%20high%20rise%20towers%20and%20a%20giant%20illuminated%20Ferris%20wheel%2C%20a%20wide%20harbor%20with%20a%20boat%20in%20the%20foreground%2C%20a%20promenade%20lined%20with%20people%2C%20Yokohama%20Minato%20Mirai%20Kanagawa%20Japan%2C%20cosmopolitan%20and%20lively%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest3-16&orientation=landscape',
   },
   {
@@ -289,6 +357,8 @@ export const destinations = [
     category: 'City & Food Culture',
     prefecture: 'Kanagawa',
     description: "The largest Chinatown in Japan, packed with restaurants, street food stalls, and ornate gates.",
+    lat: 35.4430883,
+    lng: 139.6441001,
     image: 'https://readdy.ai/api/search-image?query=A%20colorful%20Chinatown%20street%20with%20an%20ornate%20red%20and%20gold%20traditional%20gate%2C%20rows%20of%20restaurants%20with%20hanging%20red%20lanterns%20and%20Chinese%20signs%2C%20crowds%20of%20people%20enjoying%20street%20food%2C%20Yokohama%20Chinatown%20Kanagawa%20Japan%2C%20festive%20and%20vibrant%2C%20vivid%20editorial%20travel%20photography%20with%20warm%20light&width=800&height=600&seq=imagetest3-17&orientation=landscape',
   },
   {
@@ -297,6 +367,8 @@ export const destinations = [
     category: 'Coastal Escape',
     prefecture: 'Kanagawa',
     description: 'Ocean views, local food, and coastal culture loved by generations.',
+    lat: 35.2990992,
+    lng: 139.4809269,
     image: 'https://readdy.ai/api/search-image?query=Enoshima%20island%20Japan%20with%20coastal%20view%20dramatic%20sea%20cliffs%20and%20wooden%20bridge%2C%20blue%20ocean%20waves%2C%20clear%20sky%2C%20minimalist%20travel%20photography%20with%20warm%20afternoon%20light%2C%20clean%20composition&width=800&height=600&seq=enoshima-card-02&orientation=landscape',
   },
   {
@@ -305,6 +377,8 @@ export const destinations = [
     category: 'Beach & Lifestyle',
     prefecture: 'Kanagawa',
     description: 'Where surf culture, sunsets, and everyday Japanese life meet.',
+    lat: 35.3137328,
+    lng: 139.4752786,
     image: 'https://readdy.ai/api/search-image?query=Shonan%20coast%20Japan%20sandy%20beach%20with%20surfboards%20and%20palm%20trees%2C%20ocean%20view%20with%20gentle%20waves%2C%20warm%20golden%20sunset%20light%2C%20minimalist%20beach%20town%20vibe%2C%20travel%20lifestyle%20photography&width=800&height=600&seq=shonan-card-03&orientation=landscape',
   },
   {
@@ -313,6 +387,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Kanagawa',
     description: "Kamakura's most important shrine, historically linked to the samurai culture of the Kamakura shogunate.",
+    lat: 35.3259856,
+    lng: 139.5563462,
     image: 'https://readdy.ai/api/search-image?query=A%20grand%20Shinto%20shrine%20with%20a%20wide%20stone%20staircase%20leading%20up%20to%20the%20main%20hall%2C%20a%20vermilion%20bridge%20over%20a%20pond%20with%20lotus%20leaves%2C%20tall%20trees%20and%20stone%20lanterns%20lining%20the%20path%2C%20Tsurugaoka%20Hachimangu%20Kamakura%20Kanagawa%20Japan%2C%20majestic%20and%20serene%2C%20bright%20editorial%20travel%20photography%20with%20soft%20daylight&width=800&height=600&seq=imagetest3-18&orientation=landscape',
   },
   {
@@ -321,6 +397,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Kanagawa',
     description: "Home to Kamakura's iconic bronze Great Buddha statue, seated in the open air for over 700 years.",
+    lat: 35.3168145,
+    lng: 139.5357442,
     image: 'https://readdy.ai/api/search-image?query=A%20massive%20ancient%20bronze%20statue%20of%20a%20seated%20Buddha%20in%20the%20open%20air%2C%20the%20serene%20Great%20Buddha%20of%20Kamakura%20with%20a%20greenish%20patina%2C%20surrounded%20by%20trees%20and%20a%20few%20visitors%2C%20Kotoku-in%20Kamakura%20Kanagawa%20Japan%2C%20awe-inspiring%20and%20peaceful%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest3-19&orientation=landscape',
   },
   {
@@ -329,6 +407,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Kanagawa',
     description: 'A temple known for its hydrangea garden and sweeping ocean views from its hillside terrace.',
+    lat: 35.3124791,
+    lng: 139.5331106,
     image: 'https://readdy.ai/api/search-image?query=A%20hillside%20Buddhist%20temple%20complex%20with%20wooden%20halls%20and%20a%20terrace%20overlooking%20the%20sea%2C%20vibrant%20blue%20and%20pink%20hydrangea%20flowers%20blooming%20along%20stone%20paths%2C%20a%20pagoda%20among%20the%20trees%2C%20Hase-dera%20Kamakura%20Kanagawa%20Japan%2C%20peaceful%20and%20colorful%2C%20bright%20editorial%20travel%20photography%20with%20soft%20daylight&width=800&height=600&seq=imagetest3-20&orientation=landscape',
   },
   {
@@ -337,6 +417,8 @@ export const destinations = [
     category: 'City & Food Culture',
     prefecture: 'Kanagawa',
     description: "Kamakura's main pedestrian shopping street, lined with snack stalls, cafes, and souvenir shops.",
+    lat: 35.5714197,
+    lng: 139.3592865,
     image: 'https://readdy.ai/api/search-image?query=A%20bustling%20pedestrian%20shopping%20street%20lined%20with%20souvenir%20shops%2C%20sweet%20shops%20and%20food%20stalls%2C%20colorful%20storefronts%20and%20hanging%20banners%2C%20crowds%20of%20visitors%20strolling%2C%20Komachi-dori%20Kamakura%20Kanagawa%20Japan%2C%20lively%20and%20cheerful%2C%20vivid%20editorial%20travel%20photography%20with%20warm%20daylight&width=800&height=600&seq=imagetest3-21&orientation=landscape',
   },
   {
@@ -345,6 +427,8 @@ export const destinations = [
     category: 'Hot Springs & Nature',
     prefecture: 'Kanagawa',
     description: 'Hot spring resorts, Lake Ashi boat rides, and views of Mt. Fuji on a clear day.',
+    lat: 35.2331841,
+    lng: 139.1041572,
     image: 'https://readdy.ai/api/search-image?query=A%20traditional%20Japanese%20hot%20spring%20ryokan%20inn%20nestled%20in%20a%20lush%20mountain%20valley%2C%20steam%20rising%20gently%20from%20outdoor%20onsen%20baths%2C%20wooden%20buildings%20with%20sloping%20roofs%2C%20Hakone%20Onsen%20Kanagawa%20Japan%2C%20peaceful%20and%20relaxing%2C%20soft%20editorial%20travel%20photography%20with%20misty%20morning%20light&width=800&height=600&seq=imagetest3-22&orientation=landscape',
   },
   {
@@ -353,6 +437,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Kanagawa',
     description: 'A scenic crater lake known for its sightseeing cruise boats and views of Mt. Fuji on clear days.',
+    lat: 35.2095674,
+    lng: 139.0034626,
     image: 'https://readdy.ai/api/search-image?query=A%20calm%20blue%20lake%20surrounded%20by%20forested%20mountains%2C%20a%20traditional%20sightseeing%20boat%20cruising%20across%20the%20water%2C%20the%20snow%20capped%20peak%20of%20Mount%20Fuji%20rising%20in%20the%20background%2C%20Lake%20Ashi%20Hakone%20Kanagawa%20Japan%2C%20serene%20and%20iconic%2C%20vivid%20editorial%20travel%20photography%20with%20clear%20daylight&width=800&height=600&seq=imagetest3-23&orientation=landscape',
   },
   {
@@ -361,6 +447,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Kanagawa',
     description: 'A lakeside shrine famous for its red torii gate standing in the waters of Lake Ashi.',
+    lat: 35.2048263,
+    lng: 139.0253782,
     image: 'https://readdy.ai/api/search-image?query=A%20red%20torii%20gate%20standing%20in%20the%20shallow%20water%20at%20the%20edge%20of%20a%20calm%20lake%2C%20surrounded%20by%20a%20dense%20green%20forest%20and%20misty%20mountains%2C%20a%20stone%20staircase%20leading%20up%20to%20the%20shrine%2C%20Hakone%20Shrine%20Kanagawa%20Japan%2C%20mystical%20and%20serene%2C%20atmospheric%20editorial%20travel%20photography%20with%20soft%20light&width=800&height=600&seq=imagetest3-24&orientation=landscape',
   },
   {
@@ -369,6 +457,8 @@ export const destinations = [
     category: 'City & Food Culture',
     prefecture: 'Hokkaido',
     description: "Sapporo's central park, transformed each winter into the stage for the world-famous Sapporo Snow Festival, and a lively green space year-round.",
+    lat: 43.06075209999999,
+    lng: 141.3544308,
     image: 'https://readdy.ai/api/search-image?query=A%20long%20green%20city%20park%20with%20tree%20lined%20paths%2C%20colorful%20flower%20beds%20and%20a%20central%20fountain%2C%20the%20red%20Sapporo%20TV%20Tower%20standing%20at%20one%20end%2C%20people%20strolling%2C%20Odori%20Park%20Sapporo%20Hokkaido%20Japan%2C%20lively%20and%20pleasant%2C%20bright%20editorial%20travel%20photography%20with%20clear%20daylight&width=800&height=600&seq=imagetest3-25&orientation=landscape',
   },
   {
@@ -377,6 +467,8 @@ export const destinations = [
     category: 'City & Food Culture',
     prefecture: 'Hokkaido',
     description: "Hokkaido's largest nightlife and dining district, packed with ramen shops, izakaya, and bars.",
+    lat: 43.055628,
+    lng: 141.3533359,
     image: 'https://readdy.ai/api/search-image?query=A%20bustling%20nightlife%20district%20with%20tall%20glowing%20neon%20signs%20and%20illuminated%20storefronts%2C%20crowded%20streets%20and%20a%20famous%20Nikka%20whisky%20neon%20billboard%2C%20Susukino%20Sapporo%20Hokkaido%20Japan%2C%20energetic%20and%20vibrant%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20night%20lights&width=800&height=600&seq=imagetest3-26&orientation=landscape',
   },
   {
@@ -385,6 +477,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Hokkaido',
     description: "A ropeway-accessible mountain offering one of Japan's most celebrated night views over the city of Sapporo.",
+    lat: 43.0230805,
+    lng: 141.3223676,
     image: 'https://readdy.ai/api/search-image?query=A%20glittering%20panoramic%20night%20view%20of%20the%20vast%20Sapporo%20city%20lights%20spread%20out%20below%20a%20mountain%20viewpoint%2C%20the%20city%20glowing%20golden%20against%20the%20dark%20sky%2C%20a%20couple%20looking%20out%20over%20the%20scene%2C%20Mt.%20Moiwa%20Sapporo%20Hokkaido%20Japan%2C%20romantic%20and%20dazzling%2C%20vivid%20editorial%20travel%20photography%20with%20dramatic%20night%20light&width=800&height=600&seq=imagetest3-27&orientation=landscape',
   },
   {
@@ -393,6 +487,8 @@ export const destinations = [
     category: 'Festivals & Events',
     prefecture: 'Hokkaido',
     description: 'A world-renowned winter festival featuring massive snow and ice sculptures displayed across Odori Park each February.',
+    lat: 43.0617713,
+    lng: 141.3544506,
     image: 'https://readdy.ai/api/search-image?query=A%20giant%20intricately%20carved%20snow%20sculpture%20of%20a%20castle%20standing%20in%20a%20snowy%20park%2C%20colorful%20lights%20illuminating%20the%20ice%20and%20snow%2C%20crowds%20of%20people%20admiring%20the%20display%20at%20night%2C%20Sapporo%20Snow%20Festival%20Hokkaido%20Japan%2C%20magical%20and%20festive%2C%20vivid%20editorial%20travel%20photography%20with%20colorful%20winter%20light&width=800&height=600&seq=imagetest3-28&orientation=landscape',
   },
   {
@@ -401,6 +497,8 @@ export const destinations = [
     category: 'Hot Springs & Nature',
     prefecture: 'Hokkaido',
     description: 'A hot spring resort town near Sapporo, popular for its autumn foliage and easy access from the city.',
+    lat: 42.9660653,
+    lng: 141.1670505,
     image: 'https://readdy.ai/api/search-image?query=A%20hot%20spring%20town%20in%20a%20forested%20river%20valley%20with%20colorful%20autumn%20foliage%2C%20steam%20rising%20from%20outdoor%20baths%2C%20traditional%20ryokan%20buildings%20along%20a%20clear%20river%2C%20Jozankei%20Onsen%20Hokkaido%20Japan%2C%20cozy%20and%20scenic%2C%20vivid%20editorial%20travel%20photography%20with%20rich%20autumn%20light&width=800&height=600&seq=imagetest3-29&orientation=landscape',
   },
   {
@@ -409,6 +507,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Hokkaido',
     description: 'A historic canal lined with stone warehouses from Otaru\'s days as a bustling port, especially atmospheric when lit at night.',
+    lat: 43.199041,
+    lng: 141.0021176,
     image: 'https://readdy.ai/api/search-image?query=A%20historic%20canal%20lined%20with%20old%20red%20brick%20and%20stone%20warehouses%2C%20vintage%20gas%20lamps%20glowing%20along%20the%20stone%20walkway%2C%20the%20water%20reflecting%20warm%20lights%2C%20Otaru%20Canal%20Hokkaido%20Japan%2C%20romantic%20and%20nostalgic%2C%20atmospheric%20editorial%20travel%20photography%20with%20warm%20evening%20light&width=800&height=600&seq=imagetest3-30&orientation=landscape',
   },
   {
@@ -417,6 +517,8 @@ export const destinations = [
     category: 'Skiing & Winter Sports',
     prefecture: 'Hokkaido',
     description: "One of the world's most celebrated ski resorts, famous for its abundant powder snow.",
+    lat: 42.8616549,
+    lng: 140.6982419,
     image: 'https://readdy.ai/api/search-image?query=Skiers%20carving%20down%20a%20wide%20slope%20of%20deep%20pristine%20powder%20snow%2C%20the%20cone%20of%20Mount%20Yotei%20rising%20majestically%20in%20the%20background%20under%20a%20clear%20blue%20sky%2C%20Niseko%20Grand%20Hirafu%20Hokkaido%20Japan%2C%20exhilarating%20and%20beautiful%2C%20vivid%20editorial%20travel%20photography%20with%20crisp%20alpine%20light&width=800&height=600&seq=imagetest3-31&orientation=landscape',
   },
   {
@@ -425,6 +527,8 @@ export const destinations = [
     category: 'Skiing & Winter Sports',
     prefecture: 'Hokkaido',
     description: 'A high-end ski resort in the Niseko area known for its powder snow and international clientele.',
+    lat: 42.8930897,
+    lng: 140.7001713,
     image: 'https://readdy.ai/api/search-image?query=Skiers%20riding%20through%20snow%20covered%20birch%20trees%20in%20a%20backcountry%20powder%20zone%2C%20fresh%20deep%20snow%20and%20glistening%20ice%20crystals%2C%20a%20modern%20gondola%20station%20nearby%2C%20Niseko%20Hanazono%20Resort%20Hokkaido%20Japan%2C%20adventurous%20and%20pristine%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20winter%20light&width=800&height=600&seq=imagetest3-32&orientation=landscape',
   },
   {
@@ -433,6 +537,8 @@ export const destinations = [
     category: 'Skiing & Winter Sports',
     prefecture: 'Hokkaido',
     description: "A ski resort area offering both slopeside skiing and longer resort stays amid Niseko's powder snow.",
+    lat: 42.8047856,
+    lng: 140.6874494,
     image: 'https://readdy.ai/api/search-image?query=A%20snowy%20ski%20resort%20village%20at%20the%20base%20of%20a%20mountain%20with%20luxury%20hotels%20and%20chalets%2C%20a%20gondola%20lift%20and%20groomed%20ski%20slopes%2C%20Mount%20Yotei%20in%20the%20distance%2C%20Niseko%20Village%20Hokkaido%20Japan%2C%20elegant%20and%20inviting%2C%20bright%20editorial%20travel%20photography%20with%20clear%20winter%20light&width=800&height=600&seq=imagetest3-33&orientation=landscape',
   },
   {
@@ -441,6 +547,8 @@ export const destinations = [
     category: 'Skiing & Winter Sports',
     prefecture: 'Hokkaido',
     description: 'A ski resort in the Niseko area known for varied terrain and reliable powder conditions.',
+    lat: 42.8474716,
+    lng: 140.6479506,
     image: 'https://readdy.ai/api/search-image?query=A%20wide%20groomed%20ski%20slope%20with%20skiers%20and%20snowboarders%20gliding%20down%2C%20surrounded%20by%20snow%20covered%20trees%20and%20a%20chairlift%2C%20soft%20powdery%20snow%20sparkling%2C%20Niseko%20Annupuri%20Hokkaido%20Japan%2C%20fun%20and%20relaxed%2C%20bright%20editorial%20travel%20photography%20with%20crisp%20winter%20light&width=800&height=600&seq=imagetest3-34&orientation=landscape',
   },
   {
@@ -449,6 +557,8 @@ export const destinations = [
     category: 'Skiing & Winter Sports',
     prefecture: 'Hokkaido',
     description: 'A large-scale ski resort with extensive terrain, an amusement park, and year-round resort facilities.',
+    lat: 42.74835090000001,
+    lng: 140.8969402,
     image: 'https://readdy.ai/api/search-image?query=A%20large%20ski%20resort%20with%20tree%20lined%20runs%20and%20a%20colorful%20resort%20hotel%20complex%2C%20skiers%20on%20the%20slopes%20and%20a%20Ferris%20wheel%20in%20the%20base%20area%2C%20snowy%20mountains%20surrounding%2C%20Rusutsu%20Resort%20Hokkaido%20Japan%2C%20vibrant%20and%20lively%2C%20bright%20editorial%20travel%20photography%20with%20clear%20winter%20light&width=800&height=600&seq=imagetest3-35&orientation=landscape',
   },
   {
@@ -457,6 +567,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Hokkaido',
     description: "A lavender farm whose vivid purple fields have made it one of Hokkaido's most photographed summer destinations.",
+    lat: 43.4182493,
+    lng: 142.4280407,
     image: 'https://readdy.ai/api/search-image?query=Rolling%20fields%20of%20vivid%20purple%20lavender%20flowers%20stretching%20to%20the%20horizon%2C%20colorful%20rainbow%20rows%20of%20other%20flowers%2C%20a%20few%20visitors%20walking%20along%20paths%2C%20a%20wooden%20farmhouse%20in%20the%20distance%2C%20Farm%20Tomita%20Furano%20Hokkaido%20Japan%2C%20breathtaking%20and%20fragrant%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20summer%20light&width=800&height=600&seq=imagetest3-36&orientation=landscape',
   },
   {
@@ -465,6 +577,8 @@ export const destinations = [
     category: 'Skiing & Winter Sports',
     prefecture: 'Hokkaido',
     description: 'A well-established ski resort known for long groomed runs and reliable snow conditions.',
+    lat: 43.3249606,
+    lng: 142.3532411,
     image: 'https://readdy.ai/api/search-image?query=Skiers%20enjoying%20a%20wide%20powder%20slope%20with%20panoramic%20views%20of%20the%20Furano%20valley%20and%20distant%20snow%20capped%20mountains%2C%20a%20chairlift%20and%20lodge%20in%20view%2C%20fresh%20snowfall%2C%20Furano%20Ski%20Resort%20Hokkaido%20Japan%2C%20serene%20and%20expansive%2C%20bright%20editorial%20travel%20photography%20with%20clear%20winter%20light&width=800&height=600&seq=imagetest3-37&orientation=landscape',
   },
   {
@@ -473,6 +587,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Hokkaido',
     description: 'A striking blue-tinted pond formed by a disaster-prevention project, now one of Hokkaido\'s most photographed natural sights.',
+    lat: 43.4934738,
+    lng: 142.6142144,
     image: 'https://readdy.ai/api/search-image?query=A%20surreal%20cobalt%20blue%20pond%20with%20white%20birch%20tree%20trunks%20rising%20from%20the%20vivid%20turquoise%20water%2C%20the%20bare%20bleached%20trees%20reflected%20on%20the%20smooth%20surface%2C%20Shirogane%20Blue%20Pond%20Biei%20Hokkaido%20Japan%2C%20mysterious%20and%20dreamlike%2C%20vivid%20editorial%20travel%20photography%20with%20soft%20natural%20light&width=800&height=600&seq=imagetest3-38&orientation=landscape',
   },
   {
@@ -481,6 +597,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Hokkaido',
     description: 'A hillside flower garden with vivid color-blocked fields blooming from spring through autumn.',
+    lat: 43.5291728,
+    lng: 142.4650824,
     image: 'https://readdy.ai/api/search-image?query=A%20vast%20rolling%20hillside%20planted%20with%20sweeping%20rainbow%20stripes%20of%20colorful%20flowers%2C%20red%2C%20yellow%2C%20orange%20and%20pink%20flower%20beds%20curving%20over%20the%20hills%2C%20a%20distant%20mountain%20range%2C%20Shikisai-no-Oka%20Biei%20Hokkaido%20Japan%2C%20vibrant%20and%20panoramic%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest3-39&orientation=landscape',
   },
   {
@@ -489,6 +607,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Hokkaido',
     description: 'Rolling patchwork farmland famous for its scenic drives and photogenic hill views across the seasons.',
+    lat: 43.5906644,
+    lng: 142.4627694,
     image: 'https://readdy.ai/api/search-image?query=Picturesque%20rolling%20farmland%20hills%20with%20patchwork%20fields%20of%20green%20and%20gold%20crops%2C%20a%20single%20lone%20tree%20standing%20on%20a%20hilltop%2C%20a%20winding%20country%20road%2C%20Biei%20Hills%20Hokkaido%20Japan%2C%20serene%20and%20pastoral%2C%20soft%20editorial%20travel%20photography%20with%20warm%20golden%20light&width=800&height=600&seq=imagetest3-40&orientation=landscape',
   },
   {
@@ -497,6 +617,8 @@ export const destinations = [
     category: 'City & Food Culture',
     prefecture: 'Hokkaido',
     description: 'A zoo known for its naturalistic enclosures that let visitors observe animal behavior up close, including its famous penguin walk.',
+    lat: 43.7689713,
+    lng: 142.4791319,
     image: 'https://readdy.ai/api/search-image?query=A%20row%20of%20king%20penguins%20walking%20along%20a%20snowy%20path%20lined%20with%20excited%20visitors%2C%20the%20penguins%20waddling%20in%20a%20single%20file%2C%20Asahiyama%20Zoo%20Asahikawa%20Hokkaido%20Japan%2C%20adorable%20and%20heartwarming%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20winter%20light&width=800&height=600&seq=imagetest3-41&orientation=landscape',
   },
   {
@@ -505,6 +627,8 @@ export const destinations = [
     category: 'Hot Springs & Nature',
     prefecture: 'Hokkaido',
     description: "One of Hokkaido's most famous hot spring towns, drawing its mineral-rich waters from the volcanic Jigokudani valley.",
+    lat: 42.4924775,
+    lng: 141.1430592,
     image: 'https://readdy.ai/api/search-image?query=A%20traditional%20hot%20spring%20town%20street%20with%20steam%20rising%20from%20vents%2C%20a%20red%20oni%20demon%20statue%20and%20lanterns%2C%20ryokan%20inns%20lining%20the%20road%2C%20misty%20atmosphere%2C%20Noboribetsu%20Onsen%20Hokkaido%20Japan%2C%20mysterious%20and%20relaxing%2C%20atmospheric%20editorial%20travel%20photography%20with%20warm%20evening%20light&width=800&height=600&seq=imagetest3-42&orientation=landscape',
   },
   {
@@ -513,6 +637,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Hokkaido',
     description: "A volcanic valley of steaming vents and boiling ponds, nicknamed 'Hell Valley' for its dramatic landscape.",
+    lat: 42.4976231,
+    lng: 141.1486603,
     image: 'https://readdy.ai/api/search-image?query=A%20dramatic%20volcanic%20valley%20with%20thick%20white%20steam%20rising%20from%20vents%20and%20boiling%20sulfurous%20pools%2C%20barren%20rocky%20terrain%20with%20yellow%20sulfur%20deposits%2C%20a%20wooden%20walkway%20over%20the%20steaming%20ground%2C%20Jigokudani%20Noboribetsu%20Hokkaido%20Japan%2C%20wild%20and%20primal%2C%20atmospheric%20editorial%20travel%20photography%20with%20dramatic%20light&width=800&height=600&seq=imagetest3-43&orientation=landscape',
   },
   {
@@ -521,6 +647,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Hokkaido',
     description: 'A caldera lake known for its resort hotels, hot springs, and summer fireworks displayed over the water.',
+    lat: 42.625499,
+    lng: 140.8433144,
     image: 'https://readdy.ai/api/search-image?query=A%20calm%20nearly%20circular%20caldera%20lake%20with%20a%20forested%20island%20at%20its%20center%2C%20surrounding%20green%20mountains%20and%20a%20clear%20blue%20sky%2C%20a%20small%20boat%20on%20the%20water%2C%20Lake%20Toya%20Hokkaido%20Japan%2C%20peaceful%20and%20beautiful%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest3-44&orientation=landscape',
   },
   {
@@ -529,6 +657,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Hokkaido',
     description: "A mountain overlooking Hakodate, famous for a night view frequently ranked among the world's most beautiful.",
+    lat: 41.7592941,
+    lng: 140.703917,
     image: 'https://readdy.ai/api/search-image?query=A%20stunning%20panoramic%20night%20view%20of%20Hakodate%20city%20with%20its%20narrow%20curved%20coastline%20illuminated%20by%20glowing%20lights%20between%20two%20dark%20seas%2C%20the%20city%20lights%20forming%20a%20bright%20curved%20line%2C%20Mt.%20Hakodate%20Hokkaido%20Japan%2C%20dazzling%20and%20romantic%2C%20vivid%20editorial%20travel%20photography%20with%20dramatic%20night%20light&width=800&height=600&seq=imagetest3-45&orientation=landscape',
   },
   {
@@ -537,6 +667,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Hokkaido',
     description: 'A star-shaped former fort, now a park especially known for its cherry blossoms viewed from the observation tower.',
+    lat: 41.7968814,
+    lng: 140.7561138,
     image: 'https://readdy.ai/api/search-image?query=An%20aerial%20view%20of%20a%20star-shaped%20fort%20park%20with%20a%20water%20filled%20moat%20and%20green%20trees%2C%20hundreds%20of%20pink%20cherry%20blossom%20trees%20blooming%20along%20the%20star%20shaped%20walls%2C%20Goryokaku%20Park%20Hakodate%20Hokkaido%20Japan%2C%20unique%20and%20beautiful%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20spring%20light&width=800&height=600&seq=imagetest3-46&orientation=landscape',
   },
   {
@@ -545,6 +677,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Hokkaido',
     description: "A sloped street with sweeping harbor views, one of Hakodate's most photographed streetscapes.",
+    lat: 41.7649554,
+    lng: 140.712976,
     image: 'https://readdy.ai/api/search-image?query=A%20long%20sloping%20street%20leading%20straight%20down%20toward%20the%20sea%2C%20framed%20by%20rows%20of%20trees%20and%20low%20buildings%2C%20the%20blue%20harbor%20visible%20at%20the%20end%20of%20the%20slope%2C%20Hachimanzaka%20Hakodate%20Hokkaido%20Japan%2C%20scenic%20and%20charming%2C%20bright%20editorial%20travel%20photography%20with%20clear%20daylight&width=800&height=600&seq=imagetest3-47&orientation=landscape',
   },
   {
@@ -553,6 +687,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Hokkaido',
     description: 'A caldera lake known for its hot springs and the rare marimo algae formations found in its waters.',
+    lat: 43.45725849999999,
+    lng: 144.1040147,
     image: 'https://readdy.ai/api/search-image?query=A%20calm%20blue%20caldera%20lake%20surrounded%20by%20forested%20mountains%20and%20volcanic%20peaks%2C%20a%20small%20island%20with%20trees%20in%20the%20lake%2C%20a%20wooden%20boat%20dock%2C%20Lake%20Akan%20Hokkaido%20Japan%2C%20tranquil%20and%20natural%2C%20vivid%20editorial%20travel%20photography%20with%20soft%20daylight&width=800&height=600&seq=imagetest3-48&orientation=landscape',
   },
   {
@@ -561,6 +697,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Hokkaido',
     description: 'Renowned for its exceptional water clarity and mysterious, often mist-shrouded caldera setting.',
+    lat: 43.5872284,
+    lng: 144.5237617,
     image: 'https://readdy.ai/api/search-image?query=A%20deep%20mysterious%20crater%20lake%20with%20vivid%20blue%20water%20surrounded%20by%20steep%20forested%20volcanic%20walls%2C%20a%20thin%20layer%20of%20fog%20floating%20over%20the%20surface%2C%20a%20viewing%20platform%20on%20the%20rim%2C%20Lake%20Mashu%20Hokkaido%20Japan%2C%20serene%20and%20mystical%2C%20atmospheric%20editorial%20travel%20photography%20with%20soft%20light&width=800&height=600&seq=imagetest3-49&orientation=landscape',
   },
   {
@@ -569,6 +707,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Hokkaido',
     description: "Japan's largest wetland, home to rare wildlife including the red-crowned crane.",
+    lat: 43.0028217,
+    lng: 144.3980673,
     image: 'https://readdy.ai/api/search-image?query=A%20vast%20green%20wetland%20with%20a%20winding%20river%20meandering%20through%20the%20marshes%2C%20tall%20reeds%20and%20low%20hills%20in%20the%20distance%2C%20a%20wooden%20boardwalk%2C%20Kushiro%20Marsh%20Hokkaido%20Japan%2C%20wild%20and%20expansive%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20natural%20light&width=800&height=600&seq=imagetest3-50&orientation=landscape',
   },
   {
@@ -577,6 +717,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Hokkaido',
     description: "A prime viewing spot for the red-crowned crane, a symbol of Hokkaido's wild nature, especially striking against winter snow.",
+    lat: 43.2301969,
+    lng: 144.3213393,
     image: 'https://readdy.ai/api/search-image?query=Elegant%20red-crowned%20cranes%20with%20white%20bodies%20and%20black%20wing%20tips%20dancing%20and%20foraging%20in%20a%20snowy%20wetland%2C%20soft%20steam%20rising%20from%20the%20ground%2C%20Tsurui%20Hokkaido%20Japan%2C%20graceful%20and%20serene%2C%20vivid%20editorial%20travel%20photography%20with%20soft%20winter%20light&width=800&height=600&seq=imagetest3-51&orientation=landscape',
   },
   {
@@ -585,6 +727,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Hokkaido',
     description: "A sightseeing icebreaker cruise through the drift ice that arrives off Hokkaido's coast each winter.",
+    lat: 44.02205960000001,
+    lng: 144.2739072,
     image: 'https://readdy.ai/api/search-image?query=A%20large%20icebreaker%20ship%20cruising%20through%20vast%20fields%20of%20white%20drift%20ice%20on%20the%20Sea%20of%20Okhotsk%2C%20the%20ship%20breaking%20through%20the%20frozen%20sea%2C%20a%20cold%20blue%20sky%2C%20Abashiri%20Hokkaido%20Japan%2C%20dramatic%20and%20adventurous%2C%20vivid%20editorial%20travel%20photography%20with%20crisp%20cold%20light&width=800&height=600&seq=imagetest3-52&orientation=landscape',
   },
   {
@@ -593,6 +737,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Hokkaido',
     description: 'A network of lakes within the Shiretoko UNESCO World Heritage area, connected by boardwalks through pristine wilderness.',
+    lat: 44.1239681,
+    lng: 145.0828581,
     image: 'https://readdy.ai/api/search-image?query=Five%20pristine%20lakes%20reflecting%20the%20surrounding%20snow%20capped%20mountains%20and%20forest%2C%20a%20wooden%20boardwalk%20winding%20through%20the%20wild%20landscape%2C%20Shiretoko%20Five%20Lakes%20Hokkaido%20Japan%2C%20untouched%20and%20majestic%2C%20vivid%20editorial%20travel%20photography%20with%20clear%20natural%20light&width=800&height=600&seq=imagetest3-53&orientation=landscape',
   },
   {
@@ -601,6 +747,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Hokkaido',
     description: 'A coastal town serving as the gateway to Shiretoko National Park, known for its sightseeing cruises along dramatic sea cliffs.',
+    lat: 44.069073,
+    lng: 144.9906679,
     image: 'https://readdy.ai/api/search-image?query=A%20small%20coastal%20town%20with%20a%20harbor%20and%20fishing%20boats%2C%20dramatic%20cliffs%20and%20forested%20mountains%20rising%20behind%2C%20the%20blue%20Sea%20of%20Okhotsk%20stretching%20out%2C%20Utoro%20Shiretoko%20Hokkaido%20Japan%2C%20rugged%20and%20peaceful%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20coastal%20light&width=800&height=600&seq=imagetest3-54&orientation=landscape',
   },
   {
@@ -609,6 +757,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Hokkaido',
     description: 'Boat tours off the Shiretoko coast offering opportunities to see whales and orcas in their natural habitat.',
+    lat: 44.0218788,
+    lng: 145.1897129,
     image: 'https://readdy.ai/api/search-image?query=A%20whale%20surfacing%20and%20spouting%20water%20in%20the%20open%20sea%2C%20its%20dark%20back%20arcing%20above%20the%20waves%2C%20a%20small%20tour%20boat%20watching%20nearby%2C%20distant%20misty%20mountains%2C%20Rausu%20Shiretoko%20Hokkaido%20Japan%2C%20thrilling%20and%20wild%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20coastal%20light&width=800&height=600&seq=imagetest3-55&orientation=landscape',
   },
   {
@@ -617,6 +767,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Hokkaido',
     description: "Winter boat tours to see drift ice along with Steller's sea eagles and other rare seabirds.",
+    lat: 43.2203266,
+    lng: 142.8634737,
     image: 'https://readdy.ai/api/search-image?query=Large%20majestic%20Steller%5Cu2019s%20sea%20eagles%20with%20dark%20bodies%20and%20white%20shoulders%20perched%20on%20floating%20white%20drift%20ice%2C%20the%20frozen%20Sea%20of%20Okhotsk%20behind%2C%20snow%20falling%20gently%2C%20Hokkaido%20Japan%2C%20wild%20and%20awe-inspiring%2C%20vivid%20editorial%20travel%20photography%20with%20cold%20winter%20light&width=800&height=600&seq=imagetest3-56&orientation=landscape',
   },
   {
@@ -625,6 +777,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Aomori',
     description: 'A gently sloping river gorge with a scenic walking trail through mossy forest, especially beautiful during autumn foliage.',
+    lat: 40.4899618,
+    lng: 140.9525486,
     image: 'https://readdy.ai/api/search-image?query=A%20crystal%20clear%20stream%20rushing%20over%20mossy%20rocks%20through%20a%20forested%20gorge%2C%20small%20waterfalls%20and%20rapids%2C%20brilliant%20red%20and%20orange%20autumn%20leaves%20overhead%2C%20a%20walking%20path%20along%20the%20water%2C%20Oirase%20Gorge%20Aomori%20Japan%2C%20fresh%20and%20scenic%2C%20vivid%20editorial%20travel%20photography%20with%20rich%20autumn%20light&width=800&height=600&seq=imagetest3-57&orientation=landscape',
   },
   {
@@ -633,6 +787,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Aomori',
     description: 'A serene caldera lake surrounded by forest, forming the source of the Oirase River.',
+    lat: 40.464869,
+    lng: 140.8772428,
     image: 'https://readdy.ai/api/search-image?query=A%20large%20deep%20blue%20caldera%20lake%20surrounded%20by%20densely%20forested%20mountains%2C%20a%20small%20peninsula%20and%20islands%2C%20a%20sightseeing%20boat%20on%20the%20calm%20water%2C%20Lake%20Towada%20Aomori%20Japan%2C%20serene%20and%20expansive%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest3-58&orientation=landscape',
   },
   {
@@ -641,6 +797,8 @@ export const destinations = [
     category: 'Festivals & Events',
     prefecture: 'Aomori',
     description: 'A summer festival featuring giant illuminated paper lantern floats paraded through the city each August.',
+    lat: 40.8222197,
+    lng: 140.7473524,
     image: 'https://readdy.ai/api/search-image?query=A%20giant%20illuminated%20papier%20mache%20warrior%20float%20glowing%20with%20bright%20lights%2C%20pulled%20through%20a%20crowded%20street%20at%20night%20by%20dancers%20in%20colorful%20costumes%2C%20taiko%20drummers%2C%20Aomori%20Nebuta%20Festival%20Japan%2C%20energetic%20and%20dazzling%2C%20vivid%20editorial%20travel%20photography%20with%20dramatic%20night%20light&width=800&height=600&seq=imagetest3-59&orientation=landscape',
   },
   {
@@ -649,6 +807,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Aomori',
     description: "One of Japan's few original wooden castle keeps, framed by moats and stone walls dating to the Edo period.",
+    lat: 40.60791589999999,
+    lng: 140.4636654,
     image: 'https://readdy.ai/api/search-image?query=A%20historic%20Japanese%20castle%20with%20a%20three%20story%20white%20keep%20surrounded%20by%20a%20moat%20and%20stone%20walls%2C%20hundreds%20of%20pink%20cherry%20blossom%20trees%20blooming%20around%20the%20castle%2C%20Hirosaki%20Castle%20Aomori%20Japan%2C%20elegant%20and%20picturesque%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20spring%20light&width=800&height=600&seq=imagetest3-60&orientation=landscape',
   },
   {
@@ -657,6 +817,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Aomori',
     description: "Home to one of Japan's most celebrated cherry blossom displays each spring, surrounding the historic castle grounds.",
+    lat: 40.6077066,
+    lng: 140.4643675,
     image: 'https://readdy.ai/api/search-image?query=Thousands%20of%20pink%20cherry%20blossom%20trees%20in%20full%20bloom%20over%20a%20moat%20filled%20with%20fallen%20petals%2C%20a%20red%20bridge%20crossing%20the%20water%2C%20the%20castle%20keep%20visible%2C%20Hirosaki%20Park%20Aomori%20Japan%2C%20breathtaking%20and%20romantic%2C%20vivid%20editorial%20travel%20photography%20with%20soft%20spring%20light&width=800&height=600&seq=imagetest3-61&orientation=landscape',
   },
   {
@@ -665,6 +827,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Aomori',
     description: 'A UNESCO World Heritage forest preserving one of the last remaining virgin beech forests in East Asia.',
+    lat: 40.4568626,
+    lng: 140.1645095,
     image: 'https://readdy.ai/api/search-image?query=A%20pristine%20forest%20of%20tall%20green%20beech%20trees%20in%20a%20mountainous%20landscape%2C%20a%20clear%20stream%20and%20mossy%20rocks%2C%20soft%20mist%20between%20the%20trees%2C%20Shirakami-Sanchi%20Aomori%20Japan%2C%20untouched%20and%20tranquil%2C%20serene%20editorial%20travel%20photography%20with%20gentle%20forest%20light&width=800&height=600&seq=imagetest3-62&orientation=landscape',
   },
   {
@@ -673,6 +837,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Aomori',
     description: 'A cluster of forest lakes near Fukaura, including a strikingly clear blue pond prized by photographers.',
+    lat: 40.7657077,
+    lng: 140.9175879,
     image: 'https://readdy.ai/api/search-image?query=A%20strikingly%20vivid%20cobalt%20blue%20pond%20surrounded%20by%20a%20lush%20green%20forest%2C%20the%20water%20so%20clear%20the%20bottom%20is%20visible%2C%20a%20wooden%20walkway%2C%20Twelve%20Lakes%20Aomori%20Japan%2C%20surreal%20and%20beautiful%2C%20vivid%20editorial%20travel%20photography%20with%20soft%20natural%20light&width=800&height=600&seq=imagetest3-63&orientation=landscape',
   },
   {
@@ -681,6 +847,8 @@ export const destinations = [
     category: 'Hot Springs & Nature',
     prefecture: 'Aomori',
     description: 'A remote hot spring with an open-air bath perched directly on the coastline, facing the Sea of Japan.',
+    lat: 40.6147631,
+    lng: 139.8626924,
     image: 'https://readdy.ai/api/search-image?query=An%20open%20air%20seaside%20hot%20spring%20bath%20with%20steam%20rising%2C%20overlooking%20the%20blue%20Sea%20of%20Japan%20and%20a%20rocky%20coastline%2C%20a%20golden%20sunset%20over%20the%20water%2C%20Furofushi%20Onsen%20Aomori%20Japan%2C%20relaxing%20and%20scenic%2C%20warm%20editorial%20travel%20photography%20with%20golden%20sunset%20light&width=800&height=600&seq=imagetest3-64&orientation=landscape',
   },
   {
@@ -689,6 +857,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Aomori',
     description: "A volcanic, otherworldly landscape long associated with spiritual beliefs about the afterlife, centered on a temple at the crater's edge.",
+    lat: 41.308333,
+    lng: 141.088056,
     image: 'https://readdy.ai/api/search-image?query=A%20sacred%20volcanic%20mountain%20with%20barren%20sulfurous%20ground%20and%20steaming%20vents%2C%20a%20gray%20temple%20building%20and%20stone%20statues%2C%20a%20pale%20blue%20crater%20lake%2C%20misty%20and%20otherworldly%2C%20Mt.%20Osore%20Aomori%20Japan%2C%20eerie%20and%20spiritual%2C%20atmospheric%20editorial%20travel%20photography%20with%20muted%20light&width=800&height=600&seq=imagetest3-65&orientation=landscape',
   },
   {
@@ -697,6 +867,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Iwate',
     description: "A UNESCO World Heritage town reflecting Japan's Heian-era Buddhist Pure Land culture.",
+    lat: 38.9866085,
+    lng: 141.1137868,
     image: 'https://readdy.ai/api/search-image?query=A%20serene%20historic%20Buddhist%20temple%20town%20with%20wooden%20temple%20halls%20and%20a%20pond%20garden%2C%20green%20trees%20and%20a%20stone%20path%2C%20a%20misty%20atmosphere%2C%20Hiraizumi%20Iwate%20Japan%2C%20peaceful%20and%20historic%2C%20soft%20editorial%20travel%20photography%20with%20gentle%20morning%20light&width=800&height=600&seq=imagetest3-66&orientation=landscape',
   },
   {
@@ -705,6 +877,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Iwate',
     description: "Home to the Golden Hall (Konjikido), a dazzling gilded structure at the heart of Hiraizumi's UNESCO World Heritage site.",
+    lat: 39.0015749,
+    lng: 141.1028121,
     image: 'https://readdy.ai/api/search-image?query=A%20small%20ornate%20golden%20hall%20covered%20in%20gold%20leaf%20with%20intricate%20decorations%2C%20housed%20inside%20a%20protective%20wooden%20building%2C%20surrounded%20by%20ancient%20cedar%20trees%2C%20Chuson-ji%20Hiraizumi%20Iwate%20Japan%2C%20opulent%20and%20historic%2C%20warm%20editorial%20travel%20photography%20with%20soft%20light&width=800&height=600&seq=imagetest3-67&orientation=landscape',
   },
   {
@@ -713,6 +887,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Iwate',
     description: "A seasonal natural phenomenon where a snow-rimmed alpine pond forms a blue 'eye' shape each spring.",
+    lat: 39.954187,
+    lng: 140.8542212,
     image: 'https://readdy.ai/api/search-image?query=A%20snow%20covered%20volcanic%20lake%20where%20melting%20snow%20has%20formed%20a%20striking%20turquoise%20dragon%20eye%20pattern%20in%20the%20center%2C%20a%20ring%20of%20white%20snow%20around%20a%20blue%20circle%2C%20Hachimantai%20Iwate%20Japan%2C%20surreal%20and%20beautiful%2C%20vivid%20editorial%20travel%20photography%20with%20clear%20mountain%20light&width=800&height=600&seq=imagetest3-68&orientation=landscape',
   },
   {
@@ -721,6 +897,8 @@ export const destinations = [
     category: 'Skiing & Winter Sports',
     prefecture: 'Iwate',
     description: 'A ski resort and highland area known for long groomed runs and beautiful birch forest scenery.',
+    lat: 40.01130879999999,
+    lng: 140.9932274,
     image: 'https://readdy.ai/api/search-image?query=A%20wide%20groomed%20ski%20slope%20with%20skiers%20and%20snowboarders%20gliding%20down%2C%20surrounded%20by%20snow%20covered%20beech%20trees%2C%20a%20modern%20resort%20hotel%20at%20the%20base%2C%20Appi%20Kogen%20Iwate%20Japan%2C%20expansive%20and%20fun%2C%20bright%20editorial%20travel%20photography%20with%20crisp%20winter%20light&width=800&height=600&seq=imagetest3-69&orientation=landscape',
   },
   {
@@ -729,6 +907,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Iwate',
     description: "A dramatic stretch of white rock formations and pine trees along Sanriku's rugged coastline.",
+    lat: 39.6522818,
+    lng: 141.9787621,
     image: 'https://readdy.ai/api/search-image?query=A%20beautiful%20beach%20with%20white%20jagged%20rock%20formations%20rising%20from%20crystal%20clear%20turquoise%20water%2C%20green%20pine%20trees%20on%20the%20rocks%2C%20a%20sandy%20shore%2C%20Jodogahama%20Beach%20Iwate%20Japan%2C%20pristine%20and%20scenic%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20coastal%20light&width=800&height=600&seq=imagetest3-70&orientation=landscape',
   },
   {
@@ -737,6 +917,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Iwate',
     description: "One of Japan's three great limestone caves, known for its strikingly clear underground lake.",
+    lat: 39.8601009,
+    lng: 141.7969943,
     image: 'https://readdy.ai/api/search-image?query=The%20interior%20of%20a%20limestone%20cave%20with%20dramatic%20stalactites%20and%20stalagmites%2C%20a%20deep%20underground%20lake%20of%20vivid%20blue%20water%2C%20warm%20artificial%20lighting%20on%20the%20rock%20formations%2C%20Ryusendo%20Cave%20Iwate%20Japan%2C%20mysterious%20and%20majestic%2C%20atmospheric%20editorial%20travel%20photography%20with%20dramatic%20cave%20light&width=800&height=600&seq=imagetest3-71&orientation=landscape',
   },
   {
@@ -745,6 +927,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Miyagi',
     description: "One of Japan's three most celebrated scenic views, a bay dotted with hundreds of pine-covered islands.",
+    lat: 38.3801905,
+    lng: 141.067293,
     image: 'https://readdy.ai/api/search-image?query=A%20scenic%20bay%20dotted%20with%20dozens%20of%20small%20pine%20covered%20islands%20of%20various%20shapes%2C%20a%20red%20bridge%20and%20temple%20buildings%20on%20the%20shore%2C%20calm%20blue%20water%2C%20Matsushima%20Bay%20Miyagi%20Japan%2C%20iconic%20and%20serene%2C%20vivid%20editorial%20travel%20photography%20with%20clear%20daylight&width=800&height=600&seq=imagetest3-72&orientation=landscape',
   },
   {
@@ -753,6 +937,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Miyagi',
     description: "A sightseeing boat cruise weaving between Matsushima's pine-covered islands.",
+    lat: 38.3801905,
+    lng: 141.067293,
     image: 'https://readdy.ai/api/search-image?query=A%20sightseeing%20boat%20cruising%20through%20the%20pine%20covered%20islands%20of%20Matsushima%20Bay%2C%20seagulls%20flying%20alongside%20the%20boat%2C%20the%20many%20small%20green%20islands%20scattered%20across%20the%20blue%20water%2C%20Miyagi%20Japan%2C%20relaxing%20and%20scenic%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20coastal%20light&width=800&height=600&seq=imagetest3-73&orientation=landscape',
   },
   {
@@ -761,6 +947,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Miyagi',
     description: 'The hilltop remains of the castle built by famed feudal lord Date Masamune, with sweeping views over the city.',
+    lat: 38.2530776,
+    lng: 140.8567093,
     image: 'https://readdy.ai/api/search-image?query=The%20ruins%20of%20a%20Japanese%20castle%20on%20a%20hilltop%20with%20stone%20walls%20and%20a%20bronze%20equestrian%20statue%20of%20Date%20Masamune%2C%20a%20sweeping%20view%20of%20Sendai%20city%20below%2C%20Sendai%20Castle%20Miyagi%20Japan%2C%20historic%20and%20grand%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest3-74&orientation=landscape',
   },
   {
@@ -769,6 +957,8 @@ export const destinations = [
     category: 'Festivals & Events',
     prefecture: 'Miyagi',
     description: "One of Japan's largest star festivals, filling the city with elaborate paper streamer decorations each August.",
+    lat: 38.2606103,
+    lng: 140.8727584,
     image: 'https://readdy.ai/api/search-image?query=Streets%20decorated%20with%20hundreds%20of%20huge%20colorful%20paper%20streamer%20ornaments%20hanging%20from%20bamboo%20poles%2C%20the%20long%20flowing%20streamers%20in%20bright%20colors%20above%20a%20crowded%20shopping%20street%2C%20Sendai%20Tanabata%20Festival%20Miyagi%20Japan%2C%20vibrant%20and%20festive%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest3-75&orientation=landscape',
   },
   {
@@ -777,6 +967,8 @@ export const destinations = [
     category: 'Hot Springs & Nature',
     prefecture: 'Miyagi',
     description: 'A hot spring town within easy reach of Sendai, known for its waterfalls and ravine scenery.',
+    lat: 38.225128,
+    lng: 140.7270832,
     image: 'https://readdy.ai/api/search-image?query=A%20relaxing%20hot%20spring%20town%20in%20a%20forested%20gorge%20with%20a%20clear%20river%2C%20traditional%20ryokan%20inns%20and%20steam%20rising%20from%20outdoor%20baths%2C%20colorful%20autumn%20leaves%2C%20Akiu%20Onsen%20Miyagi%20Japan%2C%20peaceful%20and%20scenic%2C%20warm%20editorial%20travel%20photography%20with%20rich%20autumn%20light&width=800&height=600&seq=imagetest3-76&orientation=landscape',
   },
   {
@@ -785,6 +977,8 @@ export const destinations = [
     category: 'Hot Springs & Nature',
     prefecture: 'Miyagi',
     description: 'A cluster of hot spring towns known for their traditional kokeshi wooden dolls and gentle mountain scenery.',
+    lat: 38.743148,
+    lng: 140.7164222,
     image: 'https://readdy.ai/api/search-image?query=A%20hot%20spring%20village%20street%20with%20steam%20rising%20from%20a%20public%20foot%20bath%2C%20traditional%20ryokan%20buildings%20and%20a%20kokeshi%20doll%20statue%2C%20wooden%20shops%2C%20Naruko%20Onsen%20Miyagi%20Japan%2C%20nostalgic%20and%20cozy%2C%20atmospheric%20editorial%20travel%20photography%20with%20warm%20evening%20light&width=800&height=600&seq=imagetest3-77&orientation=landscape',
   },
   {
@@ -793,6 +987,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Miyagi',
     description: 'A dramatic ravine especially famous for its vivid autumn foliage viewed from a walking trail or observation deck.',
+    lat: 38.729115,
+    lng: 140.690962,
     image: 'https://readdy.ai/api/search-image?query=A%20deep%20gorge%20with%20a%20river%20running%20through%20it%2C%20a%20red%20arched%20bridge%20crossing%20the%20ravine%2C%20brilliant%20red%20and%20orange%20autumn%20foliage%20covering%20the%20steep%20cliffs%2C%20Naruko%20Gorge%20Miyagi%20Japan%2C%20stunning%20and%20colorful%2C%20vivid%20editorial%20travel%20photography%20with%20rich%20autumn%20light&width=800&height=600&seq=imagetest3-78&orientation=landscape',
   },
   {
@@ -801,6 +997,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Miyagi',
     description: "A hillside park where visitors can walk among over a hundred free-roaming foxes, one of Tohoku's most internationally famous attractions.",
+    lat: 38.0408293,
+    lng: 140.5303604,
     image: 'https://readdy.ai/api/search-image?query=Several%20fluffy%20red%20foxes%20roaming%20freely%20in%20a%20snowy%20forest%20sanctuary%2C%20the%20curious%20foxes%20with%20thick%20winter%20fur%20approaching%2C%20wooden%20shelters%2C%20Zao%20Fox%20Village%20Miyagi%20Japan%2C%20adorable%20and%20wild%2C%20vivid%20editorial%20travel%20photography%20with%20soft%20winter%20light&width=800&height=600&seq=imagetest3-79&orientation=landscape',
   },
   {
@@ -809,6 +1007,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Miyagi',
     description: 'A vividly colored volcanic crater lake atop Mt. Zao, its hue shifting with the light and season.',
+    lat: 38.1361549,
+    lng: 140.4495672,
     image: 'https://readdy.ai/api/search-image?query=A%20dramatic%20volcanic%20crater%20lake%20with%20vivid%20emerald%20green%20water%20surrounded%20by%20a%20barren%20rocky%20rim%2C%20wisps%20of%20steam%20and%20clouds%2C%20Mount%20Zao%20Miyagi%20Japan%2C%20striking%20and%20otherworldly%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20alpine%20light&width=800&height=600&seq=imagetest3-80&orientation=landscape',
   },
   {
@@ -817,6 +1017,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Miyagi',
     description: 'A small island famous for its large population of friendly cats that roam freely among the fishing village.',
+    lat: 38.2941925,
+    lng: 141.4164401,
     image: 'https://readdy.ai/api/search-image?query=A%20peaceful%20Japanese%20fishing%20island%20where%20several%20friendly%20cats%20lounge%20on%20a%20stone%20seawall%20near%20a%20small%20harbor%2C%20colorful%20fishing%20boats%20bobbing%20in%20the%20calm%20water%2C%20wooden%20houses%20and%20green%20hills%20behind%2C%20Tashirojima%20Miyagi%20Japan%2C%20charming%20and%20serene%2C%20warm%20editorial%20travel%20photography%20with%20soft%20coastal%20light&width=800&height=600&seq=imagetest4-01&orientation=landscape',
   },
   {
@@ -825,6 +1027,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Akita',
     description: 'A former samurai town with a well-preserved historic district of samurai residences.',
+    lat: 39.5899866,
+    lng: 140.5714154,
     image: 'https://readdy.ai/api/search-image?query=A%20historic%20samurai%20residential%20street%20lined%20with%20traditional%20black%20wooden%20fences%20and%20elegant%20thatched%20gate%20houses%2C%20tall%20green%20trees%20and%20a%20quiet%20gravel%20road%2C%20Kakunodate%20Akita%20Japan%2C%20timeless%20and%20refined%2C%20soft%20editorial%20travel%20photography%20with%20warm%20daylight&width=800&height=600&seq=imagetest4-02&orientation=landscape',
   },
   {
@@ -833,6 +1037,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Akita',
     description: 'Weeping cherry trees line the historic samurai district each spring, drawing visitors from across Japan.',
+    lat: 39.5992884,
+    lng: 140.5614209,
     image: 'https://readdy.ai/api/search-image?query=A%20row%20of%20ancient%20weeping%20cherry%20trees%20in%20full%20bloom%20draping%20pink%20blossoms%20over%20a%20historic%20samurai%20street%20with%20black%20wooden%20fences%2C%20soft%20petals%20falling%20like%20snow%2C%20Kakunodate%20Akita%20Japan%2C%20romantic%20and%20elegant%2C%20vivid%20editorial%20travel%20photography%20with%20soft%20spring%20light&width=800&height=600&seq=imagetest4-03&orientation=landscape',
   },
   {
@@ -841,6 +1047,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Akita',
     description: "Japan's deepest lake, prized for its strikingly deep blue water surrounded by mountain scenery.",
+    lat: 39.7168527,
+    lng: 140.6544861,
     image: 'https://readdy.ai/api/search-image?query=A%20deep%20calm%20blue%20nearly%20circular%20lake%20surrounded%20by%20forested%20mountains%2C%20a%20golden%20statue%20of%20a%20woman%20standing%20on%20a%20small%20shrine%20by%20the%20shore%2C%20a%20clear%20blue%20sky%2C%20Lake%20Tazawa%20Akita%20Japan%2C%20serene%20and%20majestic%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest4-04&orientation=landscape',
   },
   {
@@ -849,6 +1057,8 @@ export const destinations = [
     category: 'Hot Springs & Nature',
     prefecture: 'Akita',
     description: 'A cluster of secluded hot spring inns deep in the mountains, popular for open-air baths surrounded by snow in winter.',
+    lat: 39.7192558,
+    lng: 140.1042666,
     image: 'https://readdy.ai/api/search-image?query=A%20secluded%20hot%20spring%20village%20with%20rustic%20thatched%20roof%20inns%20nestled%20in%20a%20snowy%20beech%20forest%2C%20steam%20rising%20gently%20from%20outdoor%20baths%2C%20wooden%20buildings%20and%20stone%20paths%2C%20Nyuto%20Onsen%20Akita%20Japan%2C%20rustic%20and%20tranquil%2C%20soft%20editorial%20travel%20photography%20with%20misty%20winter%20light&width=800&height=600&seq=imagetest4-05&orientation=landscape',
   },
   {
@@ -857,6 +1067,8 @@ export const destinations = [
     category: 'Hot Springs & Nature',
     prefecture: 'Akita',
     description: "One of Japan's most iconic hot spring inns, known for its milky white waters and traditional thatched-roof buildings.",
+    lat: 39.8051888,
+    lng: 140.7798893,
     image: 'https://readdy.ai/api/search-image?query=A%20historic%20thatched%20roof%20hot%20spring%20inn%20with%20milky%20white%20open%20air%20baths%2C%20steam%20rising%20into%20the%20cold%20air%2C%20surrounded%20by%20deep%20snow%20and%20beech%20trees%2C%20Tsurunoyu%20Onsen%20Akita%20Japan%2C%20rustic%20and%20soothing%2C%20atmospheric%20editorial%20travel%20photography%20with%20soft%20winter%20light&width=800&height=600&seq=imagetest4-06&orientation=landscape',
   },
   {
@@ -865,6 +1077,8 @@ export const destinations = [
     category: 'Festivals & Events',
     prefecture: 'Akita',
     description: 'A summer festival where performers balance long poles hung with rows of illuminated paper lanterns.',
+    lat: 39.7177947,
+    lng: 140.1165721,
     image: 'https://readdy.ai/api/search-image?query=Performers%20balancing%20tall%20bamboo%20poles%20hung%20with%20dozens%20of%20glowing%20paper%20lanterns%2C%20the%20illuminated%20poles%20rising%20into%20the%20night%20sky%20over%20a%20crowd%2C%20Akita%20Kanto%20Festival%20Japan%2C%20dazzling%20and%20skillful%2C%20vivid%20editorial%20travel%20photography%20with%20dramatic%20night%20light&width=800&height=600&seq=imagetest4-07&orientation=landscape',
   },
   {
@@ -873,6 +1087,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Akita',
     description: 'A museum dedicated to the namahage, folklore demon figures who visit homes each New Year to ward off laziness.',
+    lat: 39.9294455,
+    lng: 139.7673275,
     image: 'https://readdy.ai/api/search-image?query=A%20traditional%20museum%20interior%20displaying%20fierce%20Namahage%20ogre%20masks%20and%20straw%20costumes%2C%20red%20demon%20masks%20with%20wild%20expressions%2C%20exhibits%20of%20Akita%20folklore%2C%20Oga%20Akita%20Japan%2C%20striking%20and%20cultural%2C%20vivid%20editorial%20travel%20photography%20with%20even%20indoor%20light&width=800&height=600&seq=imagetest4-08&orientation=landscape',
   },
   {
@@ -881,6 +1097,8 @@ export const destinations = [
     category: 'Festivals & Events',
     prefecture: 'Akita',
     description: "One of Japan's largest fireworks competitions, drawing displays from top pyrotechnic teams each summer.",
+    lat: 39.4569643,
+    lng: 140.4664557,
     image: 'https://readdy.ai/api/search-image?query=Massive%20colorful%20fireworks%20bursting%20in%20spectacular%20patterns%20across%20a%20dark%20night%20sky%20over%20a%20river%2C%20brilliant%20reds%20golds%20and%20blues%20reflecting%20on%20the%20water%2C%20crowds%20silhouetted%20below%2C%20Omagari%20Fireworks%20Festival%20Akita%20Japan%2C%20breathtaking%20and%20vibrant%2C%20vivid%20editorial%20travel%20photography%20with%20dramatic%20night%20light&width=800&height=600&seq=imagetest4-09&orientation=landscape',
   },
   {
@@ -889,6 +1107,8 @@ export const destinations = [
     category: 'Festivals & Events',
     prefecture: 'Akita',
     description: 'A winter festival featuring small snow igloos lit from within, a beloved local tradition of the Tohoku snow country.',
+    lat: 39.3134564,
+    lng: 140.5662473,
     image: 'https://readdy.ai/api/search-image?query=Rows%20of%20dome%20shaped%20snow%20huts%20called%20kamakura%20glowing%20with%20warm%20candlelight%20from%20within%2C%20small%20altars%20inside%20the%20snow%20caves%2C%20a%20snowy%20street%20at%20night%2C%20Yokote%20Kamakura%20Festival%20Akita%20Japan%2C%20magical%20and%20cozy%2C%20atmospheric%20editorial%20travel%20photography%20with%20warm%20winter%20night%20light&width=800&height=600&seq=imagetest4-10&orientation=landscape',
   },
   {
@@ -897,6 +1117,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Akita',
     description: 'The Akita-side entrance to the UNESCO World Heritage beech forest, with its own hiking trails and visitor center.',
+    lat: 39.7192558,
+    lng: 140.1042666,
     image: 'https://readdy.ai/api/search-image?query=A%20pristine%20old%20growth%20beech%20forest%20with%20tall%20green%20trees%20and%20a%20clear%20stream%20cascading%20over%20mossy%20rocks%2C%20soft%20mist%20drifting%20between%20the%20trunks%2C%20Shirakami-Sanchi%20Akita%20Japan%2C%20untouched%20and%20tranquil%2C%20serene%20editorial%20travel%20photography%20with%20gentle%20forest%20light&width=800&height=600&seq=imagetest4-11&orientation=landscape',
   },
   {
@@ -905,6 +1127,8 @@ export const destinations = [
     category: 'Hot Springs & Nature',
     prefecture: 'Yamagata',
     description: 'A nostalgic hot spring town with wooden inns lining a narrow river, especially atmospheric when lit by gas lamps at night.',
+    lat: 38.5706177,
+    lng: 140.5305457,
     image: 'https://readdy.ai/api/search-image?query=A%20nostalgic%20hot%20spring%20town%20with%20traditional%20wooden%20ryokan%20inns%20lining%20both%20sides%20of%20a%20river%2C%20warm%20gas%20lamps%20glowing%20and%20reflecting%20on%20the%20water%2C%20snow%20on%20the%20rooftops%2C%20Ginzan%20Onsen%20Yamagata%20Japan%2C%20romantic%20and%20atmospheric%2C%20vivid%20editorial%20travel%20photography%20with%20warm%20evening%20light&width=800&height=600&seq=imagetest4-12&orientation=landscape',
   },
   {
@@ -913,6 +1137,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Yamagata',
     description: 'A mountainside temple complex reached by a long stone stairway through cedar forest, with sweeping valley views from the summit.',
+    lat: 38.3105607,
+    lng: 140.4762966,
     image: 'https://readdy.ai/api/search-image?query=A%20long%20stone%20staircase%20with%20wooden%20railings%20climbing%20steeply%20through%20a%20dense%20cedar%20forest%2C%20small%20temple%20halls%20and%20stone%20lanterns%20along%20the%20way%2C%20a%20view%20of%20the%20valley%20below%2C%20Yamadera%20Yamagata%20Japan%2C%20serene%20and%20spiritual%2C%20soft%20editorial%20travel%20photography%20with%20dappled%20forest%20light&width=800&height=600&seq=imagetest4-13&orientation=landscape',
   },
   {
@@ -921,6 +1147,8 @@ export const destinations = [
     category: 'Hot Springs & Nature',
     prefecture: 'Yamagata',
     description: 'A historic hot spring town at the base of Mt. Zao, popular for both its baths and ski access.',
+    lat: 38.1672471,
+    lng: 140.3942144,
     image: 'https://readdy.ai/api/search-image?query=A%20historic%20hot%20spring%20town%20with%20steam%20rising%20from%20a%20public%20bath%20and%20traditional%20ryokan%20buildings%2C%20colorful%20autumn%20trees%20on%20the%20surrounding%20slopes%2C%20Zao%20Onsen%20Yamagata%20Japan%2C%20nostalgic%20and%20relaxing%2C%20atmospheric%20editorial%20travel%20photography%20with%20warm%20light&width=800&height=600&seq=imagetest4-14&orientation=landscape',
   },
   {
@@ -929,6 +1157,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Yamagata',
     description: 'Famous in winter for its "snow monsters" — trees encased in thick ice and snow — best viewed by ropeway above the ski resort.',
+    lat: 38.1556284,
+    lng: 140.4306931,
     image: 'https://readdy.ai/api/search-image?query=Bizarre%20towering%20fir%20trees%20completely%20coated%20in%20thick%20white%20rime%20ice%20and%20snow%2C%20shaped%20like%20giant%20snow%20monsters%2C%20glowing%20softly%20under%20blue%20twilight%2C%20Zao%20Snow%20Monsters%20Yamagata%20Japan%2C%20surreal%20and%20otherworldly%2C%20vivid%20editorial%20travel%20photography%20with%20cold%20alpine%20light&width=800&height=600&seq=imagetest4-15&orientation=landscape',
   },
   {
@@ -937,6 +1167,8 @@ export const destinations = [
     category: 'Skiing & Winter Sports',
     prefecture: 'Yamagata',
     description: 'A major ski resort known for its snow monster-lined slopes, reachable by ropeway above the surrounding forest.',
+    lat: 38.1651589,
+    lng: 140.3952784,
     image: 'https://readdy.ai/api/search-image?query=Skiers%20gliding%20down%20a%20wide%20snow%20slope%20past%20snow%20covered%20fir%20trees%2C%20a%20chairlift%20and%20a%20distant%20view%20of%20frost%20coated%20trees%2C%20fresh%20powder%20snow%20sparkling%2C%20Zao%20Onsen%20Ski%20Resort%20Yamagata%20Japan%2C%20exhilarating%20and%20scenic%2C%20bright%20editorial%20travel%20photography%20with%20crisp%20winter%20light&width=800&height=600&seq=imagetest4-16&orientation=landscape',
   },
   {
@@ -945,6 +1177,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Yamagata',
     description: 'The most accessible of the three sacred Dewa Sanzan mountains, reached by a stone stairway lined with ancient cedar trees.',
+    lat: 38.700278,
+    lng: 140.000278,
     image: 'https://readdy.ai/api/search-image?query=A%20long%20stone%20stairway%20of%20over%20two%20thousand%20steps%20climbing%20through%20towering%20cedar%20trees%2C%20soft%20light%20filtering%20through%20the%20dense%20forest%2C%20a%20traditional%20temple%20gate%20in%20the%20distance%2C%20Mt.%20Haguro%20Yamagata%20Japan%2C%20sacred%20and%20serene%2C%20atmospheric%20editorial%20travel%20photography%20with%20gentle%20forest%20light&width=800&height=600&seq=imagetest4-17&orientation=landscape',
   },
   {
@@ -953,6 +1187,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Yamagata',
     description: 'A weathered wooden pagoda standing among towering cedars along the pilgrimage path up Mt. Haguro.',
+    lat: 38.7047357,
+    lng: 139.967661,
     image: 'https://readdy.ai/api/search-image?query=A%20five%20story%20wooden%20pagoda%20with%20a%20thatched%20roof%20standing%20among%20towering%20ancient%20cedar%20trees%2C%20the%20dark%20timber%20weathered%20and%20elegant%2C%20soft%20light%20filtering%20through%20the%20forest%2C%20Mt.%20Haguro%20Yamagata%20Japan%2C%20historic%20and%20majestic%2C%20soft%20editorial%20travel%20photography%20with%20dappled%20light&width=800&height=600&seq=imagetest4-18&orientation=landscape',
   },
   {
@@ -961,6 +1197,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Yamagata',
     description: 'Three sacred mountains at the heart of Shugendo mountain worship, offering a rare glimpse into Japan\'s ascetic pilgrimage traditions.',
+    lat: 38.7023491,
+    lng: 139.981353,
     image: 'https://readdy.ai/api/search-image?query=Three%20sacred%20mountains%20rising%20above%20a%20sea%20of%20mist%2C%20a%20winding%20stone%20path%20leading%20toward%20a%20shrine%20gate%2C%20dense%20green%20forest%20on%20the%20slopes%2C%20Dewa%20Sanzan%20Yamagata%20Japan%2C%20mystical%20and%20reverent%2C%20atmospheric%20editorial%20travel%20photography%20with%20soft%20morning%20light&width=800&height=600&seq=imagetest4-19&orientation=landscape',
   },
   {
@@ -969,6 +1207,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Fukushima',
     description: 'A preserved Edo-period post town with thatched-roof buildings lining a single street, evoking old rural Japan.',
+    lat: 37.3341964,
+    lng: 139.8606982,
     image: 'https://readdy.ai/api/search-image?query=A%20preserved%20Edo%20period%20post%20town%20with%20rows%20of%20thatched%20roof%20houses%20lining%20a%20dirt%20road%2C%20soft%20snow%20covering%20the%20roofs%20and%20ground%2C%20warm%20lights%20glowing%20from%20the%20windows%2C%20Ouchi-juku%20Fukushima%20Japan%2C%20nostalgic%20and%20picturesque%2C%20atmospheric%20editorial%20travel%20photography%20with%20warm%20evening%20light&width=800&height=600&seq=imagetest4-20&orientation=landscape',
   },
   {
@@ -977,6 +1217,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Fukushima',
     description: 'A city with a well-preserved samurai history, including the story of the Byakkotai.',
+    lat: 37.4899827,
+    lng: 139.9277486,
     image: 'https://readdy.ai/api/search-image?query=A%20historic%20Japanese%20castle%20town%20with%20traditional%20buildings%20and%20a%20red%20roofed%20castle%20keep%20visible%20in%20the%20distance%2C%20a%20wide%20street%20with%20shops%20and%20a%20clear%20sky%2C%20Aizu-Wakamatsu%20Fukushima%20Japan%2C%20historic%20and%20charming%2C%20bright%20editorial%20travel%20photography%20with%20clear%20daylight&width=800&height=600&seq=imagetest4-21&orientation=landscape',
   },
   {
@@ -985,6 +1227,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Fukushima',
     description: "A rebuilt castle tower at the heart of Aizu-Wakamatsu, surrounded by cherry trees and tied to the story of the Byakkotai.",
+    lat: 37.4878198,
+    lng: 139.9296657,
     image: 'https://readdy.ai/api/search-image?query=A%20white%20Japanese%20castle%20with%20distinctive%20red%20tiled%20roofs%20and%20a%20stone%20base%2C%20surrounded%20by%20a%20moat%20and%20hundreds%20of%20pink%20cherry%20blossom%20trees%20in%20full%20bloom%2C%20Tsuruga%20Castle%20Aizu-Wakamatsu%20Fukushima%20Japan%2C%20elegant%20and%20iconic%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20spring%20light&width=800&height=600&seq=imagetest4-22&orientation=landscape',
   },
   {
@@ -993,6 +1237,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Fukushima',
     description: 'A uniquely constructed temple hall with a double-helix wooden ramp allowing visitors to ascend and descend without retracing their steps.',
+    lat: 37.5044973,
+    lng: 139.9539696,
     image: 'https://readdy.ai/api/search-image?query=A%20unique%20hexagonal%20three%20story%20wooden%20pagoda%20with%20an%20unusual%20double%20helix%20interior%2C%20dark%20weathered%20timber%20and%20elegant%20roof%20curves%2C%20surrounded%20by%20green%20trees%2C%20Aizu%20Sazaedo%20Fukushima%20Japan%2C%20curious%20and%20historic%2C%20soft%20editorial%20travel%20photography%20with%20clear%20daylight&width=800&height=600&seq=imagetest4-23&orientation=landscape',
   },
   {
@@ -1001,6 +1247,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Fukushima',
     description: 'A rural rail line famous for its scenic river crossings, especially the much-photographed view from the First Tadami River Bridge.',
+    lat: 37.4621476,
+    lng: 139.5985111,
     image: 'https://readdy.ai/api/search-image?query=A%20two%20car%20local%20train%20crossing%20a%20steel%20bridge%20over%20a%20wide%20blue%20river%2C%20surrounded%20by%20forested%20mountains%20with%20autumn%20colors%2C%20the%20Tadami%20Line%20Fukushima%20Japan%2C%20scenic%20and%20nostalgic%2C%20vivid%20editorial%20travel%20photography%20with%20rich%20autumn%20light&width=800&height=600&seq=imagetest4-24&orientation=landscape',
   },
   {
@@ -1009,6 +1257,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Fukushima',
     description: 'A famous vantage point overlooking a train crossing the Tadami River, particularly stunning in autumn and winter.',
+    lat: 37.4783205,
+    lng: 139.6720675,
     image: 'https://readdy.ai/api/search-image?query=A%20dramatic%20elevated%20viewpoint%20overlooking%20a%20steel%20railway%20bridge%20crossing%20a%20turquoise%20river%20deep%20in%20a%20forested%20valley%2C%20a%20small%20train%20crossing%20the%20bridge%2C%20mist%20over%20the%20mountains%2C%20First%20Tadami%20River%20Bridge%20Fukushima%20Japan%2C%20breathtaking%20and%20iconic%2C%20vivid%20editorial%20travel%20photography%20with%20soft%20light&width=800&height=600&seq=imagetest4-25&orientation=landscape',
   },
   {
@@ -1017,6 +1267,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Fukushima',
     description: 'A cluster of volcanic lakes and ponds, each tinted a different shade of blue or green, linked by an easy walking trail.',
+    lat: 37.7410569,
+    lng: 140.2430574,
     image: 'https://readdy.ai/api/search-image?query=A%20cluster%20of%20small%20volcanic%20lakes%20each%20glowing%20a%20different%20vivid%20shade%20of%20blue%2C%20green%20and%20turquoise%2C%20surrounded%20by%20forest%20with%20autumn%20foliage%2C%20a%20wooden%20boardwalk%2C%20Goshikinuma%20Urabandai%20Fukushima%20Japan%2C%20surreal%20and%20colorful%2C%20vivid%20editorial%20travel%20photography%20with%20soft%20natural%20light&width=800&height=600&seq=imagetest4-26&orientation=landscape',
   },
   {
@@ -1025,6 +1277,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Fukushima',
     description: 'A highland area of lakes and forest popular for hiking, autumn foliage, and outdoor recreation.',
+    lat: 37.6510648,
+    lng: 140.0623936,
     image: 'https://readdy.ai/api/search-image?query=A%20highland%20plateau%20of%20volcanic%20lakes%20and%20dense%20forests%2C%20the%20rugged%20peak%20of%20Mount%20Bandai%20in%20the%20background%2C%20colorful%20autumn%20foliage%20reflecting%20on%20a%20calm%20lake%2C%20Urabandai%20Fukushima%20Japan%2C%20scenic%20and%20expansive%2C%20vivid%20editorial%20travel%20photography%20with%20rich%20autumn%20light&width=800&height=600&seq=imagetest4-27&orientation=landscape',
   },
   {
@@ -1033,6 +1287,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Fukushima',
     description: 'A scenic mountain driving route offering sweeping views and vivid autumn colors.',
+    lat: 37.7135304,
+    lng: 140.2537042,
     image: 'https://readdy.ai/api/search-image?query=A%20winding%20mountain%20road%20climbing%20along%20a%20ridge%20with%20panoramic%20views%20of%20volcanic%20peaks%20and%20a%20striking%20crater%2C%20clouds%20below%20and%20a%20dramatic%20sky%2C%20Bandai-Azuma%20Skyline%20Fukushima%20Japan%2C%20dramatic%20and%20scenic%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20alpine%20light&width=800&height=600&seq=imagetest4-28&orientation=landscape',
   },
   {
@@ -1041,6 +1297,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Fukushima',
     description: "A thousand-year-old weeping cherry tree, ranked among Japan's three great cherry trees.",
+    lat: 37.407684,
+    lng: 140.5000832,
     image: 'https://readdy.ai/api/search-image?query=A%20legendary%20ancient%20weeping%20cherry%20tree%20over%20a%20thousand%20years%20old%20in%20full%20bloom%2C%20its%20cascading%20pink%20branches%20spreading%20wide%20over%20a%20wooden%20fence%20and%20field%2C%20Miharu%20Takizakura%20Fukushima%20Japan%2C%20awe-inspiring%20and%20graceful%2C%20vivid%20editorial%20travel%20photography%20with%20soft%20spring%20light&width=800&height=600&seq=imagetest4-29&orientation=landscape',
   },
   {
@@ -1049,6 +1307,8 @@ export const destinations = [
     category: 'Festivals & Events',
     prefecture: 'Fukushima',
     description: 'A centuries-old festival featuring armored horseback riders reenacting samurai-era military traditions.',
+    lat: 37.7970426,
+    lng: 140.9190868,
     image: 'https://readdy.ai/api/search-image?query=Samurai%20warriors%20in%20full%20armor%20riding%20galloping%20horses%20across%20a%20wide%20open%20field%2C%20colorful%20banners%20and%20flags%2C%20a%20dramatic%20sky%2C%20Soma%20Nomaoi%20Festival%20Fukushima%20Japan%2C%20thrilling%20and%20historic%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest4-30&orientation=landscape',
   },
   {
@@ -1057,6 +1317,8 @@ export const destinations = [
     category: 'City & Food Culture',
     prefecture: 'Niigata',
     description: 'A sake tasting hall in Niigata Station where visitors can sample dozens of local sake varieties.',
+    lat: 37.91132890000001,
+    lng: 139.060751,
     image: 'https://readdy.ai/api/search-image?query=A%20modern%20sake%20tasting%20wall%20inside%20a%20station%20building%20with%20rows%20of%20small%20wooden%20cups%20and%20sake%20bottles%20behind%20glass%2C%20a%20visitor%20inserting%20a%20coin%20and%20sampling%20rice%20wine%2C%20warm%20wooden%20interior%2C%20Ponshukan%20Niigata%20Japan%2C%20inviting%20and%20cheerful%2C%20bright%20editorial%20travel%20photography%20with%20soft%20warm%20light&width=800&height=600&seq=imagetest2-14&orientation=landscape',
   },
   {
@@ -1065,6 +1327,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Niigata',
     description: 'A former gold mine on Sado Island preserving centuries of mining history and tunnels.',
+    lat: 38.0416936,
+    lng: 138.2560014,
     image: 'https://readdy.ai/api/search-image?query=The%20dimly%20lit%20interior%20of%20a%20historic%20gold%20mine%20tunnel%20with%20rough%20stone%20walls%20and%20wooden%20support%20beams%2C%20a%20display%20of%20figures%20mining%20gold%2C%20warm%20lantern%20light%20illuminating%20the%20passage%2C%20Sado%20Gold%20Mine%20Niigata%20Japan%2C%20mysterious%20and%20historic%2C%20atmospheric%20editorial%20travel%20photography%20with%20dramatic%20warm%20lighting&width=800&height=600&seq=imagetest2-15&orientation=landscape',
   },
   {
@@ -1073,6 +1337,8 @@ export const destinations = [
     category: 'Hot Springs & Nature',
     prefecture: 'Niigata',
     description: 'A hot spring town easily reached by bullet train, popular for skiing in winter.',
+    lat: 36.9358467,
+    lng: 138.808722,
     image: 'https://readdy.ai/api/search-image?query=A%20snowy%20Japanese%20mountain%20town%20with%20traditional%20ryokan%20inns%20and%20hot%20spring%20steam%20rising%20against%20snow%20covered%20rooftops%2C%20snowflakes%20falling%20gently%2C%20mountain%20peaks%20in%20the%20background%2C%20Echigo-Yuzawa%20Onsen%20Niigata%20Japan%2C%20cozy%20and%20serene%20winter%20scene%2C%20soft%20editorial%20travel%20photography%20with%20gentle%20diffused%20light&width=800&height=600&seq=imagetest2-16&orientation=landscape',
   },
   {
@@ -1081,6 +1347,8 @@ export const destinations = [
     category: 'Skiing & Winter Sports',
     prefecture: 'Niigata',
     description: 'A ski resort directly connected to the bullet train station, making it one of the most accessible in Japan.',
+    lat: 36.9507163,
+    lng: 138.7995577,
     image: 'https://readdy.ai/api/search-image?query=A%20modern%20ski%20resort%20with%20a%20glass%20gondola%20station%20and%20smooth%20white%20ski%20slopes%20under%20a%20bright%20blue%20sky%2C%20skiers%20gliding%20down%20powdery%20snow%2C%20snow%20covered%20mountains%20stretching%20to%20the%20horizon%2C%20GALA%20Yuzawa%20Niigata%20Japan%2C%20energetic%20and%20crisp%20winter%20scene%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20clear%20light&width=800&height=600&seq=imagetest2-17&orientation=landscape',
   },
   {
@@ -1089,6 +1357,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Niigata',
     description: 'A walking tunnel through a dramatic gorge featuring contemporary art installations along the path.',
+    lat: 36.9675951,
+    lng: 138.7509218,
     image: 'https://readdy.ai/api/search-image?query=A%20tunnel%20through%20a%20deep%20gorge%20opening%20onto%20a%20stunning%20viewpoint%20with%20a%20still%20reflective%20pool%20mirroring%20the%20steep%20green%20cliffs%20and%20turquoise%20river%20far%20below%2C%20an%20art%20installation%20with%20soft%20light%2C%20Kiyotsu%20Gorge%20Tunnel%20Niigata%20Japan%2C%20surreal%20and%20serene%2C%20atmospheric%20editorial%20travel%20photography%20with%20cool%20natural%20light&width=800&height=600&seq=imagetest2-18&orientation=landscape',
   },
   {
@@ -1097,6 +1367,8 @@ export const destinations = [
     category: 'Festivals & Events',
     prefecture: 'Niigata',
     description: 'A large-scale contemporary art festival set among the rice terraces and villages of rural Niigata.',
+    lat: 37.9185345,
+    lng: 139.069444,
     image: 'https://readdy.ai/api/search-image?query=A%20striking%20large%20scale%20modern%20art%20installation%20standing%20in%20a%20green%20rice%20terrace%20field%20surrounded%20by%20rolling%20mountains%20and%20rural%20farmhouses%2C%20colorful%20sculptural%20artwork%20against%20the%20natural%20landscape%2C%20Echigo-Tsumari%20Art%20Triennale%20Niigata%20Japan%2C%20creative%20and%20serene%2C%20bright%20editorial%20travel%20photography%20with%20soft%20daylight&width=800&height=600&seq=imagetest2-19&orientation=landscape',
   },
   {
@@ -1105,6 +1377,8 @@ export const destinations = [
     category: 'Festivals & Events',
     prefecture: 'Niigata',
     description: "One of Japan's most celebrated fireworks festivals, held each summer over the Shinano River.",
+    lat: 37.4557425,
+    lng: 138.8043398,
     image: 'https://readdy.ai/api/search-image?query=Massive%20colorful%20fireworks%20blooming%20across%20a%20dark%20night%20sky%20above%20a%20wide%20river%2C%20brilliant%20golden%20starmines%20and%20red%20and%20blue%20bursts%20reflecting%20on%20the%20water%2C%20a%20huge%20crowd%20gathered%20along%20the%20riverbank%2C%20Nagaoka%20Fireworks%20Festival%20Niigata%20Japan%2C%20spectacular%20and%20celebratory%2C%20dramatic%20editorial%20travel%20photography%20with%20vivid%20night%20colors&width=800&height=600&seq=imagetest2-20&orientation=landscape',
   },
   {
@@ -1113,6 +1387,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Toyama',
     description: "A mountain crossing route famous for its towering 'Snow Corridor' walls of plowed snow each spring.",
+    lat: 36.5829498,
+    lng: 137.4457425,
     image: 'https://readdy.ai/api/search-image?query=A%20towering%20corridor%20of%20snow%20walls%20rising%20over%20ten%20meters%20high%20on%20both%20sides%20of%20a%20road%2C%20visitors%20walking%20between%20the%20brilliant%20white%20snow%20banks%2C%20deep%20blue%20sky%20above%2C%20Tateyama%20Kurobe%20Alpine%20Route%20Toyama%20Japan%2C%20breathtaking%20and%20majestic%2C%20bright%20editorial%20travel%20photography%20with%20crisp%20alpine%20light&width=800&height=600&seq=imagetest2-21&orientation=landscape',
   },
   {
@@ -1121,6 +1397,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Toyama',
     description: "Japan's tallest dam, known for its dramatic controlled water release each summer.",
+    lat: 36.5665972,
+    lng: 137.6628943,
     image: 'https://readdy.ai/api/search-image?query=The%20massive%20curved%20concrete%20wall%20of%20Kurobe%20Dam%20releasing%20a%20powerful%20white%20water%20discharge%20into%20a%20turquoise%20reservoir%2C%20surrounded%20by%20steep%20snow%20capped%20mountains%20and%20a%20rainbow%20in%20the%20mist%2C%20Toyama%20Japan%2C%20powerful%20and%20awe-inspiring%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20alpine%20daylight&width=800&height=600&seq=imagetest2-22&orientation=landscape',
   },
   {
@@ -1129,6 +1407,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Toyama',
     description: 'A scenic open-air trolley train ride through a deep gorge, especially popular during autumn foliage.',
+    lat: 36.7587233,
+    lng: 137.6332779,
     image: 'https://readdy.ai/api/search-image?query=An%20open-air%20orange%20trolley%20train%20traveling%20along%20a%20narrow%20railway%20track%20on%20a%20cliff%20edge%20through%20a%20deep%20gorge%2C%20a%20turquoise%20river%20rushing%20far%20below%20between%20steep%20green%20and%20red%20autumn%20mountains%2C%20Kurobe%20Gorge%20Railway%20Toyama%20Japan%2C%20thrilling%20and%20scenic%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20natural%20light&width=800&height=600&seq=imagetest2-23&orientation=landscape',
   },
   {
@@ -1137,6 +1417,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Toyama',
     description: 'A UNESCO World Heritage village of steep thatched-roof farmhouses, a quieter counterpart to nearby Shirakawa-go.',
+    lat: 36.4261033,
+    lng: 136.935619,
     image: 'https://readdy.ai/api/search-image?query=A%20traditional%20Japanese%20village%20of%20steep%20thatched%20roof%20gassho-zukuri%20farmhouses%20with%20their%20distinctive%20A-frame%20roofs%2C%20surrounded%20by%20terraced%20fields%20and%20forested%20mountains%20under%20a%20soft%20sky%2C%20Gokayama%20Toyama%20Japan%2C%20peaceful%20and%20historic%2C%20serene%20editorial%20travel%20photography%20with%20gentle%20natural%20light&width=800&height=600&seq=imagetest2-24&orientation=landscape',
   },
   {
@@ -1145,6 +1427,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Toyama',
     description: 'A coastline offering a rare view combining the sea with the snow-capped Tateyama mountain range.',
+    lat: 36.8148693,
+    lng: 137.0420588,
     image: 'https://readdy.ai/api/search-image?query=A%20tranquil%20sandy%20beach%20with%20gentle%20waves%20and%20scattered%20rocks%20in%20the%20foreground%2C%20the%20snow%20capped%20Tateyama%20mountain%20range%20rising%20majestically%20beyond%20the%20sea%20on%20the%20horizon%2C%20Amaharashi%20Coast%20Toyama%20Japan%2C%20serene%20and%20panoramic%2C%20soft%20editorial%20travel%20photography%20with%20clear%20morning%20light&width=800&height=600&seq=imagetest2-25&orientation=landscape',
   },
   {
@@ -1153,6 +1437,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Ishikawa',
     description: "One of Japan's three great gardens, celebrated for its meticulously landscaped scenery across all four seasons.",
+    lat: 36.5621278,
+    lng: 136.6626515,
     image: 'https://readdy.ai/api/search-image?query=A%20classic%20Japanese%20landscape%20garden%20with%20a%20serene%20pond%2C%20stone%20bridges%2C%20pine%20trees%20and%20a%20wooden%20teahouse%2C%20carefully%20arranged%20rocks%20and%20moss%2C%20Kanazawa%20Kenrokuen%20Ishikawa%20Japan%2C%20refined%20and%20tranquil%2C%20elegant%20editorial%20travel%20photography%20with%20soft%20diffused%20light&width=800&height=600&seq=imagetest2-26&orientation=landscape',
   },
   {
@@ -1161,6 +1447,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Ishikawa',
     description: 'The reconstructed grounds of the former stronghold of the powerful Maeda clan.',
+    lat: 36.5659458,
+    lng: 136.6588451,
     image: 'https://readdy.ai/api/search-image?query=A%20reconstructed%20Japanese%20castle%20with%20white%20plaster%20walls%20and%20pale%20grey%20lead%20tile%20roofs%2C%20tall%20stone%20foundation%20walls%20and%20a%20wide%20moat%2C%20cherry%20blossom%20trees%20blooming%20around%20the%20grounds%2C%20Kanazawa%20Castle%20Ishikawa%20Japan%2C%20majestic%20and%20elegant%2C%20bright%20editorial%20travel%20photography%20with%20warm%20spring%20light&width=800&height=600&seq=imagetest2-27&orientation=landscape',
   },
   {
@@ -1169,6 +1457,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Ishikawa',
     description: 'A historic geisha entertainment district with well-preserved teahouse architecture.',
+    lat: 36.5743546,
+    lng: 136.6674399,
     image: 'https://readdy.ai/api/search-image?query=A%20historic%20Japanese%20geisha%20district%20with%20traditional%20wooden%20teahouse%20buildings%20featuring%20dark%20lattice%20windows%20and%20red%20lanterns%20along%20a%20stone%20paved%20street%2C%20soft%20golden%20light%20filtering%20through%2C%20Higashi%20Chaya%20District%20Kanazawa%20Ishikawa%20Japan%2C%20nostalgic%20and%20elegant%2C%20atmospheric%20editorial%20travel%20photography%20with%20warm%20evening%20light&width=800&height=600&seq=imagetest2-28&orientation=landscape',
   },
   {
@@ -1177,6 +1467,8 @@ export const destinations = [
     category: 'City & Food Culture',
     prefecture: 'Ishikawa',
     description: "Kanazawa's bustling market street, famous for fresh seafood and local produce.",
+    lat: 36.5717335,
+    lng: 136.6558651,
     image: 'https://readdy.ai/api/search-image?query=A%20lively%20indoor%20Japanese%20seafood%20market%20with%20rows%20of%20stalls%20displaying%20fresh%20fish%2C%20giant%20snow%20crab%2C%20colorful%20seafood%20and%20vegetables%20on%20ice%2C%20vendors%20and%20shoppers%20under%20a%20high%20roof%2C%20Omicho%20Market%20Kanazawa%20Ishikawa%20Japan%2C%20vibrant%20and%20bustling%2C%20bright%20editorial%20travel%20photography%20with%20vivid%20natural%20light&width=800&height=600&seq=imagetest2-29&orientation=landscape',
   },
   {
@@ -1185,6 +1477,8 @@ export const destinations = [
     category: 'Pop Culture & Entertainment',
     prefecture: 'Ishikawa',
     description: 'A museum known for its circular glass architecture and immersive contemporary art installations.',
+    lat: 36.5608713,
+    lng: 136.6585251,
     image: 'https://readdy.ai/api/search-image?query=A%20round%20glass%20and%20white%20contemporary%20art%20museum%20building%20with%20a%20circular%20shape%2C%20people%20looking%20down%20into%20a%20famous%20swimming%20pool%20art%20installation%20filled%20with%20water%20and%20blue%20tiles%2C%2021st%20Century%20Museum%20Kanazawa%20Ishikawa%20Japan%2C%20modern%20and%20playful%2C%20bright%20editorial%20travel%20photography%20with%20clean%20daylight&width=800&height=600&seq=imagetest2-30&orientation=landscape',
   },
   {
@@ -1193,6 +1487,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Ishikawa',
     description: 'A dramatic set of over a thousand small rice terraces cascading down to the sea in the Noto Peninsula.',
+    lat: 37.4255423,
+    lng: 136.9995074,
     image: 'https://readdy.ai/api/search-image?query=Over%20a%20thousand%20small%20terraced%20rice%20paddies%20cascading%20down%20a%20hillside%20toward%20the%20sparkling%20blue%20sea%2C%20green%20fields%20separated%20by%20stone%20walls%2C%20Shiroyone%20Senmaida%20Noto%20Peninsula%20Ishikawa%20Japan%2C%20stunning%20and%20expansive%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20coastal%20daylight&width=800&height=600&seq=imagetest2-31&orientation=landscape',
   },
   {
@@ -1201,6 +1497,8 @@ export const destinations = [
     category: 'Pop Culture & Entertainment',
     prefecture: 'Fukui',
     description: "One of the world's largest dinosaur museums, built around a major fossil excavation site.",
+    lat: 36.0822889,
+    lng: 136.5066612,
     image: 'https://readdy.ai/api/search-image?query=The%20interior%20of%20a%20large%20modern%20dinosaur%20museum%20with%20towering%20full%20dinosaur%20skeletons%2C%20a%20giant%20tyrannosaurus%20rex%20display%20and%20a%20high%20domed%20ceiling%2C%20visitors%20walking%20among%20exhibits%2C%20Fukui%20Prefectural%20Dinosaur%20Museum%20Japan%2C%20impressive%20and%20educational%2C%20bright%20editorial%20travel%20photography%20with%20clean%20even%20light&width=800&height=600&seq=imagetest2-32&orientation=landscape',
   },
   {
@@ -1209,6 +1507,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Fukui',
     description: 'A dramatic stretch of rugged coastal cliffs, especially striking at sunset.',
+    lat: 36.2376576,
+    lng: 136.1255242,
     image: 'https://readdy.ai/api/search-image?query=Tall%20dramatic%20cliffs%20made%20of%20vertical%20columnar%20basalt%20rock%20formations%20rising%20from%20crashing%20white%20waves%20of%20the%20Sea%20of%20Japan%2C%20a%20rugged%20coastline%20under%20a%20moody%20sky%2C%20Tojinbo%20Cliffs%20Fukui%20Japan%2C%20wild%20and%20powerful%2C%20vivid%20editorial%20travel%20photography%20with%20dramatic%20natural%20light&width=800&height=600&seq=imagetest2-33&orientation=landscape',
   },
   {
@@ -1217,6 +1517,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Fukui',
     description: 'A major Zen Buddhist training temple deep in a cedar forest, offering visitors a glimpse into monastic life.',
+    lat: 36.0923343,
+    lng: 136.2990788,
     image: 'https://readdy.ai/api/search-image?query=A%20serene%20Zen%20Buddhist%20temple%20complex%20with%20traditional%20wooden%20halls%20and%20curved%20roofs%20connected%20by%20covered%20corridors%2C%20surrounded%20by%20towering%20ancient%20cedar%20trees%20and%20moss%20covered%20stone%20paths%2C%20Eihei-ji%20Fukui%20Japan%2C%20peaceful%20and%20spiritual%2C%20soft%20editorial%20travel%20photography%20with%20gentle%20forest%20light&width=800&height=600&seq=imagetest2-34&orientation=landscape',
   },
   {
@@ -1225,6 +1527,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Fukui',
     description: "A hilltop castle nicknamed the 'castle in the sky' for how it appears to float above a sea of clouds in autumn.",
+    lat: 35.98658640000001,
+    lng: 136.4830622,
     image: 'https://readdy.ai/api/search-image?query=A%20white%20Japanese%20castle%20standing%20on%20a%20mountain%20top%20floating%20above%20a%20vast%20sea%20of%20soft%20white%20clouds%20that%20fill%20the%20valley%20below%2C%20the%20castle%20appearing%20to%20float%20in%20the%20sky%20at%20dawn%2C%20Echizen-Ono%20Castle%20Fukui%20Japan%2C%20mystical%20and%20breathtaking%2C%20ethereal%20editorial%20travel%20photography%20with%20soft%20golden%20morning%20light&width=800&height=600&seq=imagetest2-35&orientation=landscape',
   },
   {
@@ -1233,6 +1537,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Yamanashi',
     description: 'One of the Fuji Five Lakes, prized for its classic reflected views of Mt. Fuji.',
+    lat: 35.5170946,
+    lng: 138.7517787,
     image: 'https://readdy.ai/api/search-image?query=A%20calm%20blue%20lake%20with%20a%20perfect%20mirror%20reflection%20of%20the%20snow%20capped%20cone%20of%20Mount%20Fuji%20on%20its%20still%20surface%2C%20the%20mountain%20rising%20majestically%20under%20a%20clear%20sky%2C%20Lake%20Kawaguchiko%20Yamanashi%20Japan%2C%20serene%20and%20iconic%2C%20vivid%20editorial%20travel%20photography%20with%20crisp%20clear%20light&width=800&height=600&seq=imagetest2-36&orientation=landscape',
   },
   {
@@ -1241,6 +1547,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Yamanashi',
     description: 'Famous for the postcard view combining a five-story pagoda with Mt. Fuji in the background.',
+    lat: 35.5013908,
+    lng: 138.8016313,
     image: 'https://readdy.ai/api/search-image?query=A%20red%20five-story%20pagoda%20standing%20among%20pink%20cherry%20blossom%20trees%20with%20the%20snow%20capped%20peak%20of%20Mount%20Fuji%20rising%20majestically%20in%20the%20background%2C%20Arakurayama%20Sengen%20Park%20Yamanashi%20Japan%2C%20iconic%20and%20beautiful%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20spring%20daylight&width=800&height=600&seq=imagetest2-37&orientation=landscape',
   },
   {
@@ -1249,6 +1557,8 @@ export const destinations = [
     category: 'Theme Parks & Entertainment',
     prefecture: 'Yamanashi',
     description: 'A thrill-ride amusement park set against the backdrop of Mt. Fuji.',
+    lat: 35.4869467,
+    lng: 138.7805511,
     image: 'https://readdy.ai/api/search-image?query=A%20large%20amusement%20park%20with%20a%20massive%20twisting%20roller%20coaster%20track%20rising%20high%20into%20the%20sky%2C%20colorful%20attractions%20and%20crowds%20of%20visitors%2C%20the%20snow%20capped%20peak%20of%20Mount%20Fuji%20in%20the%20background%2C%20Fuji-Q%20Highland%20Yamanashi%20Japan%2C%20exciting%20and%20vibrant%2C%20bright%20editorial%20travel%20photography%20with%20vivid%20clear%20light&width=800&height=600&seq=imagetest2-38&orientation=landscape',
   },
   {
@@ -1257,6 +1567,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Yamanashi',
     description: "A cluster of eight crystal-clear ponds fed by snowmelt from Mt. Fuji.",
+    lat: 35.46006740000001,
+    lng: 138.8324749,
     image: 'https://readdy.ai/api/search-image?query=A%20crystal%20clear%20spring%20pond%20with%20vivid%20turquoise%20water%2C%20colorful%20koi%20fish%20swimming%2C%20a%20traditional%20thatched%20roof%20building%20and%20wooden%20water%20wheel%20beside%20it%2C%20Mount%20Fuji%20in%20the%20background%2C%20Oshino%20Hakkai%20Yamanashi%20Japan%2C%20pure%20and%20serene%2C%20bright%20editorial%20travel%20photography%20with%20clear%20daylight&width=800&height=600&seq=imagetest2-39&orientation=landscape',
   },
   {
@@ -1265,6 +1577,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Yamanashi',
     description: 'A gorge of striking rock formations, especially popular during autumn foliage season.',
+    lat: 35.7454865,
+    lng: 138.5676333,
     image: 'https://readdy.ai/api/search-image?query=A%20deep%20scenic%20gorge%20with%20dramatic%20granite%20cliffs%20and%20strange%20rock%20formations%2C%20a%20waterfall%20cascading%20down%2C%20brilliant%20red%20and%20orange%20autumn%20foliage%20covering%20the%20mountainsides%2C%20Shosenkyo%20Gorge%20Yamanashi%20Japan%2C%20rugged%20and%20colorful%2C%20vivid%20editorial%20travel%20photography%20with%20rich%20autumn%20light&width=800&height=600&seq=imagetest2-40&orientation=landscape',
   },
   {
@@ -1273,6 +1587,8 @@ export const destinations = [
     category: 'City & Food Culture',
     prefecture: 'Yamanashi',
     description: 'A whisky distillery set in forested highlands, offering tours into Japanese whisky-making traditions.',
+    lat: 35.8280752,
+    lng: 138.303616,
     image: 'https://readdy.ai/api/search-image?query=A%20modern%20whisky%20distillery%20building%20nestled%20in%20a%20lush%20green%20forested%20mountain%20valley%2C%20rows%20of%20wooden%20barrels%20and%20copper%20pot%20stills%20visible%20through%20glass%2C%20a%20clear%20stream%20nearby%2C%20Suntory%20Hakushu%20Distillery%20Yamanashi%20Japan%2C%20elegant%20and%20natural%2C%20soft%20editorial%20travel%20photography%20with%20gentle%20forest%20light&width=800&height=600&seq=imagetest2-41&orientation=landscape',
   },
   {
@@ -1281,6 +1597,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Yamanashi',
     description: 'The most accessible starting point for climbing Mt. Fuji, reachable by car or bus without hiking from the base.',
+    lat: 35.3942346,
+    lng: 138.7337101,
     image: 'https://readdy.ai/api/search-image?query=The%20high%20mountain%20fifth%20station%20of%20Mount%20Fuji%20with%20gift%20shops%20and%20a%20shrine%2C%20visitors%20in%20hiking%20gear%2C%20a%20sea%20of%20clouds%20spreading%20far%20below%20and%20the%20volcanic%20peak%20rising%20above%2C%20Yamanashi%20Japan%2C%20majestic%20and%20crisp%2C%20bright%20editorial%20travel%20photography%20with%20clear%20alpine%20light&width=800&height=600&seq=imagetest2-42&orientation=landscape',
   },
   {
@@ -1289,6 +1607,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Nagano',
     description: "One of Japan's original castle keeps, distinguished by its striking black exterior.",
+    lat: 36.238653,
+    lng: 137.9688674,
     image: 'https://readdy.ai/api/search-image?query=A%20striking%20black%20Japanese%20castle%20with%20white%20trim%20reflected%20in%20a%20wide%20moat%2C%20snow%20capped%20Japanese%20Alps%20rising%20in%20the%20background%2C%20red%20bridge%20and%20pine%20trees%2C%20Matsumoto%20Castle%20Nagano%20Japan%2C%20majestic%20and%20iconic%2C%20vivid%20editorial%20travel%20photography%20with%20clear%20daylight&width=800&height=600&seq=imagetest4-31&orientation=landscape',
   },
   {
@@ -1297,6 +1617,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Nagano',
     description: "A major Buddhist temple with a history spanning over 1,400 years, at the heart of Nagano's old temple town.",
+    lat: 36.6615752,
+    lng: 138.1877028,
     image: 'https://readdy.ai/api/search-image?query=A%20grand%20Buddhist%20temple%20with%20a%20large%20dark%20wooden%20main%20hall%20and%20sweeping%20curved%20roof%2C%20stone%20lanterns%20and%20a%20wide%20approach%2C%20worshippers%20and%20incense%20smoke%2C%20Zenko-ji%20Nagano%20Japan%2C%20sacred%20and%20historic%2C%20soft%20editorial%20travel%20photography%20with%20warm%20daylight&width=800&height=600&seq=imagetest4-32&orientation=landscape',
   },
   {
@@ -1305,6 +1627,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Nagano',
     description: 'Famous worldwide for its wild snow monkeys that bathe in natural hot springs during winter.',
+    lat: 36.7326856,
+    lng: 138.4621364,
     image: 'https://readdy.ai/api/search-image?query=Wild%20Japanese%20snow%20monkeys%20relaxing%20in%20a%20steaming%20natural%20hot%20spring%20bath%20surrounded%20by%20deep%20snow%20and%20rocky%20cliffs%2C%20steam%20rising%20from%20the%20warm%20water%2C%20Jigokudani%20Monkey%20Park%20Nagano%20Japan%2C%20charming%20and%20wild%2C%20vivid%20editorial%20travel%20photography%20with%20soft%20winter%20light&width=800&height=600&seq=imagetest4-33&orientation=landscape',
   },
   {
@@ -1313,6 +1637,8 @@ export const destinations = [
     category: 'Skiing & Winter Sports',
     prefecture: 'Nagano',
     description: 'A ski resort in the Northern Alps that hosted events during the 1998 Nagano Winter Olympics.',
+    lat: 36.7019841,
+    lng: 137.8369446,
     image: 'https://readdy.ai/api/search-image?query=Skiers%20carving%20down%20long%20groomed%20slopes%20with%20panoramic%20views%20of%20the%20snow%20covered%20Northern%20Japanese%20Alps%2C%20a%20chairlift%20and%20lodge%20below%2C%20Happo-One%20Hakuba%20Nagano%20Japan%2C%20expansive%20and%20thrilling%2C%20bright%20editorial%20travel%20photography%20with%20crisp%20alpine%20light&width=800&height=600&seq=imagetest4-34&orientation=landscape',
   },
   {
@@ -1321,6 +1647,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Nagano',
     description: 'A cool mountain resort town long favored as a summer retreat, known for its outlet shopping and nature trails.',
+    lat: 36.3483927,
+    lng: 138.5970297,
     image: 'https://readdy.ai/api/search-image?query=A%20chic%20mountain%20resort%20town%20street%20lined%20with%20boutique%20shops%2C%20cafes%20and%20restaurants%2C%20green%20trees%20and%20a%20relaxed%20atmosphere%2C%20Karuizawa%20Nagano%20Japan%2C%20elegant%20and%20refreshing%2C%20bright%20editorial%20travel%20photography%20with%20clear%20summer%20light&width=800&height=600&seq=imagetest4-35&orientation=landscape',
   },
   {
@@ -1329,6 +1657,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Nagano',
     description: 'A pristine highland valley in the Northern Alps, popular for hiking amid dramatic mountain scenery.',
+    lat: 36.2487537,
+    lng: 137.6380649,
     image: 'https://readdy.ai/api/search-image?query=A%20pristine%20mountain%20valley%20with%20a%20clear%20turquoise%20river%2C%20a%20wooden%20suspension%20bridge%20crossing%20the%20water%2C%20snow%20capped%20peaks%20and%20dense%20forest%2C%20Kamikochi%20Nagano%20Japan%2C%20breathtaking%20and%20unspoiled%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20alpine%20light&width=800&height=600&seq=imagetest4-36&orientation=landscape',
   },
   {
@@ -1337,6 +1667,8 @@ export const destinations = [
     category: 'Hot Springs & Nature',
     prefecture: 'Nagano',
     description: 'A traditional hot spring village with free public bathhouses and a well-regarded ski resort.',
+    lat: 36.9228462,
+    lng: 138.4405097,
     image: 'https://readdy.ai/api/search-image?query=A%20traditional%20hot%20spring%20village%20with%20narrow%20streets%2C%20steam%20rising%20from%20public%20baths%2C%20wooden%20buildings%20and%20a%20distant%20ski%20slope%20covered%20in%20snow%2C%20Nozawa%20Onsen%20Nagano%20Japan%2C%20cozy%20and%20rustic%2C%20atmospheric%20editorial%20travel%20photography%20with%20warm%20winter%20light&width=800&height=600&seq=imagetest4-37&orientation=landscape',
   },
   {
@@ -1345,6 +1677,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Nagano',
     description: 'A beautifully preserved post town along the old Nakasendo highway, free of visible power lines and cars.',
+    lat: 35.5775876,
+    lng: 137.5956667,
     image: 'https://readdy.ai/api/search-image?query=A%20beautifully%20preserved%20Edo%20period%20post%20town%20with%20wooden%20buildings%20and%20stone%20paving%2C%20no%20modern%20signs%20or%20wires%2C%20warm%20lantern%20light%20at%20dusk%2C%20Tsumago-juku%20Nagano%20Japan%2C%20historic%20and%20atmospheric%2C%20soft%20editorial%20travel%20photography%20with%20warm%20evening%20light&width=800&height=600&seq=imagetest4-38&orientation=landscape',
   },
   {
@@ -1353,6 +1687,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Nagano',
     description: 'One of the longest and best-preserved Edo-period post towns along the historic Nakasendo route.',
+    lat: 35.9682997,
+    lng: 137.8145375,
     image: 'https://readdy.ai/api/search-image?query=A%20long%20traditional%20post%20town%20street%20lined%20with%20continuous%20wooden%20buildings%20and%20latticed%20shopfronts%2C%20the%20Kiso%20valley%20mountains%20behind%2C%20Narai-juku%20Nagano%20Japan%2C%20historic%20and%20charming%2C%20soft%20editorial%20travel%20photography%20with%20warm%20daylight&width=800&height=600&seq=imagetest4-39&orientation=landscape',
   },
   {
@@ -1361,6 +1697,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Gifu',
     description: 'A UNESCO World Heritage village of steep thatched-roof farmhouses, especially magical under winter snow.',
+    lat: 36.2710289,
+    lng: 136.8985744,
     image: 'https://readdy.ai/api/search-image?query=A%20UNESCO%20World%20Heritage%20village%20of%20steep%20thatched%20roof%20gassho%20farmhouses%20in%20a%20snowy%20mountain%20valley%2C%20warm%20lights%20glowing%20from%20the%20windows%2C%20rice%20fields%20and%20forest%20around%2C%20Shirakawa-go%20Gifu%20Japan%2C%20fairytale%20and%20serene%2C%20atmospheric%20editorial%20travel%20photography%20with%20warm%20winter%20light&width=800&height=600&seq=imagetest4-40&orientation=landscape',
   },
   {
@@ -1369,6 +1707,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Gifu',
     description: 'A beautifully preserved merchant district evoking the atmosphere of Edo-period Japan.',
+    lat: 36.1429901,
+    lng: 137.2594717,
     image: 'https://readdy.ai/api/search-image?query=A%20preserved%20Edo%20period%20merchant%20street%20with%20dark%20wooden%20houses%2C%20latticed%20windows%20and%20sake%20breweries%20with%20hanging%20cedar%20ball%20signs%2C%20a%20clear%20canal%20running%20alongside%2C%20Takayama%20Old%20Town%20Gifu%20Japan%2C%20historic%20and%20refined%2C%20soft%20editorial%20travel%20photography%20with%20warm%20daylight&width=800&height=600&seq=imagetest4-41&orientation=landscape',
   },
   {
@@ -1377,6 +1717,8 @@ export const destinations = [
     category: 'Hot Springs & Nature',
     prefecture: 'Gifu',
     description: "Ranked among Japan's three great hot spring towns, known for its smooth, skin-softening waters.",
+    lat: 35.8065452,
+    lng: 137.239409,
     image: 'https://readdy.ai/api/search-image?query=A%20riverside%20hot%20spring%20town%20with%20steam%20rising%20from%20a%20public%20foot%20bath%2C%20traditional%20ryokan%20inns%20and%20a%20clear%20river%20with%20a%20bridge%2C%20colorful%20autumn%20leaves%2C%20Gero%20Onsen%20Gifu%20Japan%2C%20relaxing%20and%20scenic%2C%20warm%20editorial%20travel%20photography%20with%20soft%20light&width=800&height=600&seq=imagetest4-42&orientation=landscape',
   },
   {
@@ -1385,6 +1727,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Gifu',
     description: 'A castle town built around clear mountain waterways, famous for its summer Gujo Odori dance festival.',
+    lat: 35.7530576,
+    lng: 136.9614524,
     image: 'https://readdy.ai/api/search-image?query=A%20traditional%20castle%20town%20with%20clear%20water%20channels%20running%20beside%20narrow%20streets%2C%20wooden%20buildings%20and%20stone%20bridges%2C%20a%20small%20castle%20keep%20on%20a%20hill%2C%20Gujo%20Hachiman%20Gifu%20Japan%2C%20charming%20and%20historic%2C%20soft%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest4-43&orientation=landscape',
   },
   {
@@ -1393,6 +1737,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Gifu',
     description: 'A 1,300-year-old traditional fishing method using trained cormorants, performed on the river at night.',
+    lat: 35.43826749999999,
+    lng: 136.7728152,
     image: 'https://readdy.ai/api/search-image?query=A%20traditional%20wooden%20fishing%20boat%20on%20a%20river%20at%20night%20lit%20by%20a%20hanging%20fire%20basket%2C%20a%20fisherman%20guiding%20cormorant%20birds%20on%20leashes%2C%20warm%20flames%20reflecting%20on%20the%20water%2C%20Nagara%20River%20Gifu%20Japan%2C%20ancient%20and%20atmospheric%2C%20vivid%20editorial%20travel%20photography%20with%20warm%20firelight&width=800&height=600&seq=imagetest4-44&orientation=landscape',
   },
   {
@@ -1401,6 +1747,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Gifu',
     description: 'A hillside post town along the Nakasendo trail, connected to Tsumago by a scenic walking route.',
+    lat: 35.5315174,
+    lng: 137.5717516,
     image: 'https://readdy.ai/api/search-image?query=A%20steep%20stone%20paved%20post%20town%20street%20lined%20with%20wooden%20buildings%20and%20water%20wheels%2C%20a%20view%20of%20misty%20mountains%20at%20the%20end%20of%20the%20slope%2C%20warm%20lanterns%2C%20Magome-juku%20Gifu%20Japan%2C%20scenic%20and%20nostalgic%2C%20soft%20editorial%20travel%20photography%20with%20warm%20light&width=800&height=600&seq=imagetest4-45&orientation=landscape',
   },
   {
@@ -1409,6 +1757,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Shizuoka',
     description: 'The head shrine of Mt. Fuji worship, marking the traditional starting point for climbing pilgrimages.',
+    lat: 35.2274871,
+    lng: 138.6100257,
     image: 'https://readdy.ai/api/search-image?query=A%20grand%20Shinto%20shrine%20with%20vermilion%20halls%20and%20a%20large%20torii%20gate%2C%20surrounded%20by%20tall%20cedars%2C%20the%20peak%20of%20Mount%20Fuji%20rising%20in%20the%20distance%2C%20Fujisan%20Hongu%20Sengen%20Taisha%20Shizuoka%20Japan%2C%20sacred%20and%20majestic%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest4-46&orientation=landscape',
   },
   {
@@ -1417,6 +1767,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Shizuoka',
     description: "A wide curtain of waterfalls fed by Mt. Fuji's snowmelt, cascading down a mossy cliff face.",
+    lat: 35.3129046,
+    lng: 138.5874375,
     image: 'https://readdy.ai/api/search-image?query=A%20wide%20curtain%20of%20thin%20white%20waterfalls%20cascading%20over%20a%20mossy%20cliff%20into%20a%20shallow%20pool%2C%20the%20snow%20capped%20cone%20of%20Mount%20Fuji%20visible%20above%2C%20Shiraito%20Falls%20Shizuoka%20Japan%2C%20ethereal%20and%20beautiful%2C%20vivid%20editorial%20travel%20photography%20with%20soft%20light&width=800&height=600&seq=imagetest4-47&orientation=landscape',
   },
   {
@@ -1425,6 +1777,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Shizuoka',
     description: 'A pine-lined beach with a classic view of Mt. Fuji across Suruga Bay, tied to local legend.',
+    lat: 34.9947534,
+    lng: 138.5223235,
     image: 'https://readdy.ai/api/search-image?query=A%20long%20beach%20lined%20with%20gnarled%20pine%20trees%2C%20a%20view%20of%20the%20snow%20capped%20cone%20of%20Mount%20Fuji%20rising%20over%20the%20blue%20sea%2C%20gentle%20waves%20and%20a%20clear%20sky%2C%20Miho-no-Matsubara%20Shizuoka%20Japan%2C%20iconic%20and%20serene%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20coastal%20light&width=800&height=600&seq=imagetest4-48&orientation=landscape',
   },
   {
@@ -1433,6 +1787,8 @@ export const destinations = [
     category: 'Hot Springs & Nature',
     prefecture: 'Shizuoka',
     description: 'A hot spring town on the Izu Peninsula known for its bamboo grove path and riverside scenery.',
+    lat: 34.9726355,
+    lng: 138.9331362,
     image: 'https://readdy.ai/api/search-image?query=A%20historic%20hot%20spring%20town%20with%20a%20clear%20river%20and%20a%20small%20red%20bridge%2C%20traditional%20ryokan%20buildings%20and%20a%20bamboo%20grove%2C%20steam%20rising%20gently%2C%20Shuzenji%20Onsen%20Izu%20Shizuoka%20Japan%2C%20peaceful%20and%20scenic%2C%20soft%20editorial%20travel%20photography%20with%20warm%20light&width=800&height=600&seq=imagetest4-49&orientation=landscape',
   },
   {
@@ -1441,6 +1797,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Shizuoka',
     description: 'A rugged coastline of volcanic rock formations, connected by a suspension bridge over the sea.',
+    lat: 34.8910482,
+    lng: 139.1399205,
     image: 'https://readdy.ai/api/search-image?query=A%20dramatic%20volcanic%20coastline%20with%20rugged%20dark%20lava%20cliffs%20and%20a%20suspension%20bridge%20crossing%20a%20narrow%20inlet%2C%20turquoise%20waves%20crashing%20below%2C%20Jogasaki%20Coast%20Izu%20Shizuoka%20Japan%2C%20wild%20and%20striking%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20coastal%20light&width=800&height=600&seq=imagetest4-50&orientation=landscape',
   },
   {
@@ -1449,6 +1807,8 @@ export const destinations = [
     category: 'Hot Springs & Nature',
     prefecture: 'Shizuoka',
     description: 'A hot spring resort town near Tokyo, popular for its ocean views and fireworks displays.',
+    lat: 35.1033727,
+    lng: 139.0791076,
     image: 'https://readdy.ai/api/search-image?query=A%20seaside%20hot%20spring%20resort%20town%20on%20a%20hillside%20overlooking%20a%20bay%2C%20hotel%20buildings%20and%20steam%20rising%20from%20baths%2C%20the%20blue%20ocean%20stretching%20out%2C%20Atami%20Shizuoka%20Japan%2C%20lively%20and%20scenic%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20coastal%20light&width=800&height=600&seq=imagetest4-51&orientation=landscape',
   },
   {
@@ -1457,6 +1817,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Shizuoka',
     description: 'An early-blooming variety of cherry blossom that draws visitors from late winter into early spring.',
+    lat: 34.7540661,
+    lng: 138.9870373,
     image: 'https://readdy.ai/api/search-image?query=Rows%20of%20deep%20pink%20early%20blooming%20cherry%20blossom%20trees%20lining%20both%20banks%20of%20a%20river%2C%20a%20wooden%20bridge%20crossing%20the%20water%2C%20petals%20falling%20softly%2C%20Kawazu%20Cherry%20Blossoms%20Shizuoka%20Japan%2C%20vibrant%20and%20romantic%2C%20vivid%20editorial%20travel%20photography%20with%20soft%20spring%20light&width=800&height=600&seq=imagetest4-52&orientation=landscape',
   },
   {
@@ -1465,6 +1827,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Aichi',
     description: 'A landmark castle famous for its golden shachihoko roof ornaments.',
+    lat: 35.1847501,
+    lng: 136.8996883,
     image: 'https://readdy.ai/api/search-image?query=A%20large%20Japanese%20castle%20with%20white%20walls%20and%20a%20green%20roof%20topped%20by%20golden%20shachihoko%20ornaments%2C%20stone%20base%20and%20moat%2C%20cherry%20trees%20and%20a%20clear%20sky%2C%20Nagoya%20Castle%20Aichi%20Japan%2C%20grand%20and%20iconic%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest4-53&orientation=landscape',
   },
   {
@@ -1473,6 +1837,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Aichi',
     description: "One of Shinto's most important shrines, said to house one of Japan's three sacred imperial treasures.",
+    lat: 35.1273579,
+    lng: 136.9086948,
     image: 'https://readdy.ai/api/search-image?query=A%20serene%20Shinto%20shrine%20with%20vermilion%20gates%20and%20halls%20nestled%20in%20an%20ancient%20forest%20of%20towering%20trees%2C%20a%20stone%20path%20and%20soft%20light%20filtering%20through%20the%20leaves%2C%20Atsuta%20Shrine%20Nagoya%20Aichi%20Japan%2C%20sacred%20and%20tranquil%2C%20soft%20editorial%20travel%20photography%20with%20gentle%20forest%20light&width=800&height=600&seq=imagetest4-54&orientation=landscape',
   },
   {
@@ -1481,6 +1847,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Aichi',
     description: 'A museum tracing the history of Toyota from textile machinery to automobile manufacturing.',
+    lat: 35.182564,
+    lng: 136.8759846,
     image: 'https://readdy.ai/api/search-image?query=A%20modern%20industrial%20museum%20interior%20with%20vintage%20textile%20looms%20and%20early%20automobiles%20on%20display%2C%20brick%20walls%20and%20large%20windows%2C%20exhibits%20of%20machinery%2C%20Toyota%20Commemorative%20Museum%20Nagoya%20Aichi%20Japan%2C%20educational%20and%20impressive%2C%20bright%20editorial%20travel%20photography%20with%20even%20indoor%20light&width=800&height=600&seq=imagetest4-55&orientation=landscape',
   },
   {
@@ -1489,6 +1857,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Aichi',
     description: "One of Japan's few original castle keeps, overlooking the Kiso River from a hilltop perch.",
+    lat: 35.3883604,
+    lng: 136.9391766,
     image: 'https://readdy.ai/api/search-image?query=An%20original%20wooden%20Japanese%20castle%20standing%20on%20a%20hilltop%20above%20a%20wide%20river%2C%20dark%20timber%20walls%20and%20elegant%20curved%20roofs%2C%20autumn%20trees%20on%20the%20slopes%2C%20Inuyama%20Castle%20Aichi%20Japan%2C%20historic%20and%20majestic%2C%20vivid%20editorial%20travel%20photography%20with%20clear%20daylight&width=800&height=600&seq=imagetest4-56&orientation=landscape',
   },
   {
@@ -1497,6 +1867,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Aichi',
     description: 'A valley famous for its vivid autumn foliage, illuminated at night during the peak season.',
+    lat: 35.1314726,
+    lng: 137.3131275,
     image: 'https://readdy.ai/api/search-image?query=A%20red%20arched%20bridge%20crossing%20a%20clear%20river%2C%20surrounded%20by%20hundreds%20of%20maple%20trees%20glowing%20brilliant%20red%20and%20orange%20in%20autumn%2C%20reflections%20in%20the%20water%2C%20Korankei%20Gorge%20Aichi%20Japan%2C%20stunning%20and%20colorful%2C%20vivid%20editorial%20travel%20photography%20with%20rich%20autumn%20light&width=800&height=600&seq=imagetest4-57&orientation=landscape',
   },
   {
@@ -1505,6 +1877,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Mie',
     description: 'The most sacred shrine in Shinto, dedicated to the sun goddess Amaterasu and rebuilt every 20 years in an ancient ritual.',
+    lat: 34.4554249,
+    lng: 136.7236821,
     image: 'https://readdy.ai/api/search-image?query=A%20sacred%20Shinto%20shrine%20with%20plain%20wooden%20buildings%20and%20thatched%20roofs%2C%20reached%20by%20a%20wide%20gravel%20path%20over%20a%20wooden%20bridge%2C%20surrounded%20by%20ancient%20forest%2C%20Ise%20Jingu%20Naiku%20Mie%20Japan%2C%20solemn%20and%20pure%2C%20soft%20editorial%20travel%20photography%20with%20gentle%20forest%20light&width=800&height=600&seq=imagetest4-58&orientation=landscape',
   },
   {
@@ -1513,6 +1887,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Mie',
     description: 'The outer shrine of Ise Jingu, dedicated to the goddess of agriculture and industry.',
+    lat: 34.4871294,
+    lng: 136.703272,
     image: 'https://readdy.ai/api/search-image?query=A%20serene%20Shinto%20shrine%20with%20simple%20wooden%20buildings%20and%20a%20thatched%20roof%2C%20surrounded%20by%20tall%20trees%20and%20a%20gravel%20path%2C%20a%20torii%20gate%20in%20the%20distance%2C%20Ise%20Jingu%20Geku%20Mie%20Japan%2C%20peaceful%20and%20reverent%2C%20soft%20editorial%20travel%20photography%20with%20natural%20light&width=800&height=600&seq=imagetest4-59&orientation=landscape',
   },
   {
@@ -1521,6 +1897,8 @@ export const destinations = [
     category: 'City & Food Culture',
     prefecture: 'Mie',
     description: 'A lively approach street to Ise Jingu lined with Edo-period style shops and local delicacies.',
+    lat: 34.4624294,
+    lng: 136.7228539,
     image: 'https://readdy.ai/api/search-image?query=A%20traditional%20shopping%20street%20near%20a%20shrine%2C%20lined%20with%20wooden%20storefronts%2C%20hanging%20lanterns%20and%20souvenir%20shops%2C%20crowds%20of%20visitors%2C%20Oharaimachi%20Okage%20Yokocho%20Mie%20Japan%2C%20lively%20and%20nostalgic%2C%20vivid%20editorial%20travel%20photography%20with%20warm%20daylight&width=800&height=600&seq=imagetest4-60&orientation=landscape',
   },
   {
@@ -1529,6 +1907,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Mie',
     description: 'A scenic, ria coastline dotted with pearl farms, especially beautiful at sunset.',
+    lat: 34.2853938,
+    lng: 136.8023122,
     image: 'https://readdy.ai/api/search-image?query=A%20calm%20rias%20bay%20dotted%20with%20many%20small%20forested%20islands%2C%20rows%20of%20pearl%20cultivation%20rafts%20floating%20on%20the%20blue%20water%2C%20a%20sightseeing%20boat%2C%20Ago%20Bay%20Mie%20Japan%2C%20scenic%20and%20tranquil%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20coastal%20light&width=800&height=600&seq=imagetest4-61&orientation=landscape',
   },
   {
@@ -1537,6 +1917,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Mie',
     description: 'A UNESCO World Heritage pilgrimage trail connecting Ise Jingu to the sacred sites of Kumano.',
+    lat: 33.8885197,
+    lng: 136.1002268,
     image: 'https://readdy.ai/api/search-image?query=An%20ancient%20stone%20paved%20pilgrimage%20trail%20winding%20through%20a%20mossy%20forest%2C%20stone%20steps%20and%20small%20shrines%20along%20the%20path%2C%20soft%20light%20through%20the%20trees%2C%20Kumano%20Kodo%20Iseji%20Route%20Mie%20Japan%2C%20sacred%20and%20serene%2C%20atmospheric%20editorial%20travel%20photography%20with%20gentle%20forest%20light&width=800&height=600&seq=imagetest4-62&orientation=landscape',
   },
   {
@@ -1545,6 +1927,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Mie',
     description: 'A museum and historic residence offering an introduction to the secretive arts of the Iga ninja.',
+    lat: 34.771836,
+    lng: 136.129113,
     image: 'https://readdy.ai/api/search-image?query=A%20ninja%20museum%20with%20a%20traditional%20ninja%20house%2C%20a%20performer%20in%20a%20black%20ninja%20costume%20demonstrating%20a%20technique%2C%20displays%20of%20shuriken%20and%20weapons%2C%20Iga-ryu%20Ninja%20Museum%20Mie%20Japan%2C%20exciting%20and%20cultural%2C%20bright%20editorial%20travel%20photography%20with%20daylight&width=800&height=600&seq=imagetest4-63&orientation=landscape',
   },
   {
@@ -1553,6 +1937,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Shiga',
     description: "A UNESCO World Heritage temple complex atop Mt. Hiei, founding center of Japan's Tendai Buddhist sect.",
+    lat: 35.0704634,
+    lng: 135.8411275,
     image: 'https://readdy.ai/api/search-image?query=A%20historic%20Buddhist%20temple%20complex%20with%20dark%20wooden%20halls%20on%20a%20forested%20mountainside%2C%20stone%20steps%20and%20mossy%20trees%2C%20mist%20drifting%20through%20the%20trees%2C%20Enryaku-ji%20Mount%20Hiei%20Shiga%20Japan%2C%20solemn%20and%20ancient%2C%20atmospheric%20editorial%20travel%20photography%20with%20soft%20light&width=800&height=600&seq=imagetest4-64&orientation=landscape',
   },
   {
@@ -1561,6 +1947,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Shiga',
     description: "Japan's largest lake, ringed by mountains and a popular base for boating and lakeside scenery.",
+    lat: 35.3456394,
+    lng: 136.1709012,
     image: 'https://readdy.ai/api/search-image?query=A%20vast%20blue%20lake%20stretching%20to%20the%20horizon%20with%20low%20mountains%20in%20the%20distance%2C%20a%20small%20island%20with%20a%20torii%20gate%20near%20the%20shore%2C%20a%20beach%20and%20clear%20sky%2C%20Lake%20Biwa%20Shiga%20Japan%2C%20expansive%20and%20serene%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest4-65&orientation=landscape',
   },
   {
@@ -1569,6 +1957,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Shiga',
     description: 'A historic canal in Omi-Hachiman lined with willow trees and merchant-era warehouses.',
+    lat: 35.1397044,
+    lng: 136.0899624,
     image: 'https://readdy.ai/api/search-image?query=A%20historic%20stone%20canal%20lined%20with%20white%20walled%20storehouses%20and%20willow%20trees%2C%20a%20small%20wooden%20boat%20on%20the%20calm%20water%2C%20reflections%20of%20the%20buildings%2C%20Hachiman-bori%20Omihachiman%20Shiga%20Japan%2C%20nostalgic%20and%20scenic%2C%20soft%20editorial%20travel%20photography%20with%20warm%20light&width=800&height=600&seq=imagetest4-66&orientation=landscape',
   },
   {
@@ -1577,6 +1967,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Shiga',
     description: "One of Japan's original castle keeps, well known for its mascot character and lakeside views.",
+    lat: 35.276452,
+    lng: 136.251846,
     image: 'https://readdy.ai/api/search-image?query=An%20original%20white%20Japanese%20castle%20keep%20with%20elegant%20curved%20roofs%20standing%20on%20a%20stone%20base%2C%20surrounded%20by%20a%20moat%20and%20pine%20trees%2C%20cherry%20blossoms%20blooming%2C%20Hikone%20Castle%20Shiga%20Japan%2C%20historic%20and%20elegant%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20spring%20light&width=800&height=600&seq=imagetest4-67&orientation=landscape',
   },
   {
@@ -1585,6 +1977,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Shiga',
     description: 'A long, symmetrical tree-lined road that transforms dramatically with each season.',
+    lat: 35.4874704,
+    lng: 136.0372334,
     image: 'https://readdy.ai/api/search-image?query=A%20long%20straight%20avenue%20lined%20with%20tall%20metasequoia%20trees%20forming%20a%20dramatic%20green%20tunnel%2C%20a%20road%20receding%20into%20the%20distance%2C%20soft%20sunlight%2C%20Metasequoia%20Avenue%20Makino%20Shiga%20Japan%2C%20serene%20and%20picturesque%2C%20vivid%20editorial%20travel%20photography%20with%20soft%20daylight&width=800&height=600&seq=imagetest4-68&orientation=landscape',
   },
   {
@@ -1593,6 +1987,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Shiga',
     description: 'A shrine famous for its torii gate rising directly from the waters of Lake Biwa.',
+    lat: 35.2745424,
+    lng: 136.0110348,
     image: 'https://readdy.ai/api/search-image?query=A%20large%20vermilion%20torii%20gate%20standing%20in%20the%20shallow%20blue%20water%20of%20a%20vast%20lake%2C%20a%20small%20shrine%20on%20the%20shore%2C%20a%20peaceful%20sky%20and%20distant%20mountains%2C%20Shirahige%20Shrine%20Lake%20Biwa%20Shiga%20Japan%2C%20iconic%20and%20serene%2C%20vivid%20editorial%20travel%20photography%20with%20soft%20light&width=800&height=600&seq=imagetest4-69&orientation=landscape',
   },
   {
@@ -1601,6 +1997,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Kyoto',
     description: "A UNESCO World Heritage temple famous for its wooden stage jutting out over the hillside, a symbol of Kyoto.",
+    lat: 34.9946662,
+    lng: 135.784661,
     image: 'https://readdy.ai/api/search-image?query=A%20famous%20Buddhist%20temple%20with%20a%20large%20wooden%20stage%20supported%20by%20tall%20pillars%20jutting%20over%20a%20forested%20valley%2C%20autumn%20maple%20leaves%20in%20red%20and%20orange%2C%20crowds%20of%20visitors%2C%20Kiyomizu-dera%20Kyoto%20Japan%2C%20iconic%20and%20breathtaking%2C%20vivid%20editorial%20travel%20photography%20with%20rich%20autumn%20light&width=800&height=600&seq=imagetest4-70&orientation=landscape',
   },
   {
@@ -1609,6 +2007,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Kyoto',
     description: 'Famous for its seemingly endless tunnels of vermillion torii gates climbing the mountainside.',
+    lat: 34.9676945,
+    lng: 135.7791876,
     image: 'https://readdy.ai/api/search-image?query=A%20seemingly%20endless%20tunnel%20of%20thousands%20of%20vermilion%20torii%20gates%20winding%20up%20a%20forested%20mountainside%2C%20soft%20light%20filtering%20between%20the%20gates%2C%20Fushimi%20Inari%20Taisha%20Kyoto%20Japan%2C%20mesmerizing%20and%20sacred%2C%20vivid%20editorial%20travel%20photography%20with%20soft%20natural%20light&width=800&height=600&seq=imagetest4-71&orientation=landscape',
   },
   {
@@ -1617,6 +2017,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Kyoto',
     description: 'A UNESCO World Heritage Zen temple covered in gold leaf, reflected in a still pond.',
+    lat: 35.03937,
+    lng: 135.7292431,
     image: 'https://readdy.ai/api/search-image?query=A%20golden%20pavilion%20with%20gold%20leaf%20covered%20walls%20reflected%20perfectly%20in%20a%20calm%20mirror%20pond%2C%20surrounded%20by%20pine%20trees%20and%20a%20garden%2C%20Kinkaku-ji%20Kyoto%20Japan%2C%20dazzling%20and%20serene%2C%20vivid%20editorial%20travel%20photography%20with%20soft%20daylight&width=800&height=600&seq=imagetest4-72&orientation=landscape',
   },
   {
@@ -1625,6 +2027,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Kyoto',
     description: 'A refined Zen temple celebrated for its understated wabi-sabi aesthetic and moss gardens.',
+    lat: 35.0270213,
+    lng: 135.7982058,
     image: 'https://readdy.ai/api/search-image?query=An%20elegant%20wooden%20Zen%20temple%20pavilion%20set%20among%20a%20garden%20with%20a%20sculpted%20silver%20sand%20cone%2C%20moss%20and%20maple%20trees%2C%20a%20calm%20reflective%20pond%2C%20Ginkaku-ji%20Kyoto%20Japan%2C%20understated%20and%20serene%2C%20soft%20editorial%20travel%20photography%20with%20gentle%20light&width=800&height=600&seq=imagetest4-73&orientation=landscape',
   },
   {
@@ -1633,6 +2037,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Kyoto',
     description: "A towering bamboo forest path that has become one of Kyoto's most photographed walks.",
+    lat: 35.0168187,
+    lng: 135.6713013,
     image: 'https://readdy.ai/api/search-image?query=A%20towering%20bamboo%20grove%20with%20tall%20green%20stalks%20lining%20a%20winding%20path%2C%20soft%20light%20filtering%20through%20the%20dense%20bamboo%2C%20a%20few%20visitors%20walking%2C%20Arashiyama%20Bamboo%20Grove%20Kyoto%20Japan%2C%20tranquil%20and%20mesmerizing%2C%20atmospheric%20editorial%20travel%20photography%20with%20soft%20green%20light&width=800&height=600&seq=imagetest4-74&orientation=landscape',
   },
   {
@@ -1641,6 +2047,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Kyoto',
     description: 'A wooden bridge framing classic views of the Arashiyama mountains and river.',
+    lat: 35.0128769,
+    lng: 135.6777748,
     image: 'https://readdy.ai/api/search-image?query=A%20long%20wooden%20bridge%20crossing%20a%20wide%20river%2C%20forested%20hills%20and%20autumn%20maple%20trees%20rising%20behind%2C%20a%20boat%20on%20the%20calm%20water%2C%20Togetsukyo%20Bridge%20Arashiyama%20Kyoto%20Japan%2C%20scenic%20and%20iconic%2C%20vivid%20editorial%20travel%20photography%20with%20rich%20autumn%20light&width=800&height=600&seq=imagetest4-75&orientation=landscape',
   },
   {
@@ -1649,6 +2057,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Kyoto',
     description: "Kyoto's most famous geisha district, with preserved wooden townhouses lining narrow lanes.",
+    lat: 35.0037816,
+    lng: 135.777245,
     image: 'https://readdy.ai/api/search-image?query=A%20traditional%20Kyoto%20geisha%20district%20street%20at%20dusk%20with%20wooden%20machiya%20townhouses%2C%20hanging%20lanterns%20and%20tea%20houses%2C%20warm%20lights%20glowing%2C%20Gion%20Kyoto%20Japan%2C%20elegant%20and%20atmospheric%2C%20vivid%20editorial%20travel%20photography%20with%20warm%20evening%20light&width=800&height=600&seq=imagetest4-76&orientation=landscape',
   },
   {
@@ -1657,6 +2067,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Kyoto',
     description: "A shrine at the heart of Gion, central to the famous Gion Matsuri festival each July.",
+    lat: 35.0036559,
+    lng: 135.7785534,
     image: 'https://readdy.ai/api/search-image?query=A%20historic%20Shinto%20shrine%20with%20a%20vermilion%20main%20gate%20and%20hall%2C%20rows%20of%20red%20lanterns%20glowing%2C%20surrounded%20by%20trees%2C%20Yasaka%20Shrine%20Kyoto%20Japan%2C%20sacred%20and%20festive%2C%20vivid%20editorial%20travel%20photography%20with%20warm%20light&width=800&height=600&seq=imagetest4-77&orientation=landscape',
   },
   {
@@ -1665,6 +2077,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Kyoto',
     description: "A UNESCO World Heritage castle famous for its 'nightingale floors' that chirp to warn of intruders.",
+    lat: 35.0140379,
+    lng: 135.7484258,
     image: 'https://readdy.ai/api/search-image?query=A%20flatland%20castle%20with%20elegant%20white%20and%20gold%20decorated%20buildings%20and%20curved%20roofs%2C%20a%20wide%20moat%20and%20stone%20walls%2C%20pine%20trees%20in%20a%20garden%2C%20Nijo%20Castle%20Kyoto%20Japan%2C%20historic%20and%20grand%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest4-78&orientation=landscape',
   },
   {
@@ -1673,6 +2087,8 @@ export const destinations = [
     category: 'City & Food Culture',
     prefecture: 'Kyoto',
     description: "A narrow covered market street known as 'Kyoto's Kitchen,' packed with local food stalls.",
+    lat: 35.0050258,
+    lng: 135.764723,
     image: 'https://readdy.ai/api/search-image?query=A%20lively%20covered%20food%20market%20street%20with%20rows%20of%20colorful%20stalls%20selling%20fresh%20seafood%2C%20pickles%2C%20sweets%20and%20produce%2C%20hanging%20signs%20and%20lanterns%2C%20crowds%20of%20shoppers%2C%20Nishiki%20Market%20Kyoto%20Japan%2C%20bustling%20and%20vibrant%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20indoor%20light&width=800&height=600&seq=imagetest4-79&orientation=landscape',
   },
   {
@@ -1681,6 +2097,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Kyoto',
     description: 'A temple renowned for its spectacular autumn foliage framing traditional garden architecture.',
+    lat: 35.0148543,
+    lng: 135.7941588,
     image: 'https://readdy.ai/api/search-image?query=A%20Buddhist%20temple%20with%20wooden%20halls%20and%20a%20pagoda%20surrounded%20by%20brilliant%20red%20and%20orange%20maple%20trees%20in%20autumn%2C%20a%20pond%20garden%20reflecting%20the%20foliage%2C%20Eikan-do%20Kyoto%20Japan%2C%20stunning%20and%20serene%2C%20vivid%20editorial%20travel%20photography%20with%20rich%20autumn%20light&width=800&height=600&seq=imagetest4-80&orientation=landscape',
   },
   {
@@ -1689,6 +2107,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Kyoto',
     description: "A UNESCO World Heritage temple whose Phoenix Hall appears on the back of Japan's 10-yen coin.",
+    lat: 34.8892908,
+    lng: 135.8076783,
     image: 'https://readdy.ai/api/search-image?query=The%20elegant%20Phoenix%20Hall%20of%20Byodo-in%20temple%20with%20its%20curved%20winged%20roof%20and%20phoenix%20statue%2C%20reflected%20perfectly%20in%20a%20calm%20mirror%20pond%2C%20Uji%20Kyoto%20Japan%2C%20graceful%20and%20iconic%2C%20vivid%20editorial%20travel%20photography%20with%20soft%20daylight&width=800&height=600&seq=imagetest5-01&orientation=landscape',
   },
   {
@@ -1697,6 +2117,8 @@ export const destinations = [
     category: 'City & Food Culture',
     prefecture: 'Kyoto',
     description: 'A town famous as the birthplace of high-grade Japanese green tea, with matcha shops lining the streets near Byodo-in.',
+    lat: 34.8901729,
+    lng: 135.8105501,
     image: 'https://readdy.ai/api/search-image?query=A%20serene%20Japanese%20tea%20town%20with%20a%20wooden%20bridge%20over%20the%20Uji%20River%2C%20lush%20green%20tea%20fields%20on%20the%20hillside%20and%20a%20traditional%20tea%20house%2C%20Uji%20Kyoto%20Japan%2C%20peaceful%20and%20refined%2C%20soft%20editorial%20travel%20photography%20with%20warm%20light&width=800&height=600&seq=imagetest5-02&orientation=landscape',
   },
   {
@@ -1705,6 +2127,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Kyoto',
     description: "One of Japan's three scenic views, a narrow pine-covered sandbar stretching across a bay.",
+    lat: 35.5698022,
+    lng: 135.1918204,
     image: 'https://readdy.ai/api/search-image?query=A%20long%20pine%20covered%20sandbar%20stretching%20across%20a%20calm%20blue%20bay%2C%20viewed%20from%20a%20hillside%20viewpoint%2C%20the%20tree%20lined%20sandbar%20dividing%20the%20water%2C%20Amanohashidate%20Kyoto%20Japan%2C%20iconic%20and%20serene%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest5-03&orientation=landscape',
   },
   {
@@ -1713,6 +2137,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Kyoto',
     description: 'A fishing village of traditional boat houses built directly over the water\'s edge.',
+    lat: 35.675712,
+    lng: 135.2874835,
     image: 'https://readdy.ai/api/search-image?query=A%20row%20of%20traditional%20wooden%20boat%20houses%20built%20directly%20over%20the%20calm%20blue%20sea%2C%20small%20fishing%20boats%20moored%20beneath%20the%20houses%2C%20green%20hills%20behind%2C%20Ine%20no%20Funaya%20Kyoto%20Japan%2C%20unique%20and%20picturesque%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20coastal%20light&width=800&height=600&seq=imagetest5-04&orientation=landscape',
   },
   {
@@ -1721,6 +2147,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Kyoto',
     description: 'A rural village of thatched-roof farmhouses, especially picturesque under snow.',
+    lat: 35.3126378,
+    lng: 135.6225316,
     image: 'https://readdy.ai/api/search-image?query=A%20preserved%20rural%20village%20of%20traditional%20thatched%20roof%20farmhouses%20in%20a%20green%20mountain%20valley%2C%20rice%20fields%20and%20a%20clear%20stream%2C%20Miyama%20Kayabuki%20no%20Sato%20Kyoto%20Japan%2C%20rustic%20and%20serene%2C%20soft%20editorial%20travel%20photography%20with%20warm%20light&width=800&height=600&seq=imagetest5-05&orientation=landscape',
   },
   {
@@ -1729,6 +2157,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Osaka',
     description: 'A landmark castle and symbol of the city, surrounded by a park famous for cherry blossoms.',
+    lat: 34.6872571,
+    lng: 135.5258546,
     image: 'https://readdy.ai/api/search-image?query=A%20grand%20Japanese%20castle%20with%20white%20walls%2C%20green%20roofs%20and%20gold%20ornaments%2C%20standing%20on%20a%20high%20stone%20base%20surrounded%20by%20a%20wide%20moat%2C%20cherry%20trees%20and%20a%20clear%20sky%2C%20Osaka%20Castle%20Japan%2C%20majestic%20and%20iconic%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest5-06&orientation=landscape',
   },
   {
@@ -1737,6 +2167,8 @@ export const destinations = [
     category: 'City & Food Culture',
     prefecture: 'Osaka',
     description: "Osaka's iconic canal-side entertainment district, famous for its glowing neon signs and street food.",
+    lat: 34.6686471,
+    lng: 135.5030983,
     image: 'https://readdy.ai/api/search-image?query=A%20bustling%20canal%20side%20entertainment%20district%20at%20night%20with%20giant%20glowing%20neon%20signs%20and%20billboards%2C%20the%20famous%20Glico%20running%20man%20sign%2C%20crowds%20and%20food%20stalls%2C%20Dotonbori%20Osaka%20Japan%2C%20energetic%20and%20dazzling%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20night%20lights&width=800&height=600&seq=imagetest5-07&orientation=landscape',
   },
   {
@@ -1745,6 +2177,8 @@ export const destinations = [
     category: 'Shopping & Fashion',
     prefecture: 'Osaka',
     description: "A long covered shopping arcade at the heart of Osaka's retail district.",
+    lat: 34.6724248,
+    lng: 135.5010362,
     image: 'https://readdy.ai/api/search-image?query=A%20long%20covered%20shopping%20arcade%20with%20bright%20storefronts%2C%20luxury%20brand%20shops%20and%20department%20stores%2C%20crowds%20of%20shoppers%20walking%2C%20Shinsaibashi%20Osaka%20Japan%2C%20lively%20and%20upscale%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20indoor%20light&width=800&height=600&seq=imagetest5-08&orientation=landscape',
   },
   {
@@ -1753,6 +2187,8 @@ export const destinations = [
     category: 'City & Food Culture',
     prefecture: 'Osaka',
     description: "A lively covered market known as 'Osaka's Kitchen,' famous for fresh seafood and street food.",
+    lat: 34.6653511,
+    lng: 135.5062417,
     image: 'https://readdy.ai/api/search-image?query=A%20lively%20covered%20food%20market%20with%20rows%20of%20stalls%20selling%20fresh%20seafood%2C%20giant%20crabs%2C%20octopus%20and%20fruit%2C%20hanging%20signs%20and%20crowds%2C%20Kuromon%20Ichiba%20Market%20Osaka%20Japan%2C%20bustling%20and%20vibrant%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20indoor%20light&width=800&height=600&seq=imagetest5-09&orientation=landscape',
   },
   {
@@ -1761,6 +2197,8 @@ export const destinations = [
     category: 'City & Food Culture',
     prefecture: 'Osaka',
     description: 'A retro entertainment district built around a landmark tower, known for its nostalgic atmosphere and kushikatsu skewers.',
+    lat: 34.6524992,
+    lng: 135.5063058,
     image: 'https://readdy.ai/api/search-image?query=A%20retro%20Osaka%20district%20with%20the%20iconic%20Tsutenkaku%20tower%20rising%20above%2C%20colorful%20shop%20signs%20and%20kushikatsu%20restaurants%2C%20lanterns%20and%20a%20nostalgic%20atmosphere%2C%20Shinsekai%20Osaka%20Japan%2C%20retro%20and%20lively%2C%20vivid%20editorial%20travel%20photography%20with%20warm%20evening%20light&width=800&height=600&seq=imagetest5-10&orientation=landscape',
   },
   {
@@ -1769,6 +2207,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Osaka',
     description: "One of the world's largest aquariums, home to whale sharks in a massive central tank.",
+    lat: 34.6545182,
+    lng: 135.4289645,
     image: 'https://readdy.ai/api/search-image?query=A%20massive%20aquarium%20tank%20filled%20with%20a%20whale%20shark%2C%20manta%20rays%20and%20schools%20of%20fish%20swimming%20through%20deep%20blue%20water%2C%20visitors%20watching%20through%20a%20large%20viewing%20panel%2C%20Kaiyukan%20Osaka%20Japan%2C%20awe-inspiring%20and%20vast%2C%20vivid%20editorial%20travel%20photography%20with%20blue%20underwater%20light&width=800&height=600&seq=imagetest5-11&orientation=landscape',
   },
   {
@@ -1777,6 +2217,8 @@ export const destinations = [
     category: 'Theme Parks & Entertainment',
     prefecture: 'Osaka',
     description: 'A major movie-themed amusement park and one of the most visited theme parks in Japan.',
+    lat: 34.6656768,
+    lng: 135.4323185,
     image: 'https://readdy.ai/api/search-image?query=A%20colorful%20theme%20park%20entrance%20with%20a%20large%20spinning%20globe%20and%20movie%20themed%20architecture%2C%20a%20castle%20visible%20in%20the%20distance%2C%20crowds%20of%20excited%20visitors%2C%20Universal%20Studios%20Japan%20Osaka%2C%20fun%20and%20magical%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest5-12&orientation=landscape',
   },
   {
@@ -1785,6 +2227,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Osaka',
     description: 'A UNESCO World Heritage burial mound, one of the largest tombs in the world by area.',
+    lat: 34.5639426,
+    lng: 135.4874764,
     image: 'https://readdy.ai/api/search-image?query=An%20aerial%20view%20of%20a%20massive%20keyhole%20shaped%20ancient%20burial%20mound%20surrounded%20by%20a%20moat%20and%20trees%2C%20the%20enormous%20green%20tomb%20in%20a%20residential%20area%2C%20Daisen%20Kofun%20Osaka%20Japan%2C%20monumental%20and%20mysterious%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest5-13&orientation=landscape',
   },
   {
@@ -1793,6 +2237,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Osaka',
     description: 'A shrine famous for its giant lion-head-shaped stage, a popular photo spot in central Osaka.',
+    lat: 34.66155920000001,
+    lng: 135.4967039,
     image: 'https://readdy.ai/api/search-image?query=A%20striking%20shrine%20stage%20shaped%20like%20a%20giant%20lion%20head%20with%20a%20wide%20open%20mouth%20and%20fierce%20eyes%2C%20visitors%20standing%20in%20front%2C%20Namba%20Yasaka%20Shrine%20Osaka%20Japan%2C%20dramatic%20and%20unique%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest5-14&orientation=landscape',
   },
   {
@@ -1801,6 +2247,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Hyogo',
     description: "A UNESCO World Heritage castle and Japan's most celebrated original castle, nicknamed the White Heron for its elegant form.",
+    lat: 34.839449,
+    lng: 134.6939047,
     image: 'https://readdy.ai/api/search-image?query=A%20brilliant%20white%20Japanese%20castle%20with%20elegant%20multi%20tiered%20roofs%20and%20curved%20white%20walls%2C%20surrounded%20by%20stone%20walls%20and%20a%20moat%2C%20cherry%20blossoms%20blooming%2C%20Himeji%20Castle%20Hyogo%20Japan%2C%20majestic%20and%20pristine%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest5-15&orientation=landscape',
   },
   {
@@ -1809,6 +2257,8 @@ export const destinations = [
     category: 'City & Food Culture',
     prefecture: 'Hyogo',
     description: 'A waterfront district known for its night views and mix of shopping and dining by the port.',
+    lat: 34.6800711,
+    lng: 135.1835143,
     image: 'https://readdy.ai/api/search-image?query=A%20waterfront%20district%20with%20a%20red%20brick%20warehouse%2C%20a%20large%20Ferris%20wheel%20and%20modern%20buildings%2C%20a%20harbor%20with%20boats%20and%20a%20promenade%2C%20Kobe%20Harborland%20Hyogo%20Japan%2C%20cosmopolitan%20and%20scenic%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20coastal%20light&width=800&height=600&seq=imagetest5-16&orientation=landscape',
   },
   {
@@ -1817,6 +2267,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Hyogo',
     description: 'A hillside district of preserved Western-style residences built by foreign merchants in the Meiji era.',
+    lat: 34.7007283,
+    lng: 135.1907906,
     image: 'https://readdy.ai/api/search-image?query=A%20hillside%20street%20of%20elegant%20western%20style%20houses%20with%20pastel%20walls%2C%20steep%20roofs%20and%20decorative%20details%2C%20the%20historic%20foreign%20residences%20of%20Kitano%2C%20Kobe%20Hyogo%20Japan%2C%20charming%20and%20historic%2C%20vivid%20editorial%20travel%20photography%20with%20warm%20daylight&width=800&height=600&seq=imagetest5-17&orientation=landscape',
   },
   {
@@ -1825,6 +2277,8 @@ export const destinations = [
     category: 'Hot Springs & Nature',
     prefecture: 'Hyogo',
     description: "One of Japan's oldest hot spring towns, known for its distinctive golden and silver mineral waters.",
+    lat: 34.7978083,
+    lng: 135.2476961,
     image: 'https://readdy.ai/api/search-image?query=A%20historic%20hot%20spring%20town%20with%20traditional%20ryokan%20inns%2C%20steam%20rising%20from%20public%20baths%2C%20narrow%20streets%20with%20lanterns%20and%20autumn%20trees%2C%20Arima%20Onsen%20Hyogo%20Japan%2C%20relaxing%20and%20nostalgic%2C%20atmospheric%20editorial%20travel%20photography%20with%20warm%20light&width=800&height=600&seq=imagetest5-18&orientation=landscape',
   },
   {
@@ -1833,6 +2287,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Hyogo',
     description: "An observation deck ranked among Japan's three great night views, overlooking Kobe and Osaka Bay.",
+    lat: 34.7342415,
+    lng: 135.2063283,
     image: 'https://readdy.ai/api/search-image?query=A%20glittering%20panoramic%20night%20view%20of%20the%20Kobe%20and%20Osaka%20city%20lights%20spread%20across%20a%20wide%20bay%20below%20a%20mountain%20viewpoint%2C%20the%20bright%20city%20glowing%20against%20the%20dark%20sky%2C%20Mt.%20Maya%20Kikuseidai%20Hyogo%20Japan%2C%20dazzling%20and%20romantic%2C%20vivid%20editorial%20travel%20photography%20with%20dramatic%20night%20light&width=800&height=600&seq=imagetest5-19&orientation=landscape',
   },
   {
@@ -1841,6 +2297,8 @@ export const destinations = [
     category: 'Hot Springs & Nature',
     prefecture: 'Hyogo',
     description: 'A hot spring town famous for strolling between public bathhouses in a rented yukata robe.',
+    lat: 35.6241637,
+    lng: 134.8131005,
     image: 'https://readdy.ai/api/search-image?query=A%20willow%20lined%20canal%20in%20a%20hot%20spring%20town%20with%20traditional%20wooden%20ryokan%20and%20stone%20bridges%2C%20visitors%20in%20yukata%20and%20geta%20sandals%20strolling%2C%20warm%20lanterns%2C%20Kinosaki%20Onsen%20Hyogo%20Japan%2C%20nostalgic%20and%20relaxing%2C%20atmospheric%20editorial%20travel%20photography%20with%20warm%20evening%20light&width=800&height=600&seq=imagetest5-20&orientation=landscape',
   },
   {
@@ -1849,6 +2307,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Hyogo',
     description: "Ruins perched on a mountaintop, nicknamed the 'castle in the sky' for the sea of clouds that surrounds it in autumn.",
+    lat: 35.3004745,
+    lng: 134.8290454,
     image: 'https://readdy.ai/api/search-image?query=Stone%20castle%20ruins%20on%20a%20mountaintop%20floating%20above%20a%20sea%20of%20clouds%20and%20morning%20mist%2C%20the%20ancient%20walls%20appearing%20to%20hover%20in%20the%20sky%2C%20Takeda%20Castle%20Ruins%20Hyogo%20Japan%2C%20mystical%20and%20breathtaking%2C%20atmospheric%20editorial%20travel%20photography%20with%20soft%20morning%20light&width=800&height=600&seq=imagetest5-21&orientation=landscape',
   },
   {
@@ -1857,6 +2317,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Nara',
     description: "Home to one of the world's largest bronze Buddha statues, housed in an enormous wooden hall.",
+    lat: 34.6889851,
+    lng: 135.8398158,
     image: 'https://readdy.ai/api/search-image?query=A%20massive%20ancient%20bronze%20Buddha%20statue%20seated%20inside%20a%20vast%20wooden%20temple%20hall%2C%20the%20serene%20giant%20figure%20with%20intricate%20details%2C%20Todai-ji%20Nara%20Japan%2C%20awe-inspiring%20and%20sacred%2C%20soft%20editorial%20travel%20photography%20with%20warm%20indoor%20light&width=800&height=600&seq=imagetest5-22&orientation=landscape',
   },
   {
@@ -1865,6 +2327,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Nara',
     description: 'A park famous for its hundreds of freely roaming, friendly deer considered sacred messengers.',
+    lat: 34.685047,
+    lng: 135.843012,
     image: 'https://readdy.ai/api/search-image?query=Friendly%20wild%20deer%20roaming%20freely%20in%20a%20large%20park%2C%20one%20deer%20bowing%20for%20a%20treat%2C%20cherry%20blossom%20trees%20and%20a%20five%20story%20pagoda%20in%20the%20background%2C%20Nara%20Park%20Japan%2C%20charming%20and%20serene%2C%20vivid%20editorial%20travel%20photography%20with%20soft%20spring%20light&width=800&height=600&seq=imagetest5-23&orientation=landscape',
   },
   {
@@ -1873,6 +2337,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Nara',
     description: 'A UNESCO World Heritage shrine known for its thousands of bronze and stone lanterns lining forested paths.',
+    lat: 34.6815454,
+    lng: 135.8484719,
     image: 'https://readdy.ai/api/search-image?query=A%20vermilion%20Shinto%20shrine%20with%20rows%20of%20hanging%20bronze%20lanterns%20along%20its%20corridors%2C%20stone%20lanterns%20lining%20the%20approach%2C%20surrounded%20by%20ancient%20forest%2C%20Kasuga%20Taisha%20Nara%20Japan%2C%20sacred%20and%20atmospheric%2C%20soft%20editorial%20travel%20photography%20with%20gentle%20light&width=800&height=600&seq=imagetest5-24&orientation=landscape',
   },
   {
@@ -1881,6 +2347,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Nara',
     description: 'Home to some of the oldest surviving wooden buildings in the world, dating back over 1,300 years.',
+    lat: 34.6115268,
+    lng: 135.7390697,
     image: 'https://readdy.ai/api/search-image?query=An%20ancient%20wooden%20Buddhist%20temple%20with%20a%20five%20story%20pagoda%20and%20main%20hall%2C%20weathered%20timber%20and%20curved%20roofs%2C%20a%20gravel%20courtyard%2C%20Horyu-ji%20Nara%20Japan%2C%20ancient%20and%20revered%2C%20soft%20editorial%20travel%20photography%20with%20clear%20daylight&width=800&height=600&seq=imagetest5-25&orientation=landscape',
   },
   {
@@ -1889,6 +2357,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Nara',
     description: "Renowned as one of Japan's most spectacular cherry blossom destinations, with thousands of trees blanketing the mountainside.",
+    lat: 34.356433,
+    lng: 135.870617,
     image: 'https://readdy.ai/api/search-image?query=A%20mountain%20slope%20completely%20covered%20in%20thousands%20of%20blooming%20pink%20cherry%20blossom%20trees%2C%20the%20cherry%20trees%20blanketing%20the%20hillside%20in%20soft%20pink%2C%20Mt.%20Yoshino%20Nara%20Japan%2C%20breathtaking%20and%20romantic%2C%20vivid%20editorial%20travel%20photography%20with%20soft%20spring%20light&width=800&height=600&seq=imagetest5-26&orientation=landscape',
   },
   {
@@ -1897,6 +2367,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Nara',
     description: "A rural area scattered with ancient burial mounds and ruins from Japan's earliest imperial capital.",
+    lat: 34.4713594,
+    lng: 135.8206452,
     image: 'https://readdy.ai/api/search-image?query=A%20peaceful%20rural%20village%20with%20green%20rice%20paddies%2C%20ancient%20stone%20monuments%20and%20burial%20mounds%2C%20a%20traditional%20farmhouse%20and%20soft%20hills%2C%20Asuka%20Village%20Nara%20Japan%2C%20historic%20and%20tranquil%2C%20soft%20editorial%20travel%20photography%20with%20warm%20daylight&width=800&height=600&seq=imagetest5-27&orientation=landscape',
   },
   {
@@ -1905,6 +2377,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Wakayama',
     description: "A vast, atmospheric cemetery among towering cedars, considered one of Japan's most sacred pilgrimage sites.",
+    lat: 34.2229812,
+    lng: 135.6057225,
     image: 'https://readdy.ai/api/search-image?query=A%20long%20stone%20path%20through%20a%20vast%20sacred%20cemetery%20lined%20with%20towering%20cedar%20trees%2C%20moss%20covered%20stone%20lanterns%20and%20gravestones%2C%20misty%20and%20quiet%2C%20Koyasan%20Okunoin%20Wakayama%20Japan%2C%20solemn%20and%20mystical%2C%20atmospheric%20editorial%20travel%20photography%20with%20soft%20light&width=800&height=600&seq=imagetest5-28&orientation=landscape',
   },
   {
@@ -1913,6 +2387,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Wakayama',
     description: 'The head temple of Shingon Buddhism, with rock gardens and ornate painted screens.',
+    lat: 34.214028,
+    lng: 135.5840943,
     image: 'https://readdy.ai/api/search-image?query=A%20grand%20Buddhist%20temple%20hall%20with%20dark%20wooden%20architecture%20and%20a%20wide%20veranda%20overlooking%20a%20raked%20rock%20garden%2C%20sliding%20doors%20and%20tatami%2C%20Kongobu-ji%20Koyasan%20Wakayama%20Japan%2C%20serene%20and%20spiritual%2C%20soft%20editorial%20travel%20photography%20with%20natural%20light&width=800&height=600&seq=imagetest5-29&orientation=landscape',
   },
   {
@@ -1921,6 +2397,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Wakayama',
     description: 'The primary shrine of the Kumano faith, a key destination on the Kumano Kodo pilgrimage routes.',
+    lat: 33.8405706,
+    lng: 135.7734753,
     image: 'https://readdy.ai/api/search-image?query=A%20grand%20Shinto%20shrine%20with%20dark%20wooden%20buildings%20and%20thatched%20roofs%2C%20reached%20by%20a%20stone%20staircase%2C%20a%20massive%20torii%20gate%20in%20the%20distance%2C%20Kumano%20Hongu%20Taisha%20Wakayama%20Japan%2C%20sacred%20and%20majestic%2C%20soft%20editorial%20travel%20photography%20with%20natural%20light&width=800&height=600&seq=imagetest5-30&orientation=landscape',
   },
   {
@@ -1929,6 +2407,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Wakayama',
     description: 'A shrine built beside Nachi Falls, blending Shinto worship with dramatic natural scenery.',
+    lat: 33.6686506,
+    lng: 135.8901334,
     image: 'https://readdy.ai/api/search-image?query=A%20vermilion%20shrine%20pagoda%20standing%20against%20a%20tall%20waterfall%20cascading%20down%20a%20forested%20cliff%2C%20a%20sacred%20Shinto%20hall%20nearby%2C%20Kumano%20Nachi%20Taisha%20Wakayama%20Japan%2C%20dramatic%20and%20sacred%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest5-31&orientation=landscape',
   },
   {
@@ -1937,6 +2417,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Wakayama',
     description: "One of Japan's tallest waterfalls, sacred in its own right and framed by a nearby pagoda.",
+    lat: 33.6753396,
+    lng: 135.8876081,
     image: 'https://readdy.ai/api/search-image?query=A%20tall%20single%20drop%20waterfall%20plunging%20down%20a%20sheer%20forested%20cliff%20into%20a%20pool%20below%2C%20surrounded%20by%20dense%20green%20trees%20and%20a%20vermilion%20pagoda%2C%20Nachi%20Falls%20Wakayama%20Japan%2C%20powerful%20and%20sacred%2C%20vivid%20editorial%20travel%20photography%20with%20soft%20daylight&width=800&height=600&seq=imagetest5-32&orientation=landscape',
   },
   {
@@ -1945,6 +2427,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Wakayama',
     description: "A UNESCO World Heritage pilgrimage trail winding through misty mountain forest toward Kumano's grand shrines.",
+    lat: 33.8313914,
+    lng: 135.6416531,
     image: 'https://readdy.ai/api/search-image?query=A%20mossy%20stone%20pilgrimage%20trail%20winding%20through%20a%20dense%20forest%20and%20over%20a%20mountain%20pass%2C%20small%20stone%20shrines%20and%20markers%20along%20the%20path%2C%20Kumano%20Kodo%20Nakahechi%20Wakayama%20Japan%2C%20ancient%20and%20serene%2C%20atmospheric%20editorial%20travel%20photography%20with%20gentle%20forest%20light&width=800&height=600&seq=imagetest5-33&orientation=landscape',
   },
   {
@@ -1953,6 +2437,8 @@ export const destinations = [
     category: 'Beach & Lifestyle',
     prefecture: 'Wakayama',
     description: 'A white sand beach resort area, paired with hot springs overlooking the sea.',
+    lat: 33.6817259,
+    lng: 135.3444329,
     image: 'https://readdy.ai/api/search-image?query=A%20wide%20white%20sand%20beach%20with%20clear%20turquoise%20water%20and%20gentle%20waves%2C%20a%20natural%20rock%20arch%20and%20green%20islands%20offshore%2C%20beach%20umbrellas%20and%20swimmers%2C%20Shirarahama%20Beach%20Wakayama%20Japan%2C%20bright%20and%20relaxing%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20summer%20light&width=800&height=600&seq=imagetest5-34&orientation=landscape',
   },
   {
@@ -1961,6 +2447,8 @@ export const destinations = [
     category: 'Theme Parks & Entertainment',
     prefecture: 'Wakayama',
     description: 'A combined zoo, aquarium, and amusement park known for its giant panda breeding program.',
+    lat: 33.6679987,
+    lng: 135.3762072,
     image: 'https://readdy.ai/api/search-image?query=A%20giant%20panda%20sitting%20and%20eating%20bamboo%20in%20a%20lush%20enclosure%2C%20visitors%20watching%20from%20behind%20a%20fence%2C%20a%20safari%20park%20and%20amusement%20rides%20in%20the%20background%2C%20Adventure%20World%20Wakayama%20Japan%2C%20delightful%20and%20fun%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest5-35&orientation=landscape',
   },
   {
@@ -1969,6 +2457,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Tottori',
     description: "Japan's largest sand dune system, offering camel rides and paragliding across a coastal desert landscape.",
+    lat: 35.541528,
+    lng: 134.227759,
     image: 'https://readdy.ai/api/search-image?query=Vast%20rippling%20sand%20dunes%20with%20wind%20carved%20patterns%20stretching%20to%20the%20horizon%2C%20a%20few%20people%20walking%20along%20the%20crest%2C%20the%20sea%20visible%20in%20the%20distance%2C%20Tottori%20Sand%20Dunes%20Japan%2C%20expansive%20and%20dramatic%2C%20vivid%20editorial%20travel%20photography%20with%20warm%20golden%20light&width=800&height=600&seq=imagetest5-36&orientation=landscape',
   },
   {
@@ -1977,6 +2467,8 @@ export const destinations = [
     category: 'Pop Culture & Entertainment',
     prefecture: 'Tottori',
     description: 'A museum showcasing large-scale sand sculptures crafted by artists from around the world.',
+    lat: 35.5396253,
+    lng: 134.2383683,
     image: 'https://readdy.ai/api/search-image?query=Intricate%20large%20scale%20sand%20sculptures%20of%20castles%20and%20figures%20carved%20from%20compacted%20sand%2C%20the%20detailed%20sandy%20artwork%20inside%20a%20bright%20museum%20hall%2C%20Sand%20Museum%20Tottori%20Japan%2C%20impressive%20and%20artistic%2C%20bright%20editorial%20travel%20photography%20with%20even%20indoor%20light&width=800&height=600&seq=imagetest5-37&orientation=landscape',
   },
   {
@@ -1985,6 +2477,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Tottori',
     description: "A precariously perched temple hall built into a sheer cliff face, one of Japan's most dramatic religious structures.",
+    lat: 35.3965661,
+    lng: 133.9593861,
     image: 'https://readdy.ai/api/search-image?query=A%20wooden%20temple%20hall%20precariously%20built%20into%20a%20sheer%20cliff%20face%20on%20a%20rocky%20mountainside%2C%20the%20structure%20clinging%20to%20the%20rock%20high%20above%2C%20Mitokusan%20Sanbutsu-ji%20Tottori%20Japan%2C%20dramatic%20and%20awe-inspiring%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20alpine%20light&width=800&height=600&seq=imagetest5-38&orientation=landscape',
   },
   {
@@ -1993,6 +2487,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Tottori',
     description: 'The tallest peak in the Chugoku region, popular for hiking, autumn foliage, and winter skiing.',
+    lat: 35.37815,
+    lng: 133.5496956,
     image: 'https://readdy.ai/api/search-image?query=A%20grand%20mountain%20with%20a%20distinctive%20broad%20peak%20rising%20above%20a%20plain%20of%20green%20fields%2C%20a%20shrine%20gate%20and%20cedar%20forest%20in%20the%20foreground%2C%20Mt.%20Daisen%20Tottori%20Japan%2C%20majestic%20and%20sacred%2C%20vivid%20editorial%20travel%20photography%20with%20clear%20daylight&width=800&height=600&seq=imagetest5-39&orientation=landscape',
   },
   {
@@ -2001,6 +2497,8 @@ export const destinations = [
     category: 'Pop Culture & Entertainment',
     prefecture: 'Tottori',
     description: 'A shopping street lined with bronze statues of yokai folklore spirits from a celebrated manga artist.',
+    lat: 35.5450472,
+    lng: 133.2238167,
     image: 'https://readdy.ai/api/search-image?query=A%20shopping%20street%20lined%20with%20bronze%20statues%20of%20cute%20yokai%20monster%20characters%2C%20colorful%20shops%20and%20monster%20themed%20decorations%2C%20Sakaiminato%20Tottori%20Japan%2C%20playful%20and%20charming%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest5-40&orientation=landscape',
   },
   {
@@ -2009,6 +2507,8 @@ export const destinations = [
     category: 'Pop Culture & Entertainment',
     prefecture: 'Tottori',
     description: "A museum in the hometown of a celebrated manga creator, dedicated to his life and famous detective series.",
+    lat: 35.49803199999999,
+    lng: 133.7618098,
     image: 'https://readdy.ai/api/search-image?query=A%20modern%20museum%20with%20colorful%20manga%20character%20displays%20and%20illustrations%2C%20a%20statue%20of%20a%20boy%20detective%2C%20bright%20and%20playful%20interior%2C%20Gosho%20Aoyama%20Manga%20Factory%20Tottori%20Japan%2C%20fun%20and%20nostalgic%2C%20bright%20editorial%20travel%20photography%20with%20even%20indoor%20light&width=800&height=600&seq=imagetest5-41&orientation=landscape',
   },
   {
@@ -2017,6 +2517,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Shimane',
     description: "One of Japan's oldest and most important shrines, associated with matchmaking and the gathering of the gods.",
+    lat: 35.4018692,
+    lng: 132.6854693,
     image: 'https://readdy.ai/api/search-image?query=A%20grand%20Shinto%20shrine%20with%20dark%20wooden%20buildings%20and%20a%20massive%20sacred%20rope%20hanging%20from%20the%20hall%2C%20a%20wide%20approach%20with%20pine%20trees%2C%20Izumo%20Taisha%20Shimane%20Japan%2C%20ancient%20and%20sacred%2C%20soft%20editorial%20travel%20photography%20with%20natural%20light&width=800&height=600&seq=imagetest5-42&orientation=landscape',
   },
   {
@@ -2025,6 +2527,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Shimane',
     description: "One of Japan's original castle keeps, known for its striking black exterior overlooking the city.",
+    lat: 35.4751335,
+    lng: 133.0506783,
     image: 'https://readdy.ai/api/search-image?query=A%20black%20wooden%20Japanese%20castle%20with%20elegant%20curved%20roofs%20standing%20on%20a%20stone%20base%2C%20surrounded%20by%20a%20moat%20and%20pine%20trees%2C%20a%20clear%20sky%2C%20Matsue%20Castle%20Shimane%20Japan%2C%20historic%20and%20dignified%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest5-43&orientation=landscape',
   },
   {
@@ -2033,6 +2537,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Shimane',
     description: "Famous for its meticulously maintained Japanese gardens, ranked among the best in the country, viewed like living paintings from inside the museum.",
+    lat: 35.3804483,
+    lng: 133.194708,
     image: 'https://readdy.ai/api/search-image?query=A%20perfectly%20manicured%20Japanese%20garden%20viewed%20from%20a%20museum%20window%2C%20raked%20gravel%2C%20pine%20trees%2C%20a%20waterfall%20and%20pond%2C%20mountains%20in%20the%20distance%2C%20Adachi%20Museum%20of%20Art%20Shimane%20Japan%2C%20serene%20and%20exquisite%2C%20vivid%20editorial%20travel%20photography%20with%20soft%20daylight&width=800&height=600&seq=imagetest5-44&orientation=landscape',
   },
   {
@@ -2041,6 +2547,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Shimane',
     description: "A UNESCO World Heritage silver mine that once supplied a significant share of the world's silver.",
+    lat: 35.11313,
+    lng: 132.4437392,
     image: 'https://readdy.ai/api/search-image?query=A%20historic%20silver%20mining%20town%20with%20traditional%20wooden%20buildings%20and%20stone%20streets%2C%20a%20narrow%20mine%20tunnel%20entrance%2C%20green%20forested%20hills%2C%20Iwami%20Ginzan%20Shimane%20Japan%2C%20historic%20and%20atmospheric%2C%20soft%20editorial%20travel%20photography%20with%20warm%20light&width=800&height=600&seq=imagetest5-45&orientation=landscape',
   },
   {
@@ -2049,6 +2557,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Shimane',
     description: 'A remote island group and UNESCO Global Geopark known for dramatic cliffs and rugged natural scenery.',
+    lat: 36.2102418,
+    lng: 133.3286895,
     image: 'https://readdy.ai/api/search-image?query=A%20remote%20island%20coastline%20with%20dramatic%20basalt%20cliffs%20rising%20from%20clear%20blue%20water%2C%20a%20small%20fishing%20village%20and%20green%20hills%2C%20Oki%20Islands%20Shimane%20Japan%2C%20rugged%20and%20pristine%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20coastal%20light&width=800&height=600&seq=imagetest5-46&orientation=landscape',
   },
   {
@@ -2057,6 +2567,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Shimane',
     description: 'A beach tied to Japanese creation mythology, where deities are said to gather each autumn.',
+    lat: 35.400332,
+    lng: 132.6723669,
     image: 'https://readdy.ai/api/search-image?query=A%20sacred%20sandy%20beach%20with%20a%20small%20shrine%20and%20a%20torii%20gate%2C%20the%20calm%20blue%20sea%20and%20a%20soft%20sky%2C%20a%20spiritual%20atmosphere%2C%20Inasa%20no%20Hama%20Izumo%20Shimane%20Japan%2C%20serene%20and%20sacred%2C%20soft%20editorial%20travel%20photography%20with%20gentle%20light&width=800&height=600&seq=imagetest5-47&orientation=landscape',
   },
   {
@@ -2065,6 +2577,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Shimane',
     description: 'A traditional performing art combining dance, music, and elaborate costumes to reenact ancient myths.',
+    lat: 34.9026242,
+    lng: 132.0894439,
     image: 'https://readdy.ai/api/search-image?query=Performers%20in%20elaborate%20colorful%20costumes%20and%20ornate%20masks%20dancing%20on%20a%20stage%2C%20dynamic%20poses%20and%20dramatic%20expressions%2C%20taiko%20drums%2C%20Iwami%20Kagura%20Shimane%20Japan%2C%20vibrant%20and%20traditional%2C%20vivid%20editorial%20travel%20photography%20with%20stage%20lighting&width=800&height=600&seq=imagetest5-48&orientation=landscape',
   },
   {
@@ -2073,6 +2587,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Okayama',
     description: "One of Japan's three great gardens, laid out with expansive lawns and views of Okayama Castle.",
+    lat: 34.667767,
+    lng: 133.9359293,
     image: 'https://readdy.ai/api/search-image?query=A%20classic%20Japanese%20landscape%20garden%20with%20a%20wide%20lawn%2C%20a%20curved%20bridge%20over%20a%20pond%2C%20and%20a%20black%20castle%20visible%20in%20the%20background%2C%20Korakuen%20Okayama%20Japan%2C%20elegant%20and%20serene%2C%20vivid%20editorial%20travel%20photography%20with%20soft%20daylight&width=800&height=600&seq=imagetest5-49&orientation=landscape',
   },
   {
@@ -2081,6 +2597,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Okayama',
     description: "A castle nicknamed 'Crow Castle' for its black exterior, tied to the local legend of Momotaro.",
+    lat: 34.6651878,
+    lng: 133.9360657,
     image: 'https://readdy.ai/api/search-image?query=A%20black%20Japanese%20castle%20with%20white%20trim%20and%20elegant%20roofs%2C%20standing%20on%20a%20stone%20base%20above%20a%20moat%2C%20cherry%20trees%20and%20a%20clear%20sky%2C%20Okayama%20Castle%20Japan%2C%20striking%20and%20historic%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest5-50&orientation=landscape',
   },
   {
@@ -2089,6 +2607,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Okayama',
     description: 'A canal-lined merchant district of white-walled warehouses, now home to cafes and galleries.',
+    lat: 34.5957392,
+    lng: 133.7717651,
     image: 'https://readdy.ai/api/search-image?query=A%20historic%20canal%20lined%20with%20white%20walled%20storehouses%20and%20willow%20trees%2C%20a%20wooden%20boat%20gliding%20on%20the%20calm%20water%2C%20stone%20bridges%2C%20Kurashiki%20Bikan%20Okayama%20Japan%2C%20nostalgic%20and%20elegant%2C%20soft%20editorial%20travel%20photography%20with%20warm%20light&width=800&height=600&seq=imagetest5-51&orientation=landscape',
   },
   {
@@ -2097,6 +2617,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Okayama',
     description: "Japan's highest-elevation original castle, often photographed rising above a sea of clouds.",
+    lat: 34.8090559,
+    lng: 133.6219108,
     image: 'https://readdy.ai/api/search-image?query=An%20original%20wooden%20castle%20keep%20perched%20on%20a%20mountaintop%20floating%20above%20a%20sea%20of%20clouds%2C%20the%20small%20dark%20castle%20surrounded%20by%20mist%2C%20Bitchu%20Matsuyama%20Castle%20Okayama%20Japan%2C%20dramatic%20and%20mystical%2C%20atmospheric%20editorial%20travel%20photography%20with%20soft%20morning%20light&width=800&height=600&seq=imagetest5-52&orientation=landscape',
   },
   {
@@ -2105,6 +2627,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Hiroshima',
     description: 'A UNESCO World Heritage ruin preserved as a lasting memorial to the 1945 atomic bombing.',
+    lat: 34.395483,
+    lng: 132.453592,
     image: 'https://readdy.ai/api/search-image?query=A%20preserved%20skeletal%20dome%20of%20a%20building%20destroyed%20by%20an%20atomic%20bomb%2C%20the%20iconic%20ruins%20standing%20by%20a%20river%2C%20a%20calm%20and%20solemn%20atmosphere%2C%20Hiroshima%20Peace%20Memorial%20Japan%2C%20somber%20and%20historic%2C%20soft%20editorial%20travel%20photography%20with%20muted%20light&width=800&height=600&seq=imagetest5-53&orientation=landscape',
   },
   {
@@ -2113,6 +2637,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Hiroshima',
     description: 'A museum documenting the atomic bombing of Hiroshima and its lasting call for peace.',
+    lat: 34.3915027,
+    lng: 132.4531578,
     image: 'https://readdy.ai/api/search-image?query=A%20modern%20museum%20building%20with%20clean%20lines%20and%20a%20reflective%20pool%2C%20visitors%20entering%2C%20the%20Peace%20Memorial%20Park%20with%20green%20trees%2C%20Hiroshima%20Japan%2C%20solemn%20and%20reflective%2C%20soft%20editorial%20travel%20photography%20with%20clear%20daylight&width=800&height=600&seq=imagetest5-54&orientation=landscape',
   },
   {
@@ -2121,6 +2647,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Hiroshima',
     description: "A UNESCO World Heritage shrine famous for its torii gate appearing to float on the sea at high tide.",
+    lat: 34.29598960000001,
+    lng: 132.3198285,
     image: 'https://readdy.ai/api/search-image?query=A%20large%20vermilion%20torii%20gate%20standing%20in%20the%20shallow%20sea%2C%20appearing%20to%20float%20on%20the%20water%20at%20high%20tide%2C%20a%20shrine%20behind%20and%20green%20hills%2C%20Itsukushima%20Shrine%20Miyajima%20Hiroshima%20Japan%2C%20iconic%20and%20serene%2C%20vivid%20editorial%20travel%20photography%20with%20soft%20daylight&width=800&height=600&seq=imagetest5-55&orientation=landscape',
   },
   {
@@ -2129,6 +2657,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Hiroshima',
     description: 'The sacred mountain of Miyajima, offering sweeping views over the Seto Inland Sea.',
+    lat: 34.2795127,
+    lng: 132.3198084,
     image: 'https://readdy.ai/api/search-image?query=A%20panoramic%20view%20from%20a%20mountain%20peak%20over%20the%20many%20islands%20of%20the%20Seto%20Inland%20Sea%2C%20a%20small%20temple%20hall%20and%20stone%20lantern%20on%20the%20summit%2C%20Mt.%20Misen%20Miyajima%20Hiroshima%20Japan%2C%20scenic%20and%20expansive%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest5-56&orientation=landscape',
   },
   {
@@ -2137,6 +2667,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Hiroshima',
     description: 'A hillside port town of temples, cats, and sloping streets overlooking the Seto Inland Sea.',
+    lat: 34.4088998,
+    lng: 133.2049142,
     image: 'https://readdy.ai/api/search-image?query=A%20nostalgic%20hillside%20port%20town%20with%20narrow%20sloping%20lanes%2C%20old%20wooden%20buildings%20and%20temples%2C%20a%20view%20over%20the%20sea%20and%20islands%2C%20Onomichi%20Hiroshima%20Japan%2C%20charming%20and%20retro%2C%20soft%20editorial%20travel%20photography%20with%20warm%20light&width=800&height=600&seq=imagetest5-57&orientation=landscape',
   },
   {
@@ -2145,6 +2677,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Hiroshima',
     description: 'A scenic cycling route connecting a chain of islands across the Seto Inland Sea via a series of bridges.',
+    lat: 34.3443924,
+    lng: 133.1616778,
     image: 'https://readdy.ai/api/search-image?query=Cyclists%20riding%20across%20a%20long%20suspension%20bridge%20over%20the%20blue%20Seto%20Inland%20Sea%2C%20small%20green%20islands%20scattered%20across%20the%20water%2C%20Shimanami%20Kaido%20Hiroshima%20Japan%2C%20scenic%20and%20invigorating%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20coastal%20light&width=800&height=600&seq=imagetest5-58&orientation=landscape',
   },
   {
@@ -2153,6 +2687,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Hiroshima',
     description: "A museum in Kure exploring Japan's naval and shipbuilding history, centered on a large-scale battleship model.",
+    lat: 34.2411391,
+    lng: 132.5558555,
     image: 'https://readdy.ai/api/search-image?query=A%20large%20detailed%20scale%20model%20of%20the%20battleship%20Yamato%20displayed%20in%20a%20bright%20museum%20hall%2C%20surrounding%20maritime%20exhibits%20and%20displays%2C%20Yamato%20Museum%20Kure%20Hiroshima%20Japan%2C%20impressive%20and%20educational%2C%20bright%20editorial%20travel%20photography%20with%20even%20indoor%20light&width=800&height=600&seq=imagetest5-59&orientation=landscape',
   },
   {
@@ -2161,6 +2697,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Hiroshima',
     description: 'A small island known for its population of friendly wild rabbits and remnants of a former wartime facility.',
+    lat: 34.30906,
+    lng: 132.9939774,
     image: 'https://readdy.ai/api/search-image?query=Hundreds%20of%20friendly%20wild%20rabbits%20hopping%20on%20a%20grassy%20island%2C%20a%20curious%20rabbit%20approaching%2C%20a%20small%20dock%20and%20green%20hills%2C%20Okunoshima%20Rabbit%20Island%20Hiroshima%20Japan%2C%20adorable%20and%20peaceful%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest5-60&orientation=landscape',
   },
   {
@@ -2169,6 +2707,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Hiroshima',
     description: 'A historic port town that has served as the filming location for several films, retaining a nostalgic seaside atmosphere.',
+    lat: 34.3828651,
+    lng: 133.3812012,
     image: 'https://readdy.ai/api/search-image?query=A%20historic%20fishing%20port%20town%20with%20traditional%20wooden%20buildings%2C%20a%20harbor%20filled%20with%20boats%2C%20stone%20steps%20and%20lanterns%2C%20the%20calm%20sea%20and%20islands%2C%20Tomonoura%20Hiroshima%20Japan%2C%20nostalgic%20and%20scenic%2C%20soft%20editorial%20travel%20photography%20with%20warm%20light&width=800&height=600&seq=imagetest5-61&orientation=landscape',
   },
   {
@@ -2177,6 +2717,8 @@ export const destinations = [
     category: 'City & Food Culture',
     prefecture: 'Yamaguchi',
     description: 'A lively fish market in Shimonoseki famous for fresh sushi and the local specialty, pufferfish.',
+    lat: 33.9566087,
+    lng: 130.945824,
     image: 'https://readdy.ai/api/search-image?query=A%20lively%20fish%20market%20with%20stalls%20selling%20fresh%20seafood%20and%20fugu%20pufferfish%2C%20crowds%20of%20shoppers%2C%20colorful%20displays%20of%20fish%2C%20Karato%20Market%20Shimonoseki%20Yamaguchi%20Japan%2C%20bustling%20and%20vibrant%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20indoor%20light&width=800&height=600&seq=imagetest5-62&orientation=landscape',
   },
   {
@@ -2185,6 +2727,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Yamaguchi',
     description: 'A long bridge stretching across brilliant turquoise water, popular for scenic drives.',
+    lat: 34.3512369,
+    lng: 130.8892142,
     image: 'https://readdy.ai/api/search-image?query=A%20long%20graceful%20bridge%20curving%20over%20vivid%20emerald%20green%20sea%20water%2C%20connecting%20the%20mainland%20to%20a%20green%20island%2C%20a%20clear%20blue%20sky%2C%20Tsunoshima%20Bridge%20Yamaguchi%20Japan%2C%20stunning%20and%20scenic%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20coastal%20light&width=800&height=600&seq=imagetest5-63&orientation=landscape',
   },
   {
@@ -2193,6 +2737,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Yamaguchi',
     description: 'A striking row of over a hundred torii gates lining a cliff overlooking the sea.',
+    lat: 34.4197015,
+    lng: 131.0626655,
     image: 'https://readdy.ai/api/search-image?query=A%20long%20line%20of%20bright%20red%20torii%20gates%20winding%20down%20a%20cliffside%20toward%20the%20blue%20sea%2C%20the%20vermilion%20gates%20contrasting%20with%20the%20ocean%20and%20rocks%2C%20Motonosumi%20Inari%20Shrine%20Yamaguchi%20Japan%2C%20striking%20and%20beautiful%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest5-64&orientation=landscape',
   },
   {
@@ -2201,6 +2747,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Yamaguchi',
     description: "A UNESCO World Heritage town preserving samurai residences tied to Japan's Meiji Restoration.",
+    lat: 34.413012,
+    lng: 131.3937628,
     image: 'https://readdy.ai/api/search-image?query=A%20historic%20samurai%20town%20with%20white%20walled%20residences%20and%20earthen%20fences%2C%20a%20quiet%20street%20with%20stone%20walls%20and%20pine%20trees%2C%20Hagi%20Castle%20Town%20Yamaguchi%20Japan%2C%20historic%20and%20peaceful%2C%20soft%20editorial%20travel%20photography%20with%20warm%20daylight&width=800&height=600&seq=imagetest5-65&orientation=landscape',
   },
   {
@@ -2209,6 +2757,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Yamaguchi',
     description: "One of Japan's largest limestone caves, with dramatic formations and an underground river.",
+    lat: 34.2281082,
+    lng: 131.3035348,
     image: 'https://readdy.ai/api/search-image?query=A%20vast%20limestone%20cave%20with%20towering%20stalactites%20and%20stalagmites%2C%20an%20underground%20river%20and%20pools%2C%20dramatic%20rock%20formations%20under%20soft%20lighting%2C%20Akiyoshido%20Cave%20Yamaguchi%20Japan%2C%20mysterious%20and%20majestic%2C%20atmospheric%20editorial%20travel%20photography%20with%20cave%20lighting&width=800&height=600&seq=imagetest5-66&orientation=landscape',
   },
   {
@@ -2217,6 +2767,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Yamaguchi',
     description: "A vast grassy plateau dotted with limestone rock formations, sitting above the Akiyoshido cave system.",
+    lat: 34.2540507,
+    lng: 131.3043183,
     image: 'https://readdy.ai/api/search-image?query=A%20vast%20karst%20plateau%20of%20white%20limestone%20rocks%20scattered%20across%20rolling%20green%20grassland%2C%20a%20wide%20open%20landscape%20under%20a%20blue%20sky%2C%20Akiyoshidai%20Karst%20Yamaguchi%20Japan%2C%20expansive%20and%20striking%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest5-67&orientation=landscape',
   },
   {
@@ -2225,6 +2777,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Yamaguchi',
     description: 'An elegant wooden arch bridge, rebuilt using traditional joinery techniques without any nails.',
+    lat: 34.16759589999999,
+    lng: 132.1784105,
     image: 'https://readdy.ai/api/search-image?query=A%20beautiful%20wooden%20bridge%20with%20five%20graceful%20arches%20spanning%20a%20calm%20river%2C%20cherry%20trees%20blooming%20along%20the%20banks%2C%20a%20castle%20on%20a%20hill%20behind%2C%20Kintai%20Bridge%20Iwakuni%20Yamaguchi%20Japan%2C%20elegant%20and%20iconic%2C%20vivid%20editorial%20travel%20photography%20with%20soft%20spring%20light&width=800&height=600&seq=imagetest5-68&orientation=landscape',
   },
   {
@@ -2233,6 +2787,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Yamaguchi',
     description: "A nationally treasured pagoda considered one of Japan's most beautifully proportioned wooden structures.",
+    lat: 34.1901821,
+    lng: 131.4728985,
     image: 'https://readdy.ai/api/search-image?query=A%20five%20story%20wooden%20pagoda%20with%20a%20curved%20roof%20reflected%20in%20a%20calm%20pond%2C%20surrounded%20by%20trees%20and%20a%20temple%2C%20Rurikoji%20Yamaguchi%20Japan%2C%20elegant%20and%20serene%2C%20vivid%20editorial%20travel%20photography%20with%20soft%20daylight&width=800&height=600&seq=imagetest5-69&orientation=landscape',
   },
   {
@@ -2241,6 +2797,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Tokushima',
     description: 'Some of the largest tidal whirlpools in the world, best viewed from a sightseeing boat or the Onaruto Bridge walkway.',
+    lat: 34.2367554,
+    lng: 134.6479661,
     image: 'https://readdy.ai/api/search-image?query=Natural%20whirlpools%20swirling%20in%20the%20sea%20beneath%20a%20large%20suspension%20bridge%2C%20the%20turbulent%20circular%20currents%20in%20the%20blue%20water%2C%20Naruto%20Whirlpools%20Tokushima%20Japan%2C%20dramatic%20and%20powerful%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20coastal%20light&width=800&height=600&seq=imagetest5-70&orientation=landscape',
   },
   {
@@ -2249,6 +2807,8 @@ export const destinations = [
     category: 'Pop Culture & Entertainment',
     prefecture: 'Tokushima',
     description: 'A museum displaying full-scale ceramic reproductions of famous Western paintings, from cave art to modern masterpieces.',
+    lat: 34.2323817,
+    lng: 134.6379821,
     image: 'https://readdy.ai/api/search-image?query=A%20long%20gallery%20wall%20lined%20with%20full%20scale%20ceramic%20reproductions%20of%20famous%20Western%20paintings%2C%20visitors%20viewing%20the%20artwork%2C%20Otsuka%20Museum%20of%20Art%20Tokushima%20Japan%2C%20impressive%20and%20cultural%2C%20bright%20editorial%20travel%20photography%20with%20even%20gallery%20light&width=800&height=600&seq=imagetest5-71&orientation=landscape',
   },
   {
@@ -2257,6 +2817,8 @@ export const destinations = [
     category: 'Festivals & Events',
     prefecture: 'Tokushima',
     description: "One of Japan's largest traditional dance festivals, filling the streets of Tokushima with dancers each August.",
+    lat: 34.070881,
+    lng: 134.54743,
     image: 'https://readdy.ai/api/search-image?query=Dancers%20in%20colorful%20yukata%20and%20straw%20hats%20performing%20a%20lively%20group%20dance%20in%20the%20street%2C%20musicians%20with%20shamisen%20and%20drums%2C%20Awa%20Odori%20Festival%20Tokushima%20Japan%2C%20energetic%20and%20festive%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20evening%20light&width=800&height=600&seq=imagetest5-72&orientation=landscape',
   },
   {
@@ -2265,6 +2827,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Tokushima',
     description: "A vine suspension bridge deep in a remote mountain valley, one of Japan's three unusual bridges.",
+    lat: 33.8751331,
+    lng: 133.8353996,
     image: 'https://readdy.ai/api/search-image?query=A%20swaying%20suspension%20bridge%20made%20of%20woven%20vines%20spanning%20a%20deep%20forested%20gorge%2C%20a%20person%20carefully%20crossing%20the%20bridge%20over%20the%20river%20below%2C%20Iya%20Kazurabashi%20Tokushima%20Japan%2C%20thrilling%20and%20scenic%2C%20vivid%20editorial%20travel%20photography%20with%20soft%20natural%20light&width=800&height=600&seq=imagetest5-73&orientation=landscape',
   },
   {
@@ -2273,6 +2837,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Tokushima',
     description: "A remote, steep-sided gorge long considered one of Japan's most secluded mountain regions.",
+    lat: 33.90471987966281,
+    lng: 133.9243603829617,
     image: 'https://readdy.ai/api/search-image?query=A%20deep%20remote%20mountain%20valley%20with%20steep%20green%20gorges%20and%20a%20winding%20river%2C%20a%20thatched%20farmhouse%20on%20a%20hillside%2C%20mist%20over%20the%20peaks%2C%20Iya%20Valley%20Tokushima%20Japan%2C%20rugged%20and%20secluded%2C%20atmospheric%20editorial%20travel%20photography%20with%20soft%20light&width=800&height=600&seq=imagetest5-74&orientation=landscape',
   },
   {
@@ -2281,6 +2847,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Tokushima',
     description: 'A dramatic river gorge popular for whitewater rafting between towering rock walls.',
+    lat: 33.9365389,
+    lng: 133.7549333,
     image: 'https://readdy.ai/api/search-image?query=A%20dramatic%20river%20gorge%20with%20steep%20rocky%20cliffs%20and%20unusual%20rock%20formations%2C%20a%20sightseeing%20boat%20on%20the%20green%20water%2C%20autumn%20foliage%2C%20Oboke%20Koboke%20Gorge%20Tokushima%20Japan%2C%20striking%20and%20scenic%2C%20vivid%20editorial%20travel%20photography%20with%20rich%20autumn%20light&width=800&height=600&seq=imagetest5-75&orientation=landscape',
   },
   {
@@ -2289,6 +2857,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Kagawa',
     description: "A former feudal lord's garden considered one of Japan's most beautifully composed traditional landscapes.",
+    lat: 34.3299036,
+    lng: 134.0457696,
     image: 'https://readdy.ai/api/search-image?query=A%20large%20classic%20Japanese%20landscape%20garden%20with%20ponds%2C%20arched%20bridges%2C%20pine%20trees%20and%20a%20tea%20house%2C%20a%20green%20mountain%20in%20the%20background%2C%20Ritsurin%20Garden%20Takamatsu%20Kagawa%20Japan%2C%20elegant%20and%20serene%2C%20vivid%20editorial%20travel%20photography%20with%20soft%20daylight&width=800&height=600&seq=imagetest5-76&orientation=landscape',
   },
   {
@@ -2297,6 +2867,8 @@ export const destinations = [
     category: 'Pop Culture & Entertainment',
     prefecture: 'Kagawa',
     description: 'An island transformed into an open-air contemporary art destination, dotted with museums and site-specific installations.',
+    lat: 34.4599166,
+    lng: 133.9952438,
     image: 'https://readdy.ai/api/search-image?query=An%20art%20island%20with%20a%20giant%20polka%20dotted%20yellow%20pumpkin%20sculpture%20by%20the%20sea%2C%20modern%20art%20installations%20and%20a%20small%20port%2C%20Naoshima%20Kagawa%20Japan%2C%20artistic%20and%20playful%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20coastal%20light&width=800&height=600&seq=imagetest5-77&orientation=landscape',
   },
   {
@@ -2305,6 +2877,8 @@ export const destinations = [
     category: 'Pop Culture & Entertainment',
     prefecture: 'Kagawa',
     description: "An underground museum designed by a renowned architect, built to showcase a small collection of celebrated modern paintings.",
+    lat: 34.4477479,
+    lng: 133.9847175,
     image: 'https://readdy.ai/api/search-image?query=An%20underground%20art%20museum%20with%20minimalist%20concrete%20walls%20and%20natural%20light%20wells%2C%20a%20large%20Monet%20water%20lilies%20painting%20on%20display%2C%20Chichu%20Art%20Museum%20Naoshima%20Kagawa%20Japan%2C%20serene%20and%20modern%2C%20soft%20editorial%20travel%20photography%20with%20natural%20light&width=800&height=600&seq=imagetest5-78&orientation=landscape',
   },
   {
@@ -2313,6 +2887,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Kagawa',
     description: 'An island known for its olive groves and dramatic gorge scenery reminiscent of the Mediterranean.',
+    lat: 34.4818325,
+    lng: 134.2336123,
     image: 'https://readdy.ai/api/search-image?query=An%20island%20with%20green%20olive%20groves%20and%20terraced%20fields%2C%20a%20windmill%20and%20the%20blue%20Seto%20Inland%20Sea%20beyond%2C%20Shodoshima%20Kagawa%20Japan%2C%20scenic%20and%20Mediterranean%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest5-79&orientation=landscape',
   },
   {
@@ -2321,6 +2897,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Kagawa',
     description: 'A mountainside shrine reached by over a thousand stone steps, a popular pilgrimage destination for centuries.',
+    lat: 34.1839981,
+    lng: 133.8095371,
     image: 'https://readdy.ai/api/search-image?query=A%20long%20stone%20staircase%20of%20hundreds%20of%20steps%20climbing%20a%20forested%20hillside%20toward%20a%20shrine%20gate%2C%20lanterns%20and%20shop%20buildings%20along%20the%20way%2C%20Kotohiragu%20Kagawa%20Japan%2C%20sacred%20and%20impressive%2C%20soft%20editorial%20travel%20photography%20with%20natural%20light&width=800&height=600&seq=imagetest5-80&orientation=landscape',
   },
   {
@@ -2329,6 +2907,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Kagawa',
     description: "A tidal flat beach nicknamed the 'Mirror of the Sky' for its striking reflective surface at low tide.",
+    lat: 34.1909187,
+    lng: 133.6488583,
     image: 'https://readdy.ai/api/search-image?query=A%20shallow%20beach%20at%20low%20tide%20with%20a%20mirror%20like%20reflection%20of%20the%20sky%20and%20people%20walking%2C%20the%20water%20perfectly%20reflecting%20the%20sunset%20colors%2C%20Chichibugahama%20Beach%20Kagawa%20Japan%2C%20magical%20and%20surreal%2C%20vivid%20editorial%20travel%20photography%20with%20golden%20sunset%20light&width=800&height=600&seq=imagetest5-81&orientation=landscape',
   },
   {
@@ -2337,6 +2917,8 @@ export const destinations = [
     category: 'Hot Springs & Nature',
     prefecture: 'Ehime',
     description: "One of Japan's oldest hot spring bathhouses, with a history stretching back over a thousand years.",
+    lat: 33.8520748,
+    lng: 132.7864098,
     image: 'https://readdy.ai/api/search-image?query=A%20historic%20three%20story%20wooden%20bathhouse%20with%20a%20distinctive%20tower%20and%20red%20lanterns%2C%20intricate%20architectural%20details%2C%20visitors%20in%20yukata%2C%20Dogo%20Onsen%20Honkan%20Matsuyama%20Ehime%20Japan%2C%20nostalgic%20and%20elegant%2C%20atmospheric%20editorial%20travel%20photography%20with%20warm%20evening%20light&width=800&height=600&seq=imagetest5-82&orientation=landscape',
   },
   {
@@ -2345,6 +2927,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Ehime',
     description: "One of Japan's original castle keeps, reachable by ropeway with sweeping city views.",
+    lat: 33.8455768,
+    lng: 132.7655346,
     image: 'https://readdy.ai/api/search-image?query=A%20hilltop%20Japanese%20castle%20with%20white%20walls%20and%20elegant%20roofs%20overlooking%20a%20city%20below%2C%20stone%20walls%20and%20a%20cable%20car%20line%2C%20Matsuyama%20Castle%20Ehime%20Japan%2C%20historic%20and%20grand%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest5-83&orientation=landscape',
   },
   {
@@ -2353,6 +2937,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Ehime',
     description: "A high-elevation limestone plateau with a scenic 'road in the sky' running along its ridge.",
+    lat: 33.4691171,
+    lng: 132.9672674,
     image: 'https://readdy.ai/api/search-image?query=A%20highland%20karst%20plateau%20with%20rolling%20green%20grassland%20and%20white%20limestone%20rocks%2C%20grazing%20cows%20and%20wind%20turbines%2C%20a%20wide%20open%20sky%2C%20Shikoku%20Karst%20Ehime%20Japan%2C%20expansive%20and%20pastoral%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest5-84&orientation=landscape',
   },
   {
@@ -2361,6 +2947,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Ehime',
     description: 'A remote train station perched directly beside the sea, beloved for its sunset views.',
+    lat: 33.6551644,
+    lng: 132.5893398,
     image: 'https://readdy.ai/api/search-image?query=A%20small%20unmanned%20train%20station%20platform%20with%20a%20view%20of%20the%20blue%20sea%20and%20horizon%2C%20a%20bench%20facing%20the%20ocean%2C%20a%20golden%20sunset%20over%20the%20water%2C%20Shimonada%20Station%20Ehime%20Japan%2C%20peaceful%20and%20nostalgic%2C%20vivid%20editorial%20travel%20photography%20with%20warm%20sunset%20light&width=800&height=600&seq=imagetest5-85&orientation=landscape',
   },
   {
@@ -2369,6 +2957,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Kochi',
     description: "One of Japan's original castle keeps, uniquely preserving both its main tower and palace-style entrance hall.",
+    lat: 33.5608125,
+    lng: 133.5314844,
     image: 'https://readdy.ai/api/search-image?query=An%20original%20white%20Japanese%20castle%20with%20elegant%20roofs%20standing%20on%20a%20stone%20base%2C%20surrounded%20by%20green%20trees%20and%20a%20moat%2C%20Kochi%20Castle%20Japan%2C%20historic%20and%20dignified%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest5-86&orientation=landscape',
   },
   {
@@ -2377,6 +2967,8 @@ export const destinations = [
     category: 'City & Food Culture',
     prefecture: 'Kochi',
     description: 'A lively indoor food market famous for seared bonito and a festive, communal dining atmosphere.',
+    lat: 33.560116,
+    lng: 133.535937,
     image: 'https://readdy.ai/api/search-image?query=A%20lively%20indoor%20food%20market%20with%20many%20small%20food%20stalls%20and%20shared%20tables%2C%20crowds%20of%20people%20eating%20and%20drinking%2C%20a%20bustling%20casual%20atmosphere%2C%20Hirome%20Market%20Kochi%20Japan%2C%20vibrant%20and%20delicious%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20indoor%20light&width=800&height=600&seq=imagetest5-87&orientation=landscape',
   },
   {
@@ -2385,6 +2977,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Kochi',
     description: 'A scenic beach associated with the historical figure Sakamoto Ryoma, overlooking the Pacific Ocean.',
+    lat: 33.497459,
+    lng: 133.574867,
     image: 'https://readdy.ai/api/search-image?query=A%20crescent%20shaped%20beach%20with%20pine%20trees%2C%20a%20bronze%20statue%20of%20a%20samurai%20standing%20on%20a%20hill%20overlooking%20the%20sea%2C%20Katsurahama%20Kochi%20Japan%2C%20scenic%20and%20historic%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20coastal%20light&width=800&height=600&seq=imagetest5-88&orientation=landscape',
   },
   {
@@ -2393,6 +2987,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Kochi',
     description: "Known as Japan's last clear stream, famous for its low-lying submersible bridges.",
+    lat: 33.19173017889097,
+    lng: 132.9802372745807,
     image: 'https://readdy.ai/api/search-image?query=A%20pristine%20clear%20river%20winding%20through%20green%20mountains%2C%20a%20low%20submerged%20bridge%20without%20railings%20crossing%20the%20water%2C%20Shimanto%20River%20Kochi%20Japan%2C%20clear%20and%20unspoiled%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest5-89&orientation=landscape',
   },
   {
@@ -2401,6 +2997,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Kochi',
     description: "Renowned for its uniquely vivid blue water color, often called 'Niyodo Blue.'",
+    lat: 33.53277449787487,
+    lng: 133.2734461470251,
     image: 'https://readdy.ai/api/search-image?query=A%20river%20with%20astonishingly%20clear%20transparent%20blue%20water%20flowing%20over%20rocks%2C%20the%20vivid%20turquoise%20color%20called%20Niyodo%20blue%2C%20green%20trees%20along%20the%20banks%2C%20Niyodo%20River%20Kochi%20Japan%2C%20pristine%20and%20beautiful%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest5-90&orientation=landscape',
   },
   {
@@ -2409,6 +3007,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Kochi',
     description: 'A strikingly blue waterfall pool tucked deep within the forest, reachable by a short hike.',
+    lat: 33.7050909,
+    lng: 133.3411744,
     image: 'https://readdy.ai/api/search-image?query=A%20deep%20pool%20of%20otherworldly%20blue%20water%20in%20a%20forested%20river%20gorge%2C%20the%20vivid%20blue%20water%20surrounded%20by%20rocks%20and%20green%20trees%2C%20Nikobuchi%20Niyodo%20River%20Kochi%20Japan%2C%20mystical%20and%20beautiful%2C%20vivid%20editorial%20travel%20photography%20with%20soft%20natural%20light&width=800&height=600&seq=imagetest5-91&orientation=landscape',
   },
   {
@@ -2417,6 +3017,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Kochi',
     description: 'A dramatic cape near the southern tip of Shikoku, with cliffside views over the open Pacific.',
+    lat: 32.7238386,
+    lng: 133.0203158,
     image: 'https://readdy.ai/api/search-image?query=A%20dramatic%20cape%20with%20rugged%20cliffs%20dropping%20into%20the%20blue%20ocean%2C%20a%20white%20lighthouse%20on%20a%20rocky%20point%2C%20waves%20crashing%20below%2C%20Cape%20Ashizuri%20Kochi%20Japan%2C%20wild%20and%20scenic%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20coastal%20light&width=800&height=600&seq=imagetest5-92&orientation=landscape',
   },
   {
@@ -2425,6 +3027,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Fukuoka',
     description: 'A shrine dedicated to the deity of scholarship, popular with students visiting to pray for academic success.',
+    lat: 33.5213697,
+    lng: 130.5348239,
     image: 'https://readdy.ai/api/search-image?query=A%20grand%20Shinto%20shrine%20with%20vermilion%20buildings%20and%20a%20sacred%20bridge%20over%20a%20pond%2C%20plum%20trees%20and%20a%20stone%20torii%20gate%2C%20Dazaifu%20Tenmangu%20Fukuoka%20Japan%2C%20sacred%20and%20elegant%2C%20soft%20editorial%20travel%20photography%20with%20warm%20daylight&width=800&height=600&seq=imagetest5-93&orientation=landscape',
   },
   {
@@ -2433,6 +3037,8 @@ export const destinations = [
     category: 'City & Food Culture',
     prefecture: 'Fukuoka',
     description: 'A riverside strip of open-air food stalls serving ramen and local specialties after dark.',
+    lat: 33.5899407,
+    lng: 130.4089399,
     image: 'https://readdy.ai/api/search-image?query=Rows%20of%20open%20air%20food%20stalls%20with%20glowing%20lanterns%20along%20a%20river%20at%20night%2C%20steam%20rising%20from%20ramen%20pots%2C%20customers%20sitting%20on%20stools%2C%20Nakasu%20Yatai%20Fukuoka%20Japan%2C%20lively%20and%20delicious%2C%20atmospheric%20editorial%20travel%20photography%20with%20warm%20night%20light&width=800&height=600&seq=imagetest5-94&orientation=landscape',
   },
   {
@@ -2441,6 +3047,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Fukuoka',
     description: "Fukuoka's guardian shrine, home to the elaborate floats of the Hakata Gion Yamakasa festival.",
+    lat: 33.5929546,
+    lng: 130.4104589,
     image: 'https://readdy.ai/api/search-image?query=A%20historic%20Shinto%20shrine%20with%20a%20large%20wooden%20gate%20and%20vermilion%20hall%2C%20stone%20lanterns%20and%20a%20sacred%20tree%2C%20Kushida%20Shrine%20Hakata%20Fukuoka%20Japan%2C%20sacred%20and%20lively%2C%20soft%20editorial%20travel%20photography%20with%20warm%20daylight&width=800&height=600&seq=imagetest5-95&orientation=landscape',
   },
   {
@@ -2449,6 +3057,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Fukuoka',
     description: 'A coastal area of cafes and beaches known for scenic ocean views and a laid-back atmosphere.',
+    lat: 33.5584765,
+    lng: 130.1945228,
     image: 'https://readdy.ai/api/search-image?query=A%20coastal%20area%20with%20a%20white%20torii%20gate%20standing%20on%20a%20beach%20with%20a%20view%20of%20two%20sacred%20rocks%20in%20the%20sea%2C%20the%20setting%20sun%2C%20Itoshima%20Fukuoka%20Japan%2C%20scenic%20and%20spiritual%2C%20vivid%20editorial%20travel%20photography%20with%20warm%20sunset%20light&width=800&height=600&seq=imagetest5-96&orientation=landscape',
   },
   {
@@ -2457,6 +3067,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Fukuoka',
     description: "A historic port district of preserved Western-style buildings from Japan's early modern era.",
+    lat: 33.9498794,
+    lng: 130.9642141,
     image: 'https://readdy.ai/api/search-image?query=A%20retro%20waterfront%20district%20with%20restored%20early%20twentieth%20century%20brick%20and%20stone%20buildings%2C%20a%20historic%20station%20and%20harbor%2C%20a%20drawbridge%2C%20Mojiko%20Retro%20Kitakyushu%20Fukuoka%20Japan%2C%20nostalgic%20and%20elegant%2C%20soft%20editorial%20travel%20photography%20with%20warm%20light&width=800&height=600&seq=imagetest5-97&orientation=landscape',
   },
   {
@@ -2465,6 +3077,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Fukuoka',
     description: 'A leisurely punted boat ride through a network of historic canals lined with willow trees.',
+    lat: 33.1667784,
+    lng: 130.4138678,
     image: 'https://readdy.ai/api/search-image?query=A%20flat%20bottomed%20boat%20carrying%20tourists%20gliding%20through%20a%20narrow%20willow%20lined%20canal%2C%20a%20boatman%20punting%20with%20a%20long%20pole%2C%20Yanagawa%20Fukuoka%20Japan%2C%20peaceful%20and%20scenic%2C%20soft%20editorial%20travel%20photography%20with%20warm%20daylight&width=800&height=600&seq=imagetest5-98&orientation=landscape',
   },
   {
@@ -2473,6 +3087,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Fukuoka',
     description: 'A UNESCO World Heritage shrine complex tied to ancient maritime worship and safe voyages.',
+    lat: 33.8310594,
+    lng: 130.5143997,
     image: 'https://readdy.ai/api/search-image?query=A%20serene%20Shinto%20shrine%20with%20wooden%20buildings%20and%20a%20torii%20gate%2C%20surrounded%20by%20trees%20and%20a%20gravel%20path%2C%20Munakata%20Taisha%20Fukuoka%20Japan%2C%20sacred%20and%20peaceful%2C%20soft%20editorial%20travel%20photography%20with%20natural%20light&width=800&height=600&seq=imagetest5-99&orientation=landscape',
   },
   {
@@ -2481,6 +3097,8 @@ export const destinations = [
     category: 'City & Food Culture',
     prefecture: 'Saga',
     description: 'A coastal morning market famous for fresh squid and other local seafood.',
+    lat: 33.5370608,
+    lng: 129.8950614,
     image: 'https://readdy.ai/api/search-image?query=A%20lively%20morning%20fish%20market%20with%20stalls%20selling%20fresh%20squid%20and%20seafood%2C%20vendors%20and%20shoppers%2C%20a%20harbor%20with%20fishing%20boats%2C%20Yobuko%20Saga%20Japan%2C%20bustling%20and%20fresh%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20morning%20light&width=800&height=600&seq=imagetest5-100&orientation=landscape',
   },
   {
@@ -2489,6 +3107,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Saga',
     description: 'The birthplace of Japanese porcelain, with centuries-old kiln workshops and ceramic shops.',
+    lat: 33.2106507,
+    lng: 129.8490169,
     image: 'https://readdy.ai/api/search-image?query=A%20historic%20pottery%20town%20with%20shops%20displaying%20fine%20white%20and%20blue%20porcelain%20ceramics%2C%20traditional%20kiln%20chimneys%20and%20buildings%2C%20Arita%20Saga%20Japan%2C%20artistic%20and%20historic%2C%20soft%20editorial%20travel%20photography%20with%20warm%20daylight&width=800&height=600&seq=imagetest5-101&orientation=landscape',
   },
   {
@@ -2497,6 +3117,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Saga',
     description: 'A secluded pottery village once reserved for producing porcelain exclusively for the ruling lord.',
+    lat: 33.2347871,
+    lng: 129.8933866,
     image: 'https://readdy.ai/api/search-image?query=A%20hidden%20mountain%20pottery%20village%20with%20rows%20of%20shops%20and%20kilns%2C%20fine%20porcelain%20ceramics%20on%20display%2C%20a%20quiet%20atmospheric%20street%2C%20Okawachiyama%20Saga%20Japan%2C%20secluded%20and%20artistic%2C%20soft%20editorial%20travel%20photography%20with%20warm%20light&width=800&height=600&seq=imagetest5-102&orientation=landscape',
   },
   {
@@ -2505,6 +3127,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Saga',
     description: 'A garden known for autumn foliage and immersive digital art installations set among its trees.',
+    lat: 33.1823029,
+    lng: 130.0179788,
     image: 'https://readdy.ai/api/search-image?query=A%20hillside%20garden%20with%20a%20forested%20mountain%2C%20blooming%20azaleas%20in%20pink%20and%20a%20serene%20pond%2C%20stone%20paths%2C%20Mifuneyama%20Rakuen%20Takeo%20Saga%20Japan%2C%20colorful%20and%20serene%2C%20vivid%20editorial%20travel%20photography%20with%20soft%20spring%20light&width=800&height=600&seq=imagetest5-103&orientation=landscape',
   },
   {
@@ -2513,6 +3137,8 @@ export const destinations = [
     category: 'Hot Springs & Nature',
     prefecture: 'Saga',
     description: 'A hot spring town famous for silky waters and a local dish of tofu simmered in hot spring water.',
+    lat: 33.096349,
+    lng: 129.981557,
     image: 'https://readdy.ai/api/search-image?query=A%20relaxing%20hot%20spring%20town%20with%20traditional%20ryokan%20inns%2C%20steam%20rising%20from%20baths%2C%20green%20tea%20fields%20on%20the%20surrounding%20hills%2C%20Ureshino%20Onsen%20Saga%20Japan%2C%20soothing%20and%20scenic%2C%20soft%20editorial%20travel%20photography%20with%20warm%20light&width=800&height=600&seq=imagetest5-104&orientation=landscape',
   },
   {
@@ -2521,6 +3147,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Saga',
     description: "A shrine built on stilts against a hillside, ranked among Japan's most spectacular Inari shrines.",
+    lat: 33.073778,
+    lng: 130.1079317,
     image: 'https://readdy.ai/api/search-image?query=A%20grand%20vermilion%20Inari%20shrine%20built%20on%20a%20forested%20hillside%2C%20red%20buildings%20and%20gates%20climbing%20the%20slope%2C%20stone%20stairs%2C%20Yutoku%20Inari%20Shrine%20Kashima%20Saga%20Japan%2C%20striking%20and%20sacred%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest5-105&orientation=landscape',
   },
   {
@@ -2529,6 +3157,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Nagasaki',
     description: 'A UNESCO World Heritage hillside garden of preserved Western-style residences overlooking Nagasaki harbor.',
+    lat: 32.73433139999999,
+    lng: 129.8691886,
     image: 'https://readdy.ai/api/search-image?query=A%20hillside%20garden%20with%20elegant%20western%20style%20houses%20and%20manicured%20flower%20beds%2C%20overlooking%20a%20harbor%20and%20the%20sea%2C%20Glover%20Garden%20Nagasaki%20Japan%2C%20historic%20and%20scenic%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest5-106&orientation=landscape',
   },
   {
@@ -2537,6 +3167,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Nagasaki',
     description: 'A UNESCO World Heritage church, the oldest surviving Christian church building in Japan.',
+    lat: 32.7341535,
+    lng: 129.8701372,
     image: 'https://readdy.ai/api/search-image?query=A%20white%20gothic%20church%20with%20a%20pointed%20spire%20on%20a%20hillside%2C%20historic%20stone%20architecture%20and%20a%20garden%2C%20Oura%20Church%20Nagasaki%20Japan%2C%20historic%20and%20beautiful%2C%20soft%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest5-107&orientation=landscape',
   },
   {
@@ -2545,6 +3177,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Nagasaki',
     description: 'A museum documenting the 1945 atomic bombing of Nagasaki and its message of peace.',
+    lat: 32.7727963,
+    lng: 129.8643625,
     image: 'https://readdy.ai/api/search-image?query=A%20solemn%20museum%20interior%20with%20historical%20photographs%20and%20exhibits%20about%20peace%2C%20a%20reconstructed%20clock%20showing%20the%20time%20of%20the%20bombing%2C%20Nagasaki%20Atomic%20Bomb%20Museum%20Japan%2C%20somber%20and%20reflective%2C%20soft%20editorial%20travel%20photography%20with%20muted%20light&width=800&height=600&seq=imagetest5-108&orientation=landscape',
   },
   {
@@ -2553,6 +3187,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Nagasaki',
     description: "An observation point offering one of Japan's most celebrated night views over Nagasaki's harbor.",
+    lat: 32.7584755,
+    lng: 129.8456878,
     image: 'https://readdy.ai/api/search-image?query=A%20dazzling%20panoramic%20night%20view%20of%20Nagasaki%20city%20and%20its%20harbor%20from%20a%20mountain%20viewpoint%2C%20the%20city%20lights%20sparkling%20below%2C%20Mt.%20Inasa%20Nagasaki%20Japan%2C%20breathtaking%20and%20romantic%2C%20vivid%20editorial%20travel%20photography%20with%20dramatic%20night%20light&width=800&height=600&seq=imagetest5-109&orientation=landscape',
   },
   {
@@ -2561,6 +3197,8 @@ export const destinations = [
     category: 'Theme Parks & Entertainment',
     prefecture: 'Nagasaki',
     description: 'A large theme park styled after a Dutch town, known for its seasonal flower displays and illuminations.',
+    lat: 32.7504527,
+    lng: 129.8790402,
     image: 'https://readdy.ai/api/search-image?query=A%20Dutch%20themed%20park%20with%20canals%2C%20windmills%20and%20flower%20fields%20of%20colorful%20tulips%2C%20European%20style%20buildings%20and%20bridges%2C%20Huis%20Ten%20Bosch%20Nagasaki%20Japan%2C%20colorful%20and%20scenic%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest5-110&orientation=landscape',
   },
   {
@@ -2569,6 +3207,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Nagasaki',
     description: 'A scattering of small islands along the coast, best appreciated by scenic cruise.',
+    lat: 33.1787616,
+    lng: 129.5850047,
     image: 'https://readdy.ai/api/search-image?query=A%20scenic%20bay%20dotted%20with%20dozens%20of%20green%20islands%2C%20a%20sightseeing%20cruise%20boat%20gliding%20through%20the%20calm%20blue%20water%2C%20Kujukushima%20Islands%20Sasebo%20Nagasaki%20Japan%2C%20scenic%20and%20serene%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20coastal%20light&width=800&height=600&seq=imagetest5-111&orientation=landscape',
   },
   {
@@ -2577,6 +3217,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Nagasaki',
     description: "A volcanic area of steaming vents and hot springs, long a symbol of the region's geothermal activity.",
+    lat: 32.740454,
+    lng: 130.2635351,
     image: 'https://readdy.ai/api/search-image?query=A%20volcanic%20landscape%20with%20thick%20white%20steam%20rising%20from%20vents%20and%20boiling%20sulfurous%20pools%2C%20a%20wooden%20walkway%20through%20the%20steaming%20ground%2C%20Unzen%20Jigoku%20Nagasaki%20Japan%2C%20dramatic%20and%20primal%2C%20atmospheric%20editorial%20travel%20photography%20with%20dramatic%20light&width=800&height=600&seq=imagetest5-112&orientation=landscape',
   },
   {
@@ -2585,6 +3227,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Nagasaki',
     description: "A remote island chain with hidden churches tied to Japan's history of underground Christianity.",
+    lat: 32.6998453,
+    lng: 128.7718631,
     image: 'https://readdy.ai/api/search-image?query=A%20remote%20island%20coastline%20with%20clear%20blue%20water%2C%20dramatic%20cliffs%20and%20a%20small%20white%20church%20on%20a%20hill%2C%20fishing%20boats%20and%20green%20hills%2C%20Goto%20Islands%20Nagasaki%20Japan%2C%20rugged%20and%20serene%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20coastal%20light&width=800&height=600&seq=imagetest5-113&orientation=landscape',
   },
   {
@@ -2593,6 +3237,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Nagasaki',
     description: "A UNESCO World Heritage abandoned mining island, nicknamed 'Battleship Island' for its dense concrete ruins.",
+    lat: 32.6276331,
+    lng: 129.7385256,
     image: 'https://readdy.ai/api/search-image?query=An%20abandoned%20island%20of%20crumbling%20concrete%20apartment%20buildings%20surrounded%20by%20a%20sea%20wall%2C%20the%20decaying%20structures%20resembling%20a%20battleship%2C%20Hashima%20Island%20Gunkanjima%20Nagasaki%20Japan%2C%20eerie%20and%20historic%2C%20atmospheric%20editorial%20travel%20photography%20with%20muted%20light&width=800&height=600&seq=imagetest5-114&orientation=landscape',
   },
   {
@@ -2601,6 +3247,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Kumamoto',
     description: "One of Japan's most celebrated castles, known for its dramatic curved stone walls.",
+    lat: 32.8061859,
+    lng: 130.7058335,
     image: 'https://readdy.ai/api/search-image?query=A%20grand%20Japanese%20castle%20with%20white%20walls%20and%20elegant%20roofs%2C%20standing%20on%20massive%20curved%20stone%20ramparts%2C%20cherry%20trees%20blooming%2C%20Kumamoto%20Castle%20Japan%2C%20majestic%20and%20formidable%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20spring%20light&width=800&height=600&seq=imagetest5-115&orientation=landscape',
   },
   {
@@ -2609,6 +3257,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Kumamoto',
     description: 'An active volcanic crater that visitors can approach and view directly, weather permitting.',
+    lat: 32.884907,
+    lng: 131.0849344,
     image: 'https://readdy.ai/api/search-image?query=A%20vast%20volcanic%20crater%20with%20a%20turquoise%20pool%20and%20white%20steam%20rising%20from%20the%20rocky%20walls%2C%20a%20viewing%20platform%20on%20the%20rim%2C%20Mt.%20Aso%20Nakadake%20Kumamoto%20Japan%2C%20powerful%20and%20dramatic%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20alpine%20light&width=800&height=600&seq=imagetest5-116&orientation=landscape',
   },
   {
@@ -2617,6 +3267,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Kumamoto',
     description: 'A vast grassy caldera plain used for grazing horses, framed by the peaks of Mt. Aso.',
+    lat: 32.8818249,
+    lng: 131.0533279,
     image: 'https://readdy.ai/api/search-image?query=A%20vast%20green%20grassland%20plateau%20with%20grazing%20horses%20and%20cows%2C%20a%20volcanic%20mountain%20in%20the%20background%2C%20a%20wide%20open%20landscape%2C%20Kusasenri%20Aso%20Kumamoto%20Japan%2C%20expansive%20and%20pastoral%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest5-117&orientation=landscape',
   },
   {
@@ -2625,6 +3277,8 @@ export const destinations = [
     category: 'Hot Springs & Nature',
     prefecture: 'Kumamoto',
     description: 'A hot spring village known for hopping between rustic, forest-set outdoor baths.',
+    lat: 33.0780191,
+    lng: 131.1416136,
     image: 'https://readdy.ai/api/search-image?query=A%20picturesque%20hot%20spring%20town%20with%20wooden%20ryokan%20inns%20along%20a%20river%2C%20steam%20rising%20from%20outdoor%20baths%2C%20warm%20lanterns%20glowing%20at%20dusk%2C%20Kurokawa%20Onsen%20Kumamoto%20Japan%2C%20romantic%20and%20relaxing%2C%20atmospheric%20editorial%20travel%20photography%20with%20warm%20evening%20light&width=800&height=600&seq=imagetest5-118&orientation=landscape',
   },
   {
@@ -2633,6 +3287,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Kumamoto',
     description: 'An island region known for dolphin watching, historic churches, and coastal scenery.',
+    lat: 32.4585255,
+    lng: 130.1934363,
     image: 'https://readdy.ai/api/search-image?query=A%20scenic%20island%20chain%20with%20blue%20water%20and%20green%20hills%2C%20a%20white%20church%20and%20a%20bridge%20connecting%20islands%2C%20Amakusa%20Kumamoto%20Japan%2C%20serene%20and%20historic%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20coastal%20light&width=800&height=600&seq=imagetest5-119&orientation=landscape',
   },
   {
@@ -2641,6 +3297,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Kumamoto',
     description: "A UNESCO World Heritage fishing village tied to Japan's history of hidden Christian communities.",
+    lat: 32.3166695,
+    lng: 130.0299804,
     image: 'https://readdy.ai/api/search-image?query=A%20small%20fishing%20village%20with%20a%20white%20gothic%20church%20by%20the%20sea%2C%20traditional%20wooden%20houses%20and%20fishing%20boats%2C%20Sakitsu%20Village%20Amakusa%20Kumamoto%20Japan%2C%20peaceful%20and%20historic%2C%20soft%20editorial%20travel%20photography%20with%20warm%20coastal%20light&width=800&height=600&seq=imagetest5-120&orientation=landscape',
   },
   {
@@ -2649,6 +3307,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Kumamoto',
     description: 'A moss-covered shrine approach path known for its mystical, otherworldly atmosphere.',
+    lat: 32.8537942,
+    lng: 131.1585205,
     image: 'https://readdy.ai/api/search-image?query=A%20mystical%20shrine%20with%20mossy%20stone%20steps%20and%20lanterns%20climbing%20through%20a%20dense%20green%20forest%2C%20soft%20light%20filtering%20through%20the%20trees%2C%20Kamishikimi%20Kumanoimasu%20Shrine%20Kumamoto%20Japan%2C%20sacred%20and%20enchanting%2C%20atmospheric%20editorial%20travel%20photography%20with%20soft%20forest%20light&width=800&height=600&seq=imagetest5-121&orientation=landscape',
   },
   {
@@ -2657,6 +3317,8 @@ export const destinations = [
     category: 'Hot Springs & Nature',
     prefecture: 'Oita',
     description: 'A tour of colorful, steaming hot spring ponds too hot for bathing, each with a distinct character.',
+    lat: 33.3158833,
+    lng: 131.4696745,
     image: 'https://readdy.ai/api/search-image?query=A%20vividly%20blue%20steaming%20hot%20spring%20pool%20called%20a%20hell%2C%20surrounded%20by%20rocks%20and%20steam%2C%20visitors%20on%20a%20viewing%20platform%2C%20Beppu%20Hells%20Oita%20Japan%2C%20dramatic%20and%20colorful%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest5-122&orientation=landscape',
   },
   {
@@ -2665,6 +3327,8 @@ export const destinations = [
     category: 'Hot Springs & Nature',
     prefecture: 'Oita',
     description: "One of the world's largest hot spring resort areas by volume, with numerous bathing options across the city.",
+    lat: 33.2792897,
+    lng: 131.5001945,
     image: 'https://readdy.ai/api/search-image?query=A%20hot%20spring%20resort%20town%20with%20steam%20rising%20from%20many%20vents%20across%20the%20hillside%2C%20traditional%20ryokan%20buildings%2C%20Beppu%20Onsen%20Oita%20Japan%2C%20relaxing%20and%20atmospheric%2C%20atmospheric%20editorial%20travel%20photography%20with%20soft%20light&width=800&height=600&seq=imagetest5-123&orientation=landscape',
   },
   {
@@ -2673,6 +3337,8 @@ export const destinations = [
     category: 'Hot Springs & Nature',
     prefecture: 'Oita',
     description: 'A hot spring town known for its boutique shops, cafes, and views of Mt. Yufu.',
+    lat: 33.2625917,
+    lng: 131.3554211,
     image: 'https://readdy.ai/api/search-image?query=A%20stylish%20hot%20spring%20town%20street%20with%20boutique%20shops%20and%20cafes%2C%20steam%20rising%20from%20baths%2C%20the%20twin%20peaks%20of%20Mount%20Yufu%20in%20the%20background%2C%20Yufuin%20Onsen%20Oita%20Japan%2C%20chic%20and%20relaxing%2C%20soft%20editorial%20travel%20photography%20with%20warm%20light&width=800&height=600&seq=imagetest5-124&orientation=landscape',
   },
   {
@@ -2681,6 +3347,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Oita',
     description: 'A small lake known for its morning mist rising above the water near the Yufuin hot spring district.',
+    lat: 33.2694241,
+    lng: 131.3674085,
     image: 'https://readdy.ai/api/search-image?query=A%20small%20lake%20with%20mist%20rising%20from%20the%20water%20on%20a%20cool%20morning%2C%20surrounding%20green%20trees%20and%20a%20small%20shrine%2C%20Kinrinko%20Lake%20Yufuin%20Oita%20Japan%2C%20serene%20and%20mystical%2C%20atmospheric%20editorial%20travel%20photography%20with%20soft%20morning%20light&width=800&height=600&seq=imagetest5-125&orientation=landscape',
   },
   {
@@ -2689,6 +3357,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Oita',
     description: 'The head shrine of all Hachiman shrines across Japan, with a history spanning over a thousand years.',
+    lat: 33.5235106,
+    lng: 131.3771591,
     image: 'https://readdy.ai/api/search-image?query=A%20grand%20vermilion%20Shinto%20shrine%20complex%20with%20red%20buildings%20and%20gates%2C%20a%20wide%20approach%20with%20stone%20lanterns%2C%20Usa%20Jingu%20Oita%20Japan%2C%20majestic%20and%20sacred%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest5-126&orientation=landscape',
   },
   {
@@ -2697,6 +3367,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Miyazaki',
     description: 'A dramatic volcanic gorge with sheer basalt cliffs, best explored by rowboat beneath a waterfall.',
+    lat: 32.7012777,
+    lng: 131.3007272,
     image: 'https://readdy.ai/api/search-image?query=A%20dramatic%20gorge%20with%20tall%20columnar%20basalt%20cliffs%20and%20a%20waterfall%2C%20small%20boats%20paddling%20on%20the%20emerald%20water%20below%2C%20Takachiho%20Gorge%20Miyazaki%20Japan%2C%20mystical%20and%20stunning%2C%20vivid%20editorial%20travel%20photography%20with%20soft%20natural%20light&width=800&height=600&seq=imagetest5-127&orientation=landscape',
   },
   {
@@ -2705,6 +3377,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Miyazaki',
     description: 'A shrine deeply tied to Japanese mythology, hosting nightly performances of sacred Kagura dance.',
+    lat: 32.70644650000001,
+    lng: 131.3020093,
     image: 'https://readdy.ai/api/search-image?query=A%20serene%20Shinto%20shrine%20with%20wooden%20buildings%20and%20a%20thatched%20roof%2C%20surrounded%20by%20tall%20cedar%20trees%2C%20Takachiho%20Shrine%20Miyazaki%20Japan%2C%20sacred%20and%20peaceful%2C%20soft%20editorial%20travel%20photography%20with%20natural%20light&width=800&height=600&seq=imagetest5-128&orientation=landscape',
   },
   {
@@ -2713,6 +3387,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Miyazaki',
     description: 'A shrine associated with the mythological cave where the sun goddess is said to have hidden herself.',
+    lat: 31.9077285,
+    lng: 131.4202196,
     image: 'https://readdy.ai/api/search-image?query=A%20sacred%20shrine%20by%20a%20clear%20river%20with%20a%20cave%20entrance%20in%20the%20hillside%2C%20wooden%20buildings%20and%20stone%20lanterns%2C%20a%20mystical%20atmosphere%2C%20Amano%20Iwato%20Shrine%20Miyazaki%20Japan%2C%20sacred%20and%20mythical%2C%20soft%20editorial%20travel%20photography%20with%20gentle%20light&width=800&height=600&seq=imagetest5-129&orientation=landscape',
   },
   {
@@ -2721,6 +3397,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Miyazaki',
     description: 'A shrine on a small island reached by a causeway across a unique washboard-like rock reef.',
+    lat: 31.80456599999999,
+    lng: 131.4749474,
     image: 'https://readdy.ai/api/search-image?query=A%20colorful%20shrine%20with%20vermilion%20buildings%20on%20a%20small%20island%2C%20reached%20across%20a%20bridge%2C%20surrounded%20by%20unique%20wave%20cut%20rock%20formations%20and%20the%20sea%2C%20Aoshima%20Shrine%20Miyazaki%20Japan%2C%20sacred%20and%20scenic%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20coastal%20light&width=800&height=600&seq=imagetest5-130&orientation=landscape',
   },
   {
@@ -2729,6 +3407,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Miyazaki',
     description: 'A shrine built inside a coastal cave, dramatically positioned above the crashing sea.',
+    lat: 31.6504477,
+    lng: 131.4666915,
     image: 'https://readdy.ai/api/search-image?query=A%20vermilion%20shrine%20built%20into%20a%20rocky%20seaside%20cave%2C%20overlooking%20the%20blue%20ocean%2C%20stone%20steps%20along%20the%20cliff%2C%20Udo%20Shrine%20Miyazaki%20Japan%2C%20dramatic%20and%20sacred%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20coastal%20light&width=800&height=600&seq=imagetest5-131&orientation=landscape',
   },
   {
@@ -2737,6 +3417,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Miyazaki',
     description: 'A cape at land\'s end known for its herd of wild horses grazing above the Pacific.',
+    lat: 31.3659857,
+    lng: 131.332677,
     image: 'https://readdy.ai/api/search-image?query=Wild%20horses%20grazing%20on%20a%20green%20coastal%20grassland%20at%20the%20southernmost%20cape%2C%20a%20lighthouse%20and%20the%20blue%20sea%2C%20Cape%20Toi%20Miyazaki%20Japan%2C%20wild%20and%20scenic%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20coastal%20light&width=800&height=600&seq=imagetest5-132&orientation=landscape',
   },
   {
@@ -2745,6 +3427,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Kagoshima',
     description: 'An active volcano rising directly across the bay from Kagoshima city, still producing regular eruptions of ash.',
+    lat: 31.5951978,
+    lng: 130.6081199,
     image: 'https://readdy.ai/api/search-image?query=A%20large%20active%20volcano%20rising%20from%20the%20blue%20bay%2C%20a%20plume%20of%20white%20smoke%20from%20the%20crater%2C%20a%20ferry%20on%20the%20water%2C%20Sakurajima%20Kagoshima%20Japan%2C%20powerful%20and%20iconic%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest5-133&orientation=landscape',
   },
   {
@@ -2753,6 +3437,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Kagoshima',
     description: 'A UNESCO World Heritage garden using the active Sakurajima volcano as a dramatic backdrop.',
+    lat: 31.6174149,
+    lng: 130.5771969,
     image: 'https://readdy.ai/api/search-image?query=A%20traditional%20Japanese%20villa%20garden%20with%20manicured%20lawns%20and%20pine%20trees%2C%20a%20view%20of%20the%20Sakurajima%20volcano%20across%20the%20bay%2C%20Sengan-en%20Kagoshima%20Japan%2C%20elegant%20and%20scenic%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest5-134&orientation=landscape',
   },
   {
@@ -2761,6 +3447,8 @@ export const destinations = [
     category: 'Hot Springs & Nature',
     prefecture: 'Kagoshima',
     description: 'A unique spa experience where visitors are buried up to the neck in naturally heated volcanic sand.',
+    lat: 31.2298146,
+    lng: 130.6519528,
     image: 'https://readdy.ai/api/search-image?query=Visitors%20buried%20up%20to%20their%20necks%20in%20warm%20dark%20volcanic%20sand%20on%20a%20beach%2C%20steam%20rising%20from%20the%20heated%20sand%2C%20Ibusuki%20Sand%20Bath%20Kagoshima%20Japan%2C%20unique%20and%20relaxing%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20coastal%20light&width=800&height=600&seq=imagetest5-135&orientation=landscape',
   },
   {
@@ -2769,6 +3457,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Kagoshima',
     description: 'A vividly painted shrine tied to Japanese creation mythology, set against the Kirishima mountain range.',
+    lat: 31.6782137,
+    lng: 130.4586499,
     image: 'https://readdy.ai/api/search-image?query=A%20grand%20vermilion%20Shinto%20shrine%20nestled%20in%20a%20green%20forest%2C%20red%20buildings%20and%20a%20wide%20staircase%2C%20stone%20lanterns%2C%20Kirishima%20Shrine%20Kagoshima%20Japan%2C%20sacred%20and%20majestic%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest5-136&orientation=landscape',
   },
   {
@@ -2777,6 +3467,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Kagoshima',
     description: 'An ancient cedar tree on Yakushima Island, estimated to be thousands of years old.',
+    lat: 31.5968539,
+    lng: 130.5571392,
     image: 'https://readdy.ai/api/search-image?query=A%20giant%20ancient%20cedar%20tree%20with%20a%20massive%20gnarled%20trunk%20and%20twisted%20branches%2C%20standing%20in%20a%20misty%20primeval%20forest%2C%20Jomon%20Sugi%20Yakushima%20Kagoshima%20Japan%2C%20ancient%20and%20awe-inspiring%2C%20atmospheric%20editorial%20travel%20photography%20with%20soft%20forest%20light&width=800&height=600&seq=imagetest5-137&orientation=landscape',
   },
   {
@@ -2785,6 +3477,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Kagoshima',
     description: 'A moss-covered primeval forest on Yakushima said to have inspired the setting of a famous animated film.',
+    lat: 31.5968539,
+    lng: 130.5571392,
     image: 'https://readdy.ai/api/search-image?query=A%20moss%20covered%20primeval%20forest%20with%20ancient%20cedar%20trees%2C%20boulders%20and%20a%20clear%20stream%2C%20soft%20mist%20and%20green%20moss%2C%20Shiratani%20Unsuikyo%20Yakushima%20Kagoshima%20Japan%2C%20mystical%20and%20primeval%2C%20atmospheric%20editorial%20travel%20photography%20with%20soft%20forest%20light&width=800&height=600&seq=imagetest5-138&orientation=landscape',
   },
   {
@@ -2793,6 +3487,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Kagoshima',
     description: 'A subtropical UNESCO World Heritage island known for its rich forests and coral-fringed coastline.',
+    lat: 27.8438913,
+    lng: 128.9250517,
     image: 'https://readdy.ai/api/search-image?query=A%20subtropical%20island%20with%20white%20sand%20beaches%2C%20clear%20turquoise%20water%20and%20coral%20reefs%2C%20lush%20green%20vegetation%2C%20Amami%20Oshima%20Kagoshima%20Japan%2C%20pristine%20and%20tropical%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20tropical%20light&width=800&height=600&seq=imagetest5-139&orientation=landscape',
   },
   {
@@ -2801,6 +3497,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Kagoshima',
     description: "One of Japan's largest mangrove forests, explorable by canoe through subtropical wetlands.",
+    lat: 28.3773699,
+    lng: 129.4938065,
     image: 'https://readdy.ai/api/search-image?query=A%20vast%20mangrove%20forest%20with%20a%20kayak%20gliding%20through%20narrow%20winding%20channels%2C%20dense%20green%20mangrove%20roots%20and%20still%20water%2C%20Amami%20Oshima%20Kagoshima%20Japan%2C%20lush%20and%20tranquil%2C%20vivid%20editorial%20travel%20photography%20with%20soft%20natural%20light&width=800&height=600&seq=imagetest5-140&orientation=landscape',
   },
   {
@@ -2809,6 +3507,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Kagoshima',
     description: 'A sandbar that appears only at low tide, surrounded by strikingly clear turquoise water.',
+    lat: 27.0371045,
+    lng: 128.4527197,
     image: 'https://readdy.ai/api/search-image?query=A%20white%20sandbar%20appearing%20in%20the%20middle%20of%20clear%20turquoise%20sea%20at%20low%20tide%2C%20the%20sand%20glowing%20under%20the%20tropical%20sun%2C%20Yoron%20Island%20Kagoshima%20Japan%2C%20magical%20and%20pristine%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20tropical%20light&width=800&height=600&seq=imagetest5-141&orientation=landscape',
   },
   {
@@ -2817,6 +3517,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Okinawa',
     description: 'The reconstructed grounds of the former royal palace of the Ryukyu Kingdom, an UNESCO-linked heritage site.',
+    lat: 26.2174972,
+    lng: 127.7166279,
     image: 'https://readdy.ai/api/search-image?query=A%20reconstructed%20Ryukyu%20palace%20with%20vivid%20red%20walls%20and%20elegant%20curved%20roofs%2C%20stone%20walls%20and%20a%20gate%2C%20Shurijo%20Castle%20Park%20Naha%20Okinawa%20Japan%2C%20vibrant%20and%20historic%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest5-142&orientation=landscape',
   },
   {
@@ -2825,6 +3527,8 @@ export const destinations = [
     category: 'City & Food Culture',
     prefecture: 'Okinawa',
     description: "Naha's main shopping and dining street, lined with Okinawan restaurants and souvenir shops.",
+    lat: 26.2139223,
+    lng: 127.6878766,
     image: 'https://readdy.ai/api/search-image?query=A%20lively%20main%20shopping%20street%20lined%20with%20colorful%20shops%2C%20restaurants%20and%20souvenir%20stores%2C%20palm%20trees%20and%20crowds%20of%20visitors%2C%20Kokusai-dori%20Naha%20Okinawa%20Japan%2C%20energetic%20and%20vibrant%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest5-143&orientation=landscape',
   },
   {
@@ -2833,6 +3537,8 @@ export const destinations = [
     category: 'City & Food Culture',
     prefecture: 'Okinawa',
     description: "A bustling market showcasing Okinawa's distinct food culture, from tropical fruit to fresh fish.",
+    lat: 26.2145927,
+    lng: 127.6883013,
     image: 'https://readdy.ai/api/search-image?query=A%20lively%20covered%20market%20with%20stalls%20selling%20colorful%20tropical%20fish%2C%20seafood%2C%20pork%20and%20local%20produce%2C%20crowds%20of%20shoppers%2C%20Makishi%20Public%20Market%20Naha%20Okinawa%20Japan%2C%20bustling%20and%20vibrant%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20indoor%20light&width=800&height=600&seq=imagetest5-144&orientation=landscape',
   },
   {
@@ -2841,6 +3547,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Okinawa',
     description: 'A UNESCO World Heritage sacred site central to traditional Ryukyuan religious beliefs.',
+    lat: 26.1720664,
+    lng: 127.8264735,
     image: 'https://readdy.ai/api/search-image?query=A%20sacred%20wooded%20site%20with%20stone%20paths%20leading%20through%20dense%20subtropical%20forest%2C%20large%20sacred%20rocks%20and%20prayer%20spots%2C%20Seifa%20Utaki%20Okinawa%20Japan%2C%20sacred%20and%20mystical%2C%20soft%20editorial%20travel%20photography%20with%20gentle%20forest%20light&width=800&height=600&seq=imagetest5-145&orientation=landscape',
   },
   {
@@ -2849,6 +3557,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Okinawa',
     description: "One of the world's largest aquariums, famous for its enormous tank housing whale sharks.",
+    lat: 26.694338,
+    lng: 127.8780131,
     image: 'https://readdy.ai/api/search-image?query=A%20massive%20aquarium%20tank%20with%20whale%20sharks%20and%20manta%20rays%20swimming%20through%20deep%20blue%20water%2C%20visitors%20watching%20through%20a%20giant%20viewing%20panel%2C%20Okinawa%20Churaumi%20Aquarium%20Japan%2C%20awe-inspiring%20and%20vast%2C%20vivid%20editorial%20travel%20photography%20with%20blue%20underwater%20light&width=800&height=600&seq=imagetest5-146&orientation=landscape',
   },
   {
@@ -2857,6 +3567,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Okinawa',
     description: 'A quiet lane in a traditional village lined with towering fukugi trees planted as windbreaks.',
+    lat: 26.7015874,
+    lng: 127.8802247,
     image: 'https://readdy.ai/api/search-image?query=A%20peaceful%20sandy%20lane%20shaded%20by%20a%20tunnel%20of%20tall%20green%20fukugi%20trees%2C%20leading%20toward%20the%20blue%20sea%2C%20Bise%20Fukugi%20Tree%20Road%20Okinawa%20Japan%2C%20serene%20and%20scenic%2C%20soft%20editorial%20travel%20photography%20with%20dappled%20light&width=800&height=600&seq=imagetest5-147&orientation=landscape',
   },
   {
@@ -2865,6 +3577,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Okinawa',
     description: 'UNESCO World Heritage ruins of a former Ryukyu Kingdom castle, especially known for cherry blossoms in winter.',
+    lat: 26.6912793,
+    lng: 127.9290226,
     image: 'https://readdy.ai/api/search-image?query=The%20stone%20ruins%20of%20an%20ancient%20Ryukyu%20castle%20on%20a%20hill%2C%20curved%20stone%20walls%20and%20a%20view%20of%20the%20sea%2C%20pink%20cherry%20blossoms%20blooming%2C%20Nakijin%20Castle%20Ruins%20Okinawa%20Japan%2C%20historic%20and%20scenic%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest5-148&orientation=landscape',
   },
   {
@@ -2873,6 +3587,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Okinawa',
     description: "A dramatic cliff formation resembling an elephant's trunk, popular for sunset views.",
+    lat: 26.5052353,
+    lng: 127.8504781,
     image: 'https://readdy.ai/api/search-image?query=A%20distinctive%20elephant%20trunk%20shaped%20cliff%20over%20a%20vivid%20blue%20sea%2C%20green%20grassland%20on%20the%20cape%2C%20waves%20crashing%20on%20the%20rocks%20below%2C%20Cape%20Manzamo%20Okinawa%20Japan%2C%20dramatic%20and%20scenic%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20coastal%20light&width=800&height=600&seq=imagetest5-149&orientation=landscape',
   },
   {
@@ -2881,6 +3597,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Okinawa',
     description: 'A sea cave known for its glowing blue water, popular for snorkeling and diving tours.',
+    lat: 26.4425977,
+    lng: 127.7734662,
     image: 'https://readdy.ai/api/search-image?query=A%20sea%20cave%20where%20the%20water%20glows%20a%20brilliant%20vivid%20blue%2C%20sunlight%20streaming%20through%20the%20opening%2C%20snorkelers%20floating%20on%20the%20glowing%20water%2C%20Blue%20Cave%20Okinawa%20Japan%2C%20magical%20and%20beautiful%2C%20vivid%20editorial%20travel%20photography%20with%20blue%20underwater%20light&width=800&height=600&seq=imagetest5-150&orientation=landscape',
   },
   {
@@ -2889,6 +3607,8 @@ export const destinations = [
     category: 'City & Food Culture',
     prefecture: 'Okinawa',
     description: 'A seaside entertainment complex with a distinctly American-influenced atmosphere and sunset views.',
+    lat: 26.3158768,
+    lng: 127.7540067,
     image: 'https://readdy.ai/api/search-image?query=A%20colorful%20seaside%20entertainment%20complex%20with%20shops%2C%20restaurants%20and%20a%20large%20Ferris%20wheel%2C%20a%20beach%20and%20palm%20trees%2C%20American%20Village%20Mihama%20Okinawa%20Japan%2C%20fun%20and%20lively%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20daylight&width=800&height=600&seq=imagetest5-151&orientation=landscape',
   },
   {
@@ -2897,6 +3617,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Okinawa',
     description: 'A long bridge stretching across brilliant emerald waters, connecting the mainland to a small island.',
+    lat: 26.6788164,
+    lng: 128.0126263,
     image: 'https://readdy.ai/api/search-image?query=A%20long%20bridge%20crossing%20vivid%20emerald%20green%20sea%20water%20to%20a%20green%20island%2C%20the%20turquoise%20water%20stretching%20out%2C%20Kouri%20Bridge%20Okinawa%20Japan%2C%20stunning%20and%20scenic%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20tropical%20light&width=800&height=600&seq=imagetest5-152&orientation=landscape',
   },
   {
@@ -2905,6 +3627,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Okinawa',
     description: 'A cluster of islands renowned for some of the clearest waters in the world, ideal for diving.',
+    lat: 26.2020045,
+    lng: 127.3574157,
     image: 'https://readdy.ai/api/search-image?query=A%20pristine%20island%20with%20a%20white%20sand%20beach%20and%20incredibly%20clear%20blue%20sea%2C%20coral%20reefs%20visible%20through%20the%20water%2C%20Kerama%20Islands%20Okinawa%20Japan%2C%20breathtaking%20and%20pristine%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20tropical%20light&width=800&height=600&seq=imagetest5-153&orientation=landscape',
   },
   {
@@ -2913,6 +3637,8 @@ export const destinations = [
     category: 'Beach & Lifestyle',
     prefecture: 'Okinawa',
     description: "A long stretch of powder-white sand often ranked among Japan's most beautiful beaches.",
+    lat: 24.7349726,
+    lng: 125.2629745,
     image: 'https://readdy.ai/api/search-image?query=A%20long%20white%20sand%20beach%20with%20shallow%20crystal%20clear%20turquoise%20water%20stretching%20far%20out%2C%20a%20distant%20island%2C%20Yonaha%20Maehama%20Beach%20Miyako%20Island%20Okinawa%20Japan%2C%20pristine%20and%20beautiful%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20tropical%20light&width=800&height=600&seq=imagetest5-154&orientation=landscape',
   },
   {
@@ -2921,6 +3647,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Okinawa',
     description: "One of Japan's longest toll-free bridges, crossing turquoise water between two islands.",
+    lat: 24.7962883,
+    lng: 125.2410596,
     image: 'https://readdy.ai/api/search-image?query=A%20very%20long%20bridge%20curving%20over%20brilliant%20blue%20sea%20water%2C%20connecting%20two%20islands%2C%20the%20vivid%20blue%20water%20stretching%20to%20the%20horizon%2C%20Irabu%20Bridge%20Miyako%20Okinawa%20Japan%2C%20stunning%20and%20scenic%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20coastal%20light&width=800&height=600&seq=imagetest5-155&orientation=landscape',
   },
   {
@@ -2929,6 +3657,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Okinawa',
     description: 'A scenic bay of emerald water, best viewed from a glass-bottom boat rather than by swimming due to strong currents.',
+    lat: 24.445299,
+    lng: 124.148879,
     image: 'https://readdy.ai/api/search-image?query=A%20scenic%20bay%20with%20vivid%20emerald%20green%20and%20blue%20water%2C%20a%20glass%20bottom%20boat%20floating%20on%20the%20clear%20sea%2C%20green%20islands%20and%20white%20sand%2C%20Kabira%20Bay%20Ishigaki%20Okinawa%20Japan%2C%20breathtaking%20and%20serene%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20tropical%20light&width=800&height=600&seq=imagetest5-156&orientation=landscape',
   },
   {
@@ -2937,6 +3667,8 @@ export const destinations = [
     category: 'Culture & History',
     prefecture: 'Okinawa',
     description: 'A traditional village of red-tiled roofs and coral stone walls, explored by ox-cart.',
+    lat: 24.3268759,
+    lng: 124.0891969,
     image: 'https://readdy.ai/api/search-image?query=A%20traditional%20Ryukyu%20village%20with%20red%20tiled%20roofs%20and%20white%20coral%20stone%20walls%2C%20a%20sandy%20street%20lined%20with%20hibiscus%20flowers%2C%20Taketomi%20Island%20Okinawa%20Japan%2C%20charming%20and%20traditional%2C%20soft%20editorial%20travel%20photography%20with%20warm%20light&width=800&height=600&seq=imagetest5-157&orientation=landscape',
   },
   {
@@ -2945,6 +3677,8 @@ export const destinations = [
     category: 'Nature & Scenery',
     prefecture: 'Okinawa',
     description: 'A UNESCO World Heritage subtropical jungle island, home to mangrove rivers and a rare wildcat species.',
+    lat: 24.3300613,
+    lng: 123.8187977,
     image: 'https://readdy.ai/api/search-image?query=A%20lush%20jungle%20island%20with%20dense%20green%20vegetation%2C%20a%20river%20winding%20through%20mangrove%20forest%20and%20a%20waterfall%2C%20Iriomote%20Island%20Okinawa%20Japan%2C%20wild%20and%20pristine%2C%20vivid%20editorial%20travel%20photography%20with%20bright%20tropical%20light&width=800&height=600&seq=imagetest5-158&orientation=landscape',
   },
 ];
