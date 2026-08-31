@@ -21,6 +21,8 @@ interface RelatedTrip {
   summary?: string;
   tripType?: 'recommended' | 'actual';
   days: { day: number; activities: { spotId?: string }[] }[];
+  saveCount?: number;
+  copyCount?: number;
 }
 
 const categoryColors: Record<string, string> = {
@@ -127,6 +129,8 @@ export default function DestinationPage() {
           if (tripRes.ok) {
             const json = await tripRes.json();
             if (!cancelled && Array.isArray(json.trips)) {
+              // /api/trips?public=1 は既にスコア順（Copy数・Save数・閲覧数・
+              // 新しさを加味）で返ってくるため、ここでは絞り込みのみ行う
               const matching = json.trips
                 .filter((t: RelatedTrip) =>
                   t.days.some((d) => d.activities.some((a) => a.spotId === found.id))
