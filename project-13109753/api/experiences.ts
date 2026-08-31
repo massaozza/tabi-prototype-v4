@@ -58,7 +58,84 @@ export interface Experience {
 
   // EVIDENCE
   photos: string[];
+  videos?: string[]; // TABI 3.0：動画対応（任意）
   photoDescription?: string; // 1枚目の写真をAIが解析した説明文（投稿時に一度だけ生成）
+}
+
+/**
+ * 投稿されたplaceName・areaから、既存のSPOT一覧の中で最も近いものをAIが判定し、
+ * spotIdを自動で紐づける（投稿者が候補を明示的に選ばなくても、自動で
+ * 紐づくようにするための仕組み）。
+ * 確信が持てる一致が無い場合は null を返し、無理に紐づけない
+ * （誤った紐づけの方が、紐づかないより悪いため）。
+ *
+ * 【重要】このファイルはNode.js Runtimeで他ファイルをimportできないため、
+ * SPOT一覧は /api/content?type=destinations への内部リクエストで取得する。
+ */
+async function matchSpotIdWithAI(
+  req: VercelRequest,
+  placeName: string,
+  area: string
+): Promise<string | null> {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey || !placeName) return null;
+  const model = process.env.GEMINI_MODEL || 'gemini-3.6-flash';
+
+  try {
+    const proto = (req.headers['x-forwarded-proto'] as string) || 'https';
+    const host = req.headers.host;
+    const contentRes = await fetch(`${proto}://${host}/api/content?type=destinations`);
+    if (!contentRes.ok) return null;
+    const contentJson = await contentRes.json();
+    const spots: { id: string; title: string; prefecture?: string }[] = Array.isArray(
+      contentJson?.data
+    )
+      ? contentJson.data.map((d: { id: string; title: string; prefecture?: string }) => ({
+          id: d.id,
+          title: d.title,
+          prefecture: d.prefecture,
+        }))
+      : [];
+    if (spots.length === 0) return null;
+
+    const prompt = `旅行者が投稿した観光地の名前と地域が、以下のSPOT一覧のどれかと
+同じ場所を指しているか判定してください。
+
+【投稿された場所名】${placeName}
+【投稿された地域】${area || '(未入力)'}
+
+【既存SPOT一覧（JSON、id・title・prefecture）】
+${JSON.stringify(spots)}
+
+同じ場所だと確信できるものが一覧にあれば、そのidだけを出力してください。
+確信が持てない場合（表記が近いだけで実際には別の場所である可能性がある場合を含む）は、
+"none" と出力してください。他の説明文は一切付けないでください。`;
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        }),
+      }
+    );
+    if (!response.ok) return null;
+
+    const data = await response.json();
+    const text: string =
+      data?.candidates?.[0]?.content?.parts
+        ?.map((p: { text?: string }) => p.text || '')
+        .join('') ?? '';
+    const answer = text.trim();
+
+    if (!answer || answer.toLowerCase() === 'none') return null;
+    const matched = spots.find((s) => s.id === answer);
+    return matched ? matched.id : null;
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -249,13 +326,16 @@ export default async function handler(
     const placeName = (body.placeName || '').trim();
     const area = (body.area || '').trim();
     const category = (body.category || '').trim();
-    const spotId = (body.spotId || '').trim() || undefined;
+    let spotId = (body.spotId || '').trim() || undefined;
     const visitedMonth = (body.visitedMonth || '').trim();
     const travelStyle = (body.travelStyle || '').trim();
     const whatWasGood = (body.whatWasGood || '').trim();
     const authorName = (body.authorName || '').trim() || 'Anonymous traveler';
     const photos = Array.isArray(body.photos)
       ? body.photos.filter((p): p is string => typeof p === 'string')
+      : [];
+    const videos = Array.isArray(body.videos)
+      ? body.videos.filter((v): v is string => typeof v === 'string').slice(0, 2)
       : [];
 
     if (!placeName) {
@@ -304,6 +384,12 @@ export default async function handler(
 
     const id = crypto.randomUUID();
 
+    // フロントエンドがspotIdを設定していない場合、AIが自動で最も近いSPOTを判定する
+    // （投稿者が候補を明示的に選ばなくても、自動で紐づくようにするための仕組み）
+    if (!spotId) {
+      spotId = (await matchSpotIdWithAI(req, placeName, area)) ?? undefined;
+    }
+
     // 1枚目の写真だけをAIで解析する（複数枚あっても最初の1枚のみ、コスト・時間を抑えるため）
     const photoDescription =
       photos.length > 0 ? (await analyzePhoto(photos[0])) ?? undefined : undefined;
@@ -326,6 +412,7 @@ export default async function handler(
       tip: body.tip?.trim() || undefined,
       wouldRecommend: body.wouldRecommend !== false,
       photos,
+      videos: videos.length > 0 ? videos : undefined,
       photoDescription,
     };
 
