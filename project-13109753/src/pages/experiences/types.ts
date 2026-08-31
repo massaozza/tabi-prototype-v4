@@ -16,6 +16,7 @@ export interface Experience {
   tip?: string;
   wouldRecommend: boolean;
   photos: string[];
+  videos?: string[];
 }
 
 export const AREA_LABELS: Record<string, string> = {
