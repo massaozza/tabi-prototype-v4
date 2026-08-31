@@ -43,7 +43,7 @@ export default async function handler(
   }
 
   const offset = Number(req.query.offset) || 0;
-  const limit = Math.min(Number(req.query.limit) || 20, 30); // 1回の上限は30件
+  const limit = Math.min(Number(req.query.limit) || 20, 50); // 1回の上限は50件
 
   let destinations: Destination[] = [];
   try {
