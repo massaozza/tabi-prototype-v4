@@ -10,6 +10,7 @@ interface Destination {
   id: string;
   title: string;
   category: string;
+  prefecture?: string;
   description: string;
   image: string;
 }
@@ -39,6 +40,7 @@ export default function DestinationPage() {
   const [experiences, setExperiences] = useState<Experience[]>([]);
   const [guides, setGuides] = useState<Guide[]>([]);
   const [trips, setTrips] = useState<RelatedTrip[]>([]);
+  const [similarSpots, setSimilarSpots] = useState<Destination[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
@@ -50,6 +52,7 @@ export default function DestinationPage() {
     setExperiences([]);
     setGuides([]);
     setTrips([]);
+    setSimilarSpots([]);
 
     async function fetchData() {
       let list: Destination[] = fallbackDestinations;
@@ -76,6 +79,17 @@ export default function DestinationPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ contentType: 'spot', id: found.id }),
         }).catch(() => {});
+
+        // Similar Spots：同じ都道府県を優先し、足りなければ同じカテゴリで補う
+        const others = list.filter((d) => d.id !== found.id);
+        const samePrefecture = found.prefecture
+          ? others.filter((d) => d.prefecture === found.prefecture)
+          : [];
+        const sameCategory = others.filter(
+          (d) => d.category === found.category && !samePrefecture.includes(d)
+        );
+        const combined = [...samePrefecture, ...sameCategory].slice(0, 4);
+        setSimilarSpots(combined);
 
         // 関連するExperienceを取得（spotId で正しく絞り込む）
         try {
@@ -374,6 +388,36 @@ export default function DestinationPage() {
                       View All Experiences
                       <i className="ri-arrow-right-line"></i>
                     </Link>
+                  </div>
+                </section>
+              )}
+
+              {similarSpots.length > 0 && (
+                <section className="mt-12">
+                  <h2 className="font-heading font-bold text-xl md:text-2xl text-foreground-900 mb-6">
+                    Similar Spots
+                  </h2>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    {similarSpots.map((spot) => (
+                      <Link
+                        key={spot.id}
+                        to={`/destinations/${spot.id}`}
+                        className="group flex flex-col rounded-xl overflow-hidden border border-background-200 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer"
+                      >
+                        <div className="relative w-full h-24 overflow-hidden bg-background-100">
+                          <img
+                            src={spot.image}
+                            alt={spot.title}
+                            className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
+                          />
+                        </div>
+                        <div className="p-2.5">
+                          <p className="font-heading font-semibold text-xs text-foreground-900 line-clamp-2 leading-snug">
+                            {spot.title}
+                          </p>
+                        </div>
+                      </Link>
+                    ))}
                   </div>
                 </section>
               )}
