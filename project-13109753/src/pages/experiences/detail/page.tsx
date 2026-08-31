@@ -103,6 +103,8 @@ export default function ExperienceDetailPage() {
               if (tripRes.ok) {
                 const tripJson = await tripRes.json();
                 if (!cancelled && Array.isArray(tripJson.trips)) {
+                  // /api/trips?public=1 は既にスコア順で返ってくるため、
+                  // ここでは絞り込みのみ行う
                   const matching = tripJson.trips
                     .filter((t: RelatedTrip) =>
                       t.days.some((d) => d.activities.some((a) => a.spotId === found.spotId))
@@ -241,6 +243,28 @@ export default function ExperienceDetailPage() {
                         alt={`${experience.placeName} photo ${idx + 1}`}
                         title={`${experience.placeName} — TABI`}
                         className="w-full h-full object-cover object-top"
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Videos */}
+              {experience.videos && experience.videos.length > 0 && (
+                <div
+                  className={`grid gap-3 mb-8 ${
+                    experience.videos.length > 1 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'
+                  }`}
+                >
+                  {experience.videos.map((url) => (
+                    <div
+                      key={url}
+                      className="rounded-xl overflow-hidden border border-background-200 bg-black"
+                    >
+                      <video
+                        src={url}
+                        controls
+                        className="w-full h-full max-h-[480px] object-contain bg-black"
                       />
                     </div>
                   ))}
