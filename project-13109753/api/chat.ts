@@ -83,7 +83,7 @@ function buildSystemPrompt(
     .join('\n');
 
   const destinationsSection = destinationsData
-    .map((d) => `- [${d.category}] ${d.title}\n  ${d.description}`)
+    .map((d) => `- [ID: ${d.id}] [${d.category}] ${d.title}\n  ${d.description}`)
     .join('\n');
 
   const experiencesSection =
