@@ -234,7 +234,8 @@ ${experiencesSection}
 
 {
   "reply": "旅行者への回答本文（上記のルールに従った自然な文章）",
-  "citedExperienceIds": ["回答の中で実際に引用したExperienceのIDの配列。引用していなければ空配列"]
+  "citedExperienceIds": ["回答の中で実際に引用したExperienceのIDの配列。引用していなければ空配列"],
+  "mentionedSpotIds": ["回答の中で具体的に言及・提案した観光地（SPOT一覧）のIDの配列。地図にピン表示するために使うので、実際に本文中で名前を挙げた場所のみを入れること。無ければ空配列"]
 }`;
 }
 
@@ -377,13 +378,17 @@ export default async function handler(req: Request): Promise<Response> {
     } catch {
       // JSONとして解釈できない場合、素のテキストをそのまま返答として使う
       // （AIが稀に自由形式で答えてしまった場合のフォールバック。引用カードは出さない）
-      return new Response(JSON.stringify({ reply: rawText, citedExperiences: [] }), {
+      return new Response(JSON.stringify({ reply: rawText, citedExperiences: [], mentionedSpots: [] }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
       });
     }
 
-    const result = parsed as { reply?: string; citedExperienceIds?: string[] };
+    const result = parsed as {
+      reply?: string;
+      citedExperienceIds?: string[];
+      mentionedSpotIds?: string[];
+    };
     const reply = typeof result.reply === 'string' ? result.reply : '';
 
     // AIが挙げたIDのうち、実在するExperienceのみを引用として採用する
@@ -406,6 +411,19 @@ export default async function handler(req: Request): Promise<Response> {
         photos: e.photos,
       }));
 
+    // AIが言及したSPOTのうち、実在し、かつ緯度・経度を持つもののみを
+    // 地図表示用に返す（幻覚で存在しないIDを弾く、既存の仕組みと同じ考え方）
+    const mentionedSpotIdsRaw = Array.isArray(result.mentionedSpotIds)
+      ? result.mentionedSpotIds.filter((id): id is string => typeof id === 'string')
+      : [];
+    const mentionedSpots = mentionedSpotIdsRaw
+      .map((id) => destinationsData.find((d) => d.id === id))
+      .filter(
+        (d): d is { id: string; title: string; lat?: number; lng?: number } =>
+          d !== undefined && typeof d.lat === 'number' && typeof d.lng === 'number'
+      )
+      .map((d) => ({ id: d.id, title: d.title, lat: d.lat, lng: d.lng }));
+
     // Contribution計測：実際に引用されたExperienceの「AIに引用された回数」を
     // カウントアップする（Creator Profile・Experience Scoreで使用する）。
     // 失敗しても、チャットの返答自体には影響させない。
@@ -419,7 +437,7 @@ export default async function handler(req: Request): Promise<Response> {
       }
     }
 
-    return new Response(JSON.stringify({ reply, citedExperiences }), {
+    return new Response(JSON.stringify({ reply, citedExperiences, mentionedSpots }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
