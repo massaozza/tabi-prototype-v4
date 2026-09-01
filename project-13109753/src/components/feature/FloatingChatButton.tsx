@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import ChatMapPanel from './ChatMapPanel';
 
 type ChatRole = 'user' | 'assistant';
 
@@ -15,11 +16,19 @@ interface CitedExperience {
   photos: string[];
 }
 
+interface MentionedSpot {
+  id: string;
+  title: string;
+  lat: number;
+  lng: number;
+}
+
 interface ChatMessage {
   id: number;
   role: ChatRole;
   content: string;
   citedExperiences?: CitedExperience[];
+  mentionedSpots?: MentionedSpot[];
 }
 
 interface TripDayItem {
@@ -97,10 +106,10 @@ export default function FloatingChatButton() {
   }, [messages, loading]);
 
   const addAssistantMessage = useCallback(
-    (content: string, citedExperiences?: CitedExperience[]) => {
+    (content: string, citedExperiences?: CitedExperience[], mentionedSpots?: MentionedSpot[]) => {
       setMessages((prev) => [
         ...prev,
-        { id: idRef.current++, role: 'assistant', content, citedExperiences },
+        { id: idRef.current++, role: 'assistant', content, citedExperiences, mentionedSpots },
       ]);
     },
     []
@@ -137,7 +146,7 @@ export default function FloatingChatButton() {
       const data = await res.json();
 
       if (res.ok && data.reply) {
-        addAssistantMessage(data.reply, data.citedExperiences);
+        addAssistantMessage(data.reply, data.citedExperiences, data.mentionedSpots);
       } else {
         addAssistantMessage(ERROR_MESSAGE);
       }
@@ -365,6 +374,14 @@ export default function FloatingChatButton() {
                           </div>
                         </a>
                       ))}
+                    </div>
+                  )}
+
+                {msg.role === 'assistant' &&
+                  msg.mentionedSpots &&
+                  msg.mentionedSpots.length > 0 && (
+                    <div className="w-full">
+                      <ChatMapPanel spots={msg.mentionedSpots} />
                     </div>
                   )}
               </div>
