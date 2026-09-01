@@ -83,7 +83,7 @@ function buildSystemPrompt(
     .join('\n');
 
   const destinationsSection = destinationsData
-    .map((d) => `- [ID: ${d.id}] [${d.category}] ${d.title}\n  ${d.description}`)
+    .map((d) => `- [${d.category}] ${d.title}\n  ${d.description}`)
     .join('\n');
 
   const experiencesSection =
@@ -234,8 +234,7 @@ ${experiencesSection}
 
 {
   "reply": "旅行者への回答本文（上記のルールに従った自然な文章）",
-  "citedExperienceIds": ["回答の中で実際に引用したExperienceのIDの配列。引用していなければ空配列"],
-  "mentionedSpotIds": ["回答の中で具体的に言及・提案した観光地（SPOT一覧）のIDの配列。地図にピン表示するために使うので、実際に本文中で名前を挙げた場所のみを入れること。無ければ空配列"]
+  "citedExperienceIds": ["回答の中で実際に引用したExperienceのIDの配列。引用していなければ空配列"]
 }`;
 }
 
@@ -387,7 +386,6 @@ export default async function handler(req: Request): Promise<Response> {
     const result = parsed as {
       reply?: string;
       citedExperienceIds?: string[];
-      mentionedSpotIds?: string[];
     };
     const reply = typeof result.reply === 'string' ? result.reply : '';
 
@@ -411,18 +409,22 @@ export default async function handler(req: Request): Promise<Response> {
         photos: e.photos,
       }));
 
-    // AIが言及したSPOTのうち、実在し、かつ緯度・経度を持つもののみを
-    // 地図表示用に返す（幻覚で存在しないIDを弾く、既存の仕組みと同じ考え方）
-    const mentionedSpotIdsRaw = Array.isArray(result.mentionedSpotIds)
-      ? result.mentionedSpotIds.filter((id): id is string => typeof id === 'string')
-      : [];
-    const mentionedSpots = mentionedSpotIdsRaw
-      .map((id) => destinationsData.find((d) => d.id === id))
+    // 地図表示用のSPOT検出：AIにIDを判定させる方式は、SPOT一覧（367件）を
+    // 丸ごと読ませてIDを選ばせる負荷が大きく、応答が遅延・タイムアウトする
+    // 原因になっていた。そのため、AIの返信文の中に、SPOTの名前が
+    // そのまま含まれているかを、サーバー側で単純な文字列一致で
+    // チェックする方式に変更している（AI側の処理は増やさない）。
+    const mentionedSpots = destinationsData
       .filter(
-        (d): d is { id: string; title: string; lat?: number; lng?: number } =>
-          d !== undefined && typeof d.lat === 'number' && typeof d.lng === 'number'
+        (d): d is { id: string; title: string; lat: number; lng: number } =>
+          typeof d.lat === 'number' &&
+          typeof d.lng === 'number' &&
+          typeof d.title === 'string' &&
+          reply.includes(d.title)
       )
+      .slice(0, 6) // 地図が煩雑になりすぎないよう、上限を設ける
       .map((d) => ({ id: d.id, title: d.title, lat: d.lat, lng: d.lng }));
+
 
     // Contribution計測：実際に引用されたExperienceの「AIに引用された回数」を
     // カウントアップする（Creator Profile・Experience Scoreで使用する）。
