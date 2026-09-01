@@ -43,6 +43,7 @@ export default function DestinationPage() {
   const [guides, setGuides] = useState<Guide[]>([]);
   const [trips, setTrips] = useState<RelatedTrip[]>([]);
   const [similarSpots, setSimilarSpots] = useState<Destination[]>([]);
+  const [rating, setRating] = useState<{ rating: number; userRatingCount?: number; googleMapsUri?: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
@@ -55,6 +56,7 @@ export default function DestinationPage() {
     setGuides([]);
     setTrips([]);
     setSimilarSpots([]);
+    setRating(null);
 
     async function fetchData() {
       let list: Destination[] = fallbackDestinations;
@@ -81,6 +83,16 @@ export default function DestinationPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ contentType: 'spot', id: found.id }),
         }).catch(() => {});
+
+        // Googleの評価・レビュー数を取得（キャッシュがあればそれを使う）
+        fetch(`/api/spot-rating?id=${encodeURIComponent(found.id)}`)
+          .then((r) => r.json())
+          .then((data) => {
+            if (!cancelled && typeof data.rating === 'number') {
+              setRating(data);
+            }
+          })
+          .catch(() => {});
 
         // Similar Spots：同じ都道府県を優先し、足りなければ同じカテゴリで補う
         const others = list.filter((d) => d.id !== found.id);
@@ -228,6 +240,25 @@ export default function DestinationPage() {
               <h1 className="font-heading font-bold text-3xl md:text-5xl text-white leading-tight mb-6 max-w-3xl">
                 {destination.title}
               </h1>
+
+              {rating && (
+                <a
+                  href={rating.googleMapsUri || '#'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-white/90 text-sm mb-6 hover:text-white transition-colors whitespace-nowrap"
+                >
+                  <span className="flex items-center gap-1">
+                    <i className="ri-star-fill text-yellow-400"></i>
+                    {rating.rating.toFixed(1)}
+                  </span>
+                  {rating.userRatingCount !== undefined && (
+                    <span className="text-white/60">
+                      ({rating.userRatingCount.toLocaleString()} Google reviews)
+                    </span>
+                  )}
+                </a>
+              )}
             </div>
 
             <div className="max-w-[1140px] mx-auto px-0 md:px-10">
