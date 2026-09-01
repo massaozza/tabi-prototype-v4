@@ -80,6 +80,7 @@ export default function FloatingChatButton() {
   // Save as Trip の状態
   const [structuring, setStructuring] = useState(false);
   const [tripPreview, setTripPreview] = useState<StructuredTrip | null>(null);
+  const [showTripModal, setShowTripModal] = useState(false);
   const [tripTitle, setTripTitle] = useState('');
   const [tripSaving, setTripSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
@@ -115,6 +116,34 @@ export default function FloatingChatButton() {
     []
   );
 
+  // TABI 3.0：会話が進むたびに、裏側で静かに旅程プレビューを更新しておく。
+  // 「Save as Trip」ボタンを押した瞬間には、既に最新の状態が用意されている
+  // という体験にするため。エラーが起きても、チャットにメッセージは出さない
+  // （ユーザーが明示的にボタンを押していないため、静かに失敗させる）。
+  const refreshTripPreviewSilently = useCallback(async () => {
+    if (!user) return;
+    const history = messagesRef.current.map((m) => ({
+      role: m.role,
+      content: m.content,
+    }));
+
+    try {
+      const res = await fetch('/api/structure-trip', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ history }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setTripPreview(data);
+        setTripTitle((prev) => prev || data.title || '');
+      }
+    } catch {
+      // 自動更新の失敗は静かに無視する（会話自体は続けられる）
+    }
+  }, [user]);
+
   const sendMessage = useCallback(async (text: string) => {
     const trimmed = text.trim();
     if (!trimmed || loadingRef.current) {
@@ -147,6 +176,15 @@ export default function FloatingChatButton() {
 
       if (res.ok && data.reply) {
         addAssistantMessage(data.reply, data.citedExperiences, data.mentionedSpots);
+
+        // 会話がある程度進んだら（AIの返信が2回以上）、裏側で旅程プレビューを
+        // 静かに更新しておく。毎回のやり取りごとにAI呼び出しが1回増える
+        // ことになるが、「Save as Trip」を押した瞬間の体験を良くするための
+        // トレードオフとして許容する。
+        const assistantCount = messagesRef.current.filter((m) => m.role === 'assistant').length;
+        if (user && assistantCount >= 1) {
+          refreshTripPreviewSilently();
+        }
       } else {
         addAssistantMessage(ERROR_MESSAGE);
       }
@@ -156,10 +194,17 @@ export default function FloatingChatButton() {
       setLoading(false);
       loadingRef.current = false;
     }
-  }, [addAssistantMessage]);
+  }, [addAssistantMessage, user, refreshTripPreviewSilently]);
 
   const handleSaveAsTrip = useCallback(async () => {
     if (!user || structuring) {
+      return;
+    }
+
+    // 既に裏側で最新の旅程プレビューが用意されている場合は、
+    // 再度AIを呼ばず、すぐにパネルを開く
+    if (tripPreview) {
+      setShowTripModal(true);
       return;
     }
 
@@ -184,6 +229,7 @@ export default function FloatingChatButton() {
         setTripPreview(data);
         setTripTitle(data.title || '');
         setSaveError('');
+        setShowTripModal(true);
       } else if (data && data.success === false && data.reason) {
         addAssistantMessage(
           `I couldn't find enough trip details in our conversation yet. ${data.reason}`
@@ -223,6 +269,7 @@ export default function FloatingChatButton() {
 
       if (res.ok && data.success) {
         setTripPreview(null);
+        setShowTripModal(false);
         setTripTitle('');
         addAssistantMessage('Trip saved! You can view it in My Trips.');
       } else {
@@ -286,7 +333,7 @@ export default function FloatingChatButton() {
                 <button
                   onClick={handleSaveAsTrip}
                   disabled={structuring}
-                  aria-label="Save as Trip"
+                  aria-label="View or save this trip"
                   className="h-8 px-3 rounded-full bg-white/20 hover:bg-white/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 text-xs font-medium text-white transition-colors cursor-pointer whitespace-nowrap"
                 >
                   {structuring ? (
@@ -294,7 +341,7 @@ export default function FloatingChatButton() {
                   ) : (
                     <i className="ri-bookmark-line text-sm"></i>
                   )}
-                  Save as Trip
+                  {tripPreview ? 'View Trip' : 'Save as Trip'}
                 </button>
               )}
               <button
@@ -426,13 +473,13 @@ export default function FloatingChatButton() {
       )}
 
       {/* Save as Trip プレビューモーダル */}
-      {tripPreview && (
+      {showTripModal && tripPreview && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
           <div
             className="absolute inset-0 bg-foreground-950/50"
             onClick={() => {
               if (!tripSaving) {
-                setTripPreview(null);
+                setShowTripModal(false);
               }
             }}
           ></div>
@@ -444,7 +491,7 @@ export default function FloatingChatButton() {
               <button
                 onClick={() => {
                   if (!tripSaving) {
-                    setTripPreview(null);
+                    setShowTripModal(false);
                   }
                 }}
                 aria-label="Close preview"
@@ -573,7 +620,7 @@ export default function FloatingChatButton() {
               <button
                 onClick={() => {
                   if (!tripSaving) {
-                    setTripPreview(null);
+                    setShowTripModal(false);
                   }
                 }}
                 disabled={tripSaving}
