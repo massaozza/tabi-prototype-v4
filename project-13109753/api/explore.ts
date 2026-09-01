@@ -25,6 +25,8 @@ interface ExploreResult {
   area?: string;
   summary?: string;
   href: string;
+  lat?: number;
+  lng?: number;
 }
 
 interface DestinationItem {
@@ -34,6 +36,8 @@ interface DestinationItem {
   prefecture?: string;
   description?: string;
   image?: string;
+  lat?: number;
+  lng?: number;
 }
 
 interface GuideItem {
@@ -75,6 +79,8 @@ async function fetchSpots(req: VercelRequest): Promise<ExploreResult[]> {
       area: d.prefecture,
       summary: d.description,
       href: `/destinations/${d.id}`,
+      lat: d.lat,
+      lng: d.lng,
     }));
   } catch {
     return [];
