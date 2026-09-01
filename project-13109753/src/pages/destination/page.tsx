@@ -25,6 +25,12 @@ interface RelatedTrip {
   copyCount?: number;
 }
 
+// レビュー数を「7.8K」のような短縮表示にする（1000未満はそのままの数字）
+function formatReviewCount(count: number): string {
+  if (count < 1000) return String(count);
+  return `${(count / 1000).toFixed(1).replace(/\.0$/, '')}K`;
+}
+
 const categoryColors: Record<string, string> = {
   Temple: 'bg-accent-100 text-accent-800',
   Restaurant: 'bg-secondary-100 text-secondary-800',
@@ -254,7 +260,7 @@ export default function DestinationPage() {
                   </span>
                   {rating.userRatingCount !== undefined && (
                     <span className="text-white/60">
-                      ({rating.userRatingCount.toLocaleString()} Google reviews)
+                      ({formatReviewCount(rating.userRatingCount)} Google reviews)
                     </span>
                   )}
                 </a>
