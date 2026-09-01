@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Navbar from '@/components/feature/Navbar';
 import Footer from '@/components/feature/Footer';
 import { destinations as fallbackDestinations } from '@/mocks/homeData';
 import { type Experience } from '@/pages/experiences/types';
 import type { Guide } from '@/pages/guides/page';
+import { loadGoogleMaps } from '@/lib/loadGoogleMaps';
 
 interface Destination {
   id: string;
@@ -13,6 +14,8 @@ interface Destination {
   prefecture?: string;
   description: string;
   image: string;
+  lat?: number;
+  lng?: number;
 }
 
 interface RelatedTrip {
@@ -42,6 +45,41 @@ const categoryColors: Record<string, string> = {
   Other: 'bg-background-200 text-foreground-600',
 };
 
+// TABI 3.0：SPOT詳細ページのタブ構成（Mindtrip等の競合を参考に、
+// Overview/Guides/Reviews/Location という一般的な構成に、TABI独自の
+// コンテンツである「Trips（旅程）」タブを追加している）
+type TabKey = 'overview' | 'guides' | 'reviews' | 'trips' | 'location';
+
+// Locationタブ用の小さな地図（このSpot1件だけをピン表示する）
+function LocationMap({ lat, lng, title }: { lat: number; lng: number; title: string }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    loadGoogleMaps()
+      .then(() => {
+        if (cancelled || !containerRef.current) return;
+        const googleAny = (window as any).google;
+        if (!googleAny?.maps) return;
+        const map = new googleAny.maps.Map(containerRef.current, {
+          zoom: 14,
+          center: { lat, lng },
+          disableDefaultUI: true,
+          zoomControl: true,
+        });
+        new googleAny.maps.Marker({ position: { lat, lng }, map, title });
+      })
+      .catch(() => {
+        // 地図の読み込みに失敗しても、他の情報は表示され続ける
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [lat, lng, title]);
+
+  return <div ref={containerRef} className="w-full h-72 md:h-96 rounded-xl overflow-hidden" />;
+}
+
 export default function DestinationPage() {
   const { id } = useParams<{ id: string }>();
   const [destination, setDestination] = useState<Destination | null>(null);
@@ -52,6 +90,7 @@ export default function DestinationPage() {
   const [rating, setRating] = useState<{ rating: number; userRatingCount?: number; googleMapsUri?: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [activeTab, setActiveTab] = useState<TabKey>('overview');
 
   useEffect(() => {
     let cancelled = false;
@@ -63,6 +102,7 @@ export default function DestinationPage() {
     setTrips([]);
     setSimilarSpots([]);
     setRating(null);
+    setActiveTab('overview');
 
     async function fetchData() {
       let list: Destination[] = fallbackDestinations;
@@ -183,6 +223,16 @@ export default function DestinationPage() {
     );
   };
 
+  const TABS: { key: TabKey; label: string; count?: number }[] = destination
+    ? [
+        { key: 'overview', label: 'Overview' },
+        { key: 'guides', label: 'Guides', count: guides.length },
+        { key: 'reviews', label: 'Reviews', count: experiences.length },
+        { key: 'trips', label: 'Trips', count: trips.length },
+        { key: 'location', label: 'Location' },
+      ]
+    : [];
+
   return (
     <main className="min-h-screen bg-background-50">
       <Navbar />
@@ -243,28 +293,32 @@ export default function DestinationPage() {
                 {destination.category.toUpperCase()}
               </span>
 
-              <h1 className="font-heading font-bold text-3xl md:text-5xl text-white leading-tight mb-6 max-w-3xl">
+              <h1 className="font-heading font-bold text-3xl md:text-5xl text-white leading-tight mb-4 max-w-3xl">
                 {destination.title}
               </h1>
 
-              {rating && (
-                <a
-                  href={rating.googleMapsUri || '#'}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-white/90 text-sm mb-6 hover:text-white transition-colors whitespace-nowrap"
-                >
-                  <span className="flex items-center gap-1">
+              <div className="flex items-center gap-2 text-white/80 text-sm mb-6 flex-wrap">
+                {rating && (
+                  <a
+                    href={rating.googleMapsUri || '#'}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 hover:text-white transition-colors whitespace-nowrap"
+                  >
                     <i className="ri-star-fill text-yellow-400"></i>
                     {rating.rating.toFixed(1)}
-                  </span>
-                  {rating.userRatingCount !== undefined && (
-                    <span className="text-white/60">
-                      ({formatReviewCount(rating.userRatingCount)} Google reviews)
-                    </span>
-                  )}
-                </a>
-              )}
+                    {rating.userRatingCount !== undefined && (
+                      <span className="text-white/60">
+                        · {formatReviewCount(rating.userRatingCount)} reviews
+                      </span>
+                    )}
+                  </a>
+                )}
+                {rating && destination.prefecture && <span className="text-white/40">·</span>}
+                {destination.prefecture && (
+                  <span className="whitespace-nowrap">{destination.prefecture}</span>
+                )}
+              </div>
             </div>
 
             <div className="max-w-[1140px] mx-auto px-0 md:px-10">
@@ -279,199 +333,262 @@ export default function DestinationPage() {
             </div>
           </section>
 
-          {/* Content */}
-          <section className="py-12 md:py-16 px-6 md:px-10 lg:px-20">
+          {/* タブナビゲーション */}
+          <section className="bg-background-50 border-b border-background-200 sticky top-0 z-30">
+            <div className="max-w-[1140px] mx-auto px-6 md:px-10">
+              <div className="flex gap-1 overflow-x-auto">
+                {TABS.map((tab) => (
+                  <button
+                    key={tab.key}
+                    onClick={() => setActiveTab(tab.key)}
+                    className={`px-4 py-4 text-sm font-semibold whitespace-nowrap transition-colors cursor-pointer border-b-2 ${
+                      activeTab === tab.key
+                        ? 'text-primary-600 border-primary-500'
+                        : 'text-foreground-500 border-transparent hover:text-foreground-800'
+                    }`}
+                  >
+                    {tab.label}
+                    {typeof tab.count === 'number' && tab.count > 0 && (
+                      <span className="ml-1 text-xs text-foreground-400">({tab.count})</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* タブごとのコンテンツ */}
+          <section className="py-10 md:py-12 px-6 md:px-10 lg:px-20">
             <div className="max-w-3xl mx-auto">
-              <Link
-                to="/#destinations"
-                className="inline-flex items-center gap-1.5 text-primary-500 hover:text-primary-600 font-semibold text-sm transition-colors whitespace-nowrap mb-8"
-              >
-                <i className="ri-arrow-left-line"></i>
-                Back to Destinations
-              </Link>
+              {activeTab === 'overview' && (
+                <div>
+                  <h2 className="font-heading font-bold text-xl md:text-2xl text-foreground-900 mb-4">
+                    About {destination.title}
+                  </h2>
+                  <p className="text-foreground-600 text-base md:text-lg leading-relaxed mb-10">
+                    {destination.description}
+                  </p>
 
-              <h2 className="font-heading font-bold text-xl md:text-2xl text-foreground-900 mb-4">
-                About {destination.title}
-              </h2>
-              <p className="text-foreground-600 text-base md:text-lg leading-relaxed">
-                {destination.description}
-              </p>
+                  {similarSpots.length > 0 && (
+                    <section>
+                      <h3 className="font-heading font-bold text-lg text-foreground-900 mb-5">
+                        Similar Spots
+                      </h3>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        {similarSpots.map((spot) => (
+                          <Link
+                            key={spot.id}
+                            to={`/destinations/${spot.id}`}
+                            className="group flex flex-col rounded-xl overflow-hidden border border-background-200 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer"
+                          >
+                            <div className="relative w-full h-24 overflow-hidden bg-background-100">
+                              <img
+                                src={spot.image}
+                                alt={spot.title}
+                                className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
+                              />
+                            </div>
+                            <div className="p-2.5">
+                              <p className="font-heading font-semibold text-xs text-foreground-900 line-clamp-2 leading-snug">
+                                {spot.title}
+                              </p>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    </section>
+                  )}
 
-              {guides.length > 0 && (
-                <section className="mt-12">
+                  <div className="mt-10 pt-8 border-t border-background-200">
+                    <button
+                      onClick={handleAskTabi}
+                      className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm md:text-base px-6 py-3.5 rounded-lg transition-colors whitespace-nowrap cursor-pointer"
+                    >
+                      <i className="ri-chat-3-line text-lg"></i>
+                      Ask TABI about {destination.title}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'guides' && (
+                <div>
                   <h2 className="font-heading font-bold text-xl md:text-2xl text-foreground-900 mb-6">
                     Guides Featuring {destination.title}
                   </h2>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 md:gap-6">
-                    {guides.map((guide) => (
-                      <Link
-                        key={guide.id}
-                        to={`/guides/${guide.id}`}
-                        className="group flex flex-col bg-background-50 rounded-xl overflow-hidden border border-background-200 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer p-5"
-                      >
-                        <span className="inline-block text-xs font-semibold px-2.5 py-1 rounded-full bg-accent-100 text-accent-800 whitespace-nowrap mb-3 self-start">
-                          {guide.theme}
-                        </span>
-                        <h3 className="font-heading font-bold text-base text-foreground-900 mb-2 leading-snug">
-                          {guide.titleEn || guide.title}
-                        </h3>
-                        <p className="text-foreground-600 text-sm leading-relaxed line-clamp-2 mb-3">
-                          {guide.bodyEn || guide.bodyJa}
-                        </p>
-                        <span className="mt-auto text-foreground-400 text-xs whitespace-nowrap">
-                          By {guide.authorName}
-                        </span>
-                      </Link>
-                    ))}
-                  </div>
-                </section>
-              )}
-
-              {trips.length > 0 && (
-                <section className="mt-12">
-                  <h2 className="font-heading font-bold text-xl md:text-2xl text-foreground-900 mb-6">
-                    Trips Including {destination.title}
-                  </h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 md:gap-6">
-                    {trips.map((trip) => (
-                      <Link
-                        key={trip.id}
-                        to={`/trips/${trip.id}`}
-                        className="group flex flex-col bg-background-50 border border-background-200 rounded-xl overflow-hidden hover:-translate-y-0.5 transition-all duration-300 cursor-pointer p-5"
-                      >
-                        <span
-                          className={`inline-block text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap mb-3 self-start ${
-                            trip.tripType === 'recommended'
-                              ? 'bg-accent-50 text-accent-700'
-                              : 'bg-primary-50 text-primary-700'
-                          }`}
+                  {guides.length === 0 ? (
+                    <p className="text-foreground-500 text-sm">
+                      No guides mention this spot yet.
+                    </p>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 md:gap-6">
+                      {guides.map((guide) => (
+                        <Link
+                          key={guide.id}
+                          to={`/guides/${guide.id}`}
+                          className="group flex flex-col bg-background-50 rounded-xl overflow-hidden border border-background-200 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer p-5"
                         >
-                          {trip.tripType === 'recommended' ? 'Recommended Trip' : 'Actual Trip'}
-                        </span>
-                        <h3 className="font-heading font-bold text-base text-foreground-900 mb-2 leading-snug">
-                          {trip.title}
-                        </h3>
-                        {trip.summary && (
-                          <p className="text-foreground-600 text-sm leading-relaxed line-clamp-2">
-                            {trip.summary}
+                          <span className="inline-block text-xs font-semibold px-2.5 py-1 rounded-full bg-accent-100 text-accent-800 whitespace-nowrap mb-3 self-start">
+                            {guide.theme}
+                          </span>
+                          <h3 className="font-heading font-bold text-base text-foreground-900 mb-2 leading-snug">
+                            {guide.titleEn || guide.title}
+                          </h3>
+                          <p className="text-foreground-600 text-sm leading-relaxed line-clamp-2 mb-3">
+                            {guide.bodyEn || guide.bodyJa}
                           </p>
-                        )}
-                      </Link>
-                    ))}
-                  </div>
-                </section>
+                          <span className="mt-auto text-foreground-400 text-xs whitespace-nowrap">
+                            By {guide.authorName}
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
               )}
 
-              {experiences.length > 0 && (
-                <section className="mt-12">
+              {activeTab === 'reviews' && (
+                <div>
                   <h2 className="font-heading font-bold text-xl md:text-2xl text-foreground-900 mb-6">
                     Real Experiences from Travelers
                   </h2>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 md:gap-6">
-                    {experiences.map((exp) => (
-                      <Link
-                        key={exp.id}
-                        to={`/experiences/${exp.id}`}
-                        className="group flex flex-col bg-background-50 rounded-xl overflow-hidden border border-background-200 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer"
-                      >
-                        {exp.photos && exp.photos.length > 0 && (
-                          <div className="relative w-full h-40 flex-shrink-0 overflow-hidden bg-background-100">
-                            <img
-                              src={exp.photos[0]}
-                              alt={exp.placeName}
-                              title={`${exp.placeName} — TABI`}
-                              className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
-                            />
-                          </div>
-                        )}
-
-                        <div className="p-5 flex flex-col flex-1">
-                          <div className="flex items-center gap-2 mb-3 flex-wrap">
-                            <span
-                              className={`inline-block text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap ${
-                                categoryColors[exp.category] ||
-                                'bg-background-200 text-foreground-600'
-                              }`}
-                            >
-                              {exp.category}
-                            </span>
-                            {exp.wouldRecommend && (
-                              <span className="inline-flex items-center text-xs font-semibold text-emerald-600 whitespace-nowrap">
-                                <i className="ri-checkbox-circle-fill mr-1"></i>
-                                Recommended
-                              </span>
+                  {experiences.length === 0 ? (
+                    <p className="text-foreground-500 text-sm">
+                      No traveler experiences shared yet.
+                    </p>
+                  ) : (
+                    <>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 md:gap-6">
+                        {experiences.map((exp) => (
+                          <Link
+                            key={exp.id}
+                            to={`/experiences/${exp.id}`}
+                            className="group flex flex-col bg-background-50 rounded-xl overflow-hidden border border-background-200 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer"
+                          >
+                            {exp.photos && exp.photos.length > 0 && (
+                              <div className="relative w-full h-40 flex-shrink-0 overflow-hidden bg-background-100">
+                                <img
+                                  src={exp.photos[0]}
+                                  alt={exp.placeName}
+                                  title={`${exp.placeName} — TABI`}
+                                  className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
+                                />
+                              </div>
                             )}
-                          </div>
 
-                          <h3 className="font-heading font-bold text-base text-foreground-900 mb-2 leading-snug">
-                            {exp.placeName}
-                          </h3>
+                            <div className="p-5 flex flex-col flex-1">
+                              <div className="flex items-center gap-2 mb-3 flex-wrap">
+                                <span
+                                  className={`inline-block text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap ${
+                                    categoryColors[exp.category] ||
+                                    'bg-background-200 text-foreground-600'
+                                  }`}
+                                >
+                                  {exp.category}
+                                </span>
+                                {exp.wouldRecommend && (
+                                  <span className="inline-flex items-center text-xs font-semibold text-emerald-600 whitespace-nowrap">
+                                    <i className="ri-checkbox-circle-fill mr-1"></i>
+                                    Recommended
+                                  </span>
+                                )}
+                              </div>
 
-                          <p className="text-foreground-600 text-sm leading-relaxed line-clamp-2 mb-3">
-                            {exp.whatWasGood}
-                          </p>
+                              <h3 className="font-heading font-bold text-base text-foreground-900 mb-2 leading-snug">
+                                {exp.placeName}
+                              </h3>
 
-                          <span className="mt-auto text-foreground-400 text-xs whitespace-nowrap">
-                            — {exp.authorName}
-                          </span>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
+                              <p className="text-foreground-600 text-sm leading-relaxed line-clamp-2 mb-3">
+                                {exp.whatWasGood}
+                              </p>
 
-                  <div className="mt-8">
-                    <Link
-                      to="/experiences"
-                      className="inline-flex items-center gap-1.5 text-primary-500 hover:text-primary-600 font-semibold text-sm transition-colors whitespace-nowrap"
-                    >
-                      View All Experiences
-                      <i className="ri-arrow-right-line"></i>
-                    </Link>
-                  </div>
-                </section>
+                              <span className="mt-auto text-foreground-400 text-xs whitespace-nowrap">
+                                — {exp.authorName}
+                              </span>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+
+                      <div className="mt-8">
+                        <Link
+                          to="/experiences"
+                          className="inline-flex items-center gap-1.5 text-primary-500 hover:text-primary-600 font-semibold text-sm transition-colors whitespace-nowrap"
+                        >
+                          View All Experiences
+                          <i className="ri-arrow-right-line"></i>
+                        </Link>
+                      </div>
+                    </>
+                  )}
+                </div>
               )}
 
-              {similarSpots.length > 0 && (
-                <section className="mt-12">
+              {activeTab === 'trips' && (
+                <div>
                   <h2 className="font-heading font-bold text-xl md:text-2xl text-foreground-900 mb-6">
-                    Similar Spots
+                    Trips Including {destination.title}
                   </h2>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    {similarSpots.map((spot) => (
-                      <Link
-                        key={spot.id}
-                        to={`/destinations/${spot.id}`}
-                        className="group flex flex-col rounded-xl overflow-hidden border border-background-200 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer"
-                      >
-                        <div className="relative w-full h-24 overflow-hidden bg-background-100">
-                          <img
-                            src={spot.image}
-                            alt={spot.title}
-                            className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
-                          />
-                        </div>
-                        <div className="p-2.5">
-                          <p className="font-heading font-semibold text-xs text-foreground-900 line-clamp-2 leading-snug">
-                            {spot.title}
-                          </p>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                </section>
+                  {trips.length === 0 ? (
+                    <p className="text-foreground-500 text-sm">
+                      No published trips include this spot yet.
+                    </p>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 md:gap-6">
+                      {trips.map((trip) => (
+                        <Link
+                          key={trip.id}
+                          to={`/trips/${trip.id}`}
+                          className="group flex flex-col bg-background-50 border border-background-200 rounded-xl overflow-hidden hover:-translate-y-0.5 transition-all duration-300 cursor-pointer p-5"
+                        >
+                          <span
+                            className={`inline-block text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap mb-3 self-start ${
+                              trip.tripType === 'recommended'
+                                ? 'bg-accent-50 text-accent-700'
+                                : 'bg-primary-50 text-primary-700'
+                            }`}
+                          >
+                            {trip.tripType === 'recommended' ? 'Recommended Trip' : 'Actual Trip'}
+                          </span>
+                          <h3 className="font-heading font-bold text-base text-foreground-900 mb-2 leading-snug">
+                            {trip.title}
+                          </h3>
+                          {trip.summary && (
+                            <p className="text-foreground-600 text-sm leading-relaxed line-clamp-2">
+                              {trip.summary}
+                            </p>
+                          )}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
               )}
 
-              <div className="mt-10 pt-8 border-t border-background-200">
-                <button
-                  onClick={handleAskTabi}
-                  className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm md:text-base px-6 py-3.5 rounded-lg transition-colors whitespace-nowrap cursor-pointer"
-                >
-                  <i className="ri-chat-3-line text-lg"></i>
-                  Ask TABI about {destination.title}
-                </button>
-              </div>
+              {activeTab === 'location' && (
+                <div>
+                  <h2 className="font-heading font-bold text-xl md:text-2xl text-foreground-900 mb-6">
+                    Location
+                  </h2>
+                  {typeof destination.lat === 'number' && typeof destination.lng === 'number' ? (
+                    <LocationMap
+                      lat={destination.lat}
+                      lng={destination.lng}
+                      title={destination.title}
+                    />
+                  ) : (
+                    <p className="text-foreground-500 text-sm">
+                      Location details are not available for this spot yet.
+                    </p>
+                  )}
+                  {destination.prefecture && (
+                    <p className="text-foreground-600 text-sm mt-4">
+                      <i className="ri-map-pin-line mr-1"></i>
+                      {destination.prefecture}, Japan
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           </section>
         </>
