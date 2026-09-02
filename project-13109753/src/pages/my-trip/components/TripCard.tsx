@@ -139,7 +139,6 @@ export default function TripCard({
   const [publishing, setPublishing] = useState(false);
   const [publishError, setPublishError] = useState('');
   const [migrating, setMigrating] = useState(false);
-  const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
 
   const status = trip.status || 'planning';
   const statusBadge = STATUS_BADGE[status] || STATUS_BADGE.planning;
@@ -482,56 +481,69 @@ export default function TripCard({
                           </div>
                         )}
                         <ul className="space-y-2">
-                          {scheduleEntries.map((entry) => {
-                            const draggable = migrated && !!entry.itemId;
-                            const isDragging = draggable && draggedItemId === entry.itemId;
+                          {scheduleEntries.map((entry, entryIdx) => {
+                            const reorderable = migrated && !!entry.itemId;
+                            const isFirst = entryIdx === 0;
+                            const isLast = entryIdx === scheduleEntries.length - 1;
+
+                            const moveEntry = (direction: -1 | 1) => {
+                              if (!reorderable) return;
+                              const currentIdx = orderedItemIdsForDay.indexOf(entry.itemId!);
+                              const targetIdx = currentIdx + direction;
+                              if (currentIdx === -1 || targetIdx < 0 || targetIdx >= orderedItemIdsForDay.length) {
+                                return;
+                              }
+                              const reordered = [...orderedItemIdsForDay];
+                              [reordered[currentIdx], reordered[targetIdx]] = [
+                                reordered[targetIdx],
+                                reordered[currentIdx],
+                              ];
+                              handleReorderDay(row.day.day, reordered);
+                            };
+
                             return (
-                              <li
-                                key={entry.key}
-                                draggable={draggable}
-                                onDragStart={() => {
-                                  if (draggable) setDraggedItemId(entry.itemId!);
-                                }}
-                                onDragOver={(e) => {
-                                  if (draggable) e.preventDefault();
-                                }}
-                                onDrop={(e) => {
-                                  if (!draggable || !draggedItemId || draggedItemId === entry.itemId) return;
-                                  e.preventDefault();
-                                  const fromIdx = orderedItemIdsForDay.indexOf(draggedItemId);
-                                  const toIdx = orderedItemIdsForDay.indexOf(entry.itemId!);
-                                  if (fromIdx === -1 || toIdx === -1) return;
-                                  const reordered = [...orderedItemIdsForDay];
-                                  reordered.splice(fromIdx, 1);
-                                  reordered.splice(toIdx, 0, draggedItemId);
-                                  handleReorderDay(row.day.day, reordered);
-                                  setDraggedItemId(null);
-                                }}
-                                onDragEnd={() => setDraggedItemId(null)}
-                                className={`text-sm rounded-md ${draggable ? 'cursor-grab active:cursor-grabbing' : ''} ${
-                                  isDragging ? 'opacity-40' : ''
-                                }`}
-                              >
-                                {draggable && (
-                                  <i className="ri-draggable text-foreground-300 mr-1 align-middle"></i>
+                              <li key={entry.key} className="text-sm flex items-start gap-1.5">
+                                {reorderable && (
+                                  <div className="flex flex-col flex-shrink-0 -ml-1 mt-0.5">
+                                    <button
+                                      type="button"
+                                      onClick={() => moveEntry(-1)}
+                                      disabled={isFirst}
+                                      aria-label="Move up"
+                                      className="w-5 h-5 flex items-center justify-center text-foreground-400 hover:text-foreground-800 disabled:opacity-20 disabled:hover:text-foreground-400 cursor-pointer"
+                                    >
+                                      <i className="ri-arrow-up-s-line"></i>
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => moveEntry(1)}
+                                      disabled={isLast}
+                                      aria-label="Move down"
+                                      className="w-5 h-5 flex items-center justify-center text-foreground-400 hover:text-foreground-800 disabled:opacity-20 disabled:hover:text-foreground-400 cursor-pointer"
+                                    >
+                                      <i className="ri-arrow-down-s-line"></i>
+                                    </button>
+                                  </div>
                                 )}
-                                {entry.time ? (
-                                  <span className="text-foreground-400 text-xs mr-1.5 whitespace-nowrap">
-                                    {entry.time}
+                                <div className="flex-1 min-w-0">
+                                  {entry.time ? (
+                                    <span className="text-foreground-400 text-xs mr-1.5 whitespace-nowrap">
+                                      {entry.time}
+                                    </span>
+                                  ) : (
+                                    <span className="text-foreground-300 text-xs mr-1.5 whitespace-nowrap italic">
+                                      Want to go
+                                    </span>
+                                  )}
+                                  <span className="text-foreground-800 font-medium">
+                                    {entry.title}
                                   </span>
-                                ) : (
-                                  <span className="text-foreground-300 text-xs mr-1.5 whitespace-nowrap italic">
-                                    Want to go
-                                  </span>
-                                )}
-                                <span className="text-foreground-800 font-medium">
-                                  {entry.title}
-                                </span>
-                                {entry.description && (
-                                  <span className="block text-foreground-500 text-xs leading-relaxed mt-0.5">
-                                    {entry.description}
-                                  </span>
-                                )}
+                                  {entry.description && (
+                                    <span className="block text-foreground-500 text-xs leading-relaxed mt-0.5">
+                                      {entry.description}
+                                    </span>
+                                  )}
+                                </div>
                               </li>
                             );
                           })}
