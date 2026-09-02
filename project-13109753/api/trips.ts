@@ -497,6 +497,7 @@ export default async function handler(req: Request): Promise<Response> {
         reflectionWhatWorked: undefined,
         reflectionWhatToChange: undefined,
         items: [...carriedItems, ...generatedItems],
+        daysActivitiesMigrated: true,
       };
 
       await kv.set(recordKey(id), copy);
@@ -587,6 +588,7 @@ export default async function handler(req: Request): Promise<Response> {
       // TABI 3.0：daysで作成された旅程も、最初からTrip Planner（items）で
       // 管理できるようにする
       items: buildItemsFromDays(days),
+      daysActivitiesMigrated: true,
     };
 
     try {
