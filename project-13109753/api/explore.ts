@@ -27,6 +27,7 @@ interface ExploreResult {
   href: string;
   lat?: number;
   lng?: number;
+  category?: string;
 }
 
 interface DestinationItem {
@@ -56,7 +57,7 @@ interface TripItem {
   title: string;
   summary?: string;
   totalDays?: number;
-  days?: { day: number }[];
+  days?: { day: number; activities?: { spotId?: string }[] }[];
 }
 
 function baseUrl(req: VercelRequest): string {
@@ -81,6 +82,7 @@ async function fetchSpots(req: VercelRequest): Promise<ExploreResult[]> {
       href: `/destinations/${d.id}`,
       lat: d.lat,
       lng: d.lng,
+      category: d.category,
     }));
   } catch {
     return [];
@@ -107,19 +109,45 @@ async function fetchGuides(req: VercelRequest): Promise<ExploreResult[]> {
   }
 }
 
-async function fetchTrips(req: VercelRequest): Promise<ExploreResult[]> {
+async function fetchTrips(
+  req: VercelRequest,
+  spotPrefectureById: Map<string, string>
+): Promise<ExploreResult[]> {
   try {
     const res = await fetch(`${baseUrl(req)}/api/trips?public=1`);
     if (!res.ok) return [];
     const json = await res.json();
     const items: TripItem[] = Array.isArray(json?.trips) ? json.trips : [];
-    return items.map((t) => ({
-      id: t.id,
-      contentType: 'trip' as const,
-      title: t.title,
-      summary: t.summary,
-      href: `/trips/${t.id}`,
-    }));
+    return items.map((t) => {
+      // Tripには都道府県の情報が直接無いため、Trip内で言及されている
+      // Spotの都道府県から推測する（一番多く登場した都道府県を採用）
+      const counts = new Map<string, number>();
+      (t.days || []).forEach((d) => {
+        (d.activities || []).forEach((a) => {
+          if (a.spotId) {
+            const pref = spotPrefectureById.get(a.spotId);
+            if (pref) counts.set(pref, (counts.get(pref) || 0) + 1);
+          }
+        });
+      });
+      let area: string | undefined;
+      let max = 0;
+      counts.forEach((count, pref) => {
+        if (count > max) {
+          max = count;
+          area = pref;
+        }
+      });
+
+      return {
+        id: t.id,
+        contentType: 'trip' as const,
+        title: t.title,
+        summary: t.summary,
+        href: `/trips/${t.id}`,
+        area,
+      };
+    });
   } catch {
     return [];
   }
@@ -139,13 +167,25 @@ export default async function handler(
     | 'all'
     | ContentType;
   const area = (typeof req.query.area === 'string' ? req.query.area : '').trim().toLowerCase();
+  const category = (typeof req.query.category === 'string' ? req.query.category : '').trim();
+  const sort = (typeof req.query.sort === 'string' ? req.query.sort : 'popular') as
+    | 'popular'
+    | 'rating'
+    | 'az';
 
   try {
-    const [spots, guides, trips] = await Promise.all([
-      type === 'all' || type === 'spot' ? fetchSpots(req) : Promise.resolve([]),
+    // TripのエリアをSpot経由で推測するため、typeの絞り込みに関わらず
+    // Spot一覧は常に取得しておく（結果に含めるかどうかは別途判定する）
+    const allSpots = await fetchSpots(req);
+    const spotPrefectureById = new Map<string, string>(
+      allSpots.filter((s) => s.area).map((s) => [s.id, s.area as string])
+    );
+
+    const [guides, trips] = await Promise.all([
       type === 'all' || type === 'guide' ? fetchGuides(req) : Promise.resolve([]),
-      type === 'all' || type === 'trip' ? fetchTrips(req) : Promise.resolve([]),
+      type === 'all' || type === 'trip' ? fetchTrips(req, spotPrefectureById) : Promise.resolve([]),
     ]);
+    const spots = type === 'all' || type === 'spot' ? allSpots : [];
 
     let results: ExploreResult[] = [...spots, ...guides, ...trips];
 
@@ -160,21 +200,43 @@ export default async function handler(
       results = results.filter((r) => (r.area || '').toLowerCase().includes(area));
     }
 
-    // TRIP・GUIDE・SPOTを横断して公平に比較できる指標は「閲覧数」のみのため、
-    // これを使って並び替える（Trip単体の一覧では、より詳細なスコア
-    // 〈Copy数・Save数等〉を使っているが、ここでは種類を跨ぐ比較のため
-    // シンプルに閲覧数のみで統一している）。
-    // views:{contentType}:{id} キーは api/track-view.ts と共通のKVストアを参照する。
-    try {
-      const viewValues = await kv.mget<number[]>(
-        ...results.map((r) => `views:${r.contentType}:${r.id}`)
-      );
-      results = results
-        .map((r, idx) => ({ result: r, views: viewValues?.[idx] ?? 0 }))
-        .sort((a, b) => b.views - a.views)
-        .map((x) => x.result);
-    } catch {
-      // 閲覧数の取得に失敗しても、並び替え無しでそのまま返す
+    // SPOTのカテゴリ絞り込み（Temple/Nature/Restaurant等）。SPOT以外の
+    // 種類（Trip/Guide）にはcategoryが無いため、この絞り込みは影響しない。
+    if (category) {
+      results = results.filter((r) => r.contentType !== 'spot' || r.category === category);
+    }
+
+    if (sort === 'az') {
+      results = [...results].sort((a, b) => a.title.localeCompare(b.title));
+    } else if (sort === 'rating') {
+      // Googleの評価は、今のところSPOTにしか無いため、評価が無いもの
+      // （Trip・Guide、および未取得のSPOT）は末尾に回す
+      try {
+        const ratingValues = await kv.mget<{ rating: number | null }[]>(
+          ...results.map((r) => `spot-rating:${r.id}`)
+        );
+        results = results
+          .map((r, idx) => ({ result: r, rating: ratingValues?.[idx]?.rating ?? null }))
+          .sort((a, b) => (b.rating ?? -1) - (a.rating ?? -1))
+          .map((x) => x.result);
+      } catch {
+        // 評価の取得に失敗しても、並び替え無しでそのまま返す
+      }
+    } else {
+      // デフォルト（popular）：TRIP・GUIDE・SPOTを横断して公平に比較できる
+      // 指標は「閲覧数」のみのため、これを使って並び替える
+      // （views:{contentType}:{id} キーは api/track-view.ts と共通のKVストアを参照する）
+      try {
+        const viewValues = await kv.mget<number[]>(
+          ...results.map((r) => `views:${r.contentType}:${r.id}`)
+        );
+        results = results
+          .map((r, idx) => ({ result: r, views: viewValues?.[idx] ?? 0 }))
+          .sort((a, b) => b.views - a.views)
+          .map((x) => x.result);
+      } catch {
+        // 閲覧数の取得に失敗しても、並び替え無しでそのまま返す
+      }
     }
 
     res.status(200).json({ results, total: results.length });
