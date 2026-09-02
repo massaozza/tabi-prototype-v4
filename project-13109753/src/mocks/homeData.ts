@@ -3761,18 +3761,18 @@ export const latestGuides = [
 export const features = [
   {
     icon: 'ri-map-pin-user-line',
-    title: 'Local Perspectives',
-    description: 'Discover places locals genuinely recommend.',
+    title: 'All 47 Prefectures, One Platform',
+    description: 'From famous cities to hidden corners, every prefecture has local stories waiting to be discovered.',
   },
   {
     icon: 'ri-compass-3-line',
-    title: 'Beyond Sightseeing',
-    description: 'Experience Japan beyond famous landmarks.',
+    title: 'Real Voices, Not Listicles',
+    description: 'Recommendations come from Japanese creators who actually live these places — not generic guidebooks.',
   },
   {
     icon: 'ri-heart-line',
-    title: 'Deeper Travel Experiences',
-    description: 'Create memories that stay with you long after your trip.',
+    title: 'Plan Your Way, With AI',
+    description: 'From a rough wishlist to a minute-by-minute itinerary — AI helps as much or as little as you want.',
   },
 ];
 
