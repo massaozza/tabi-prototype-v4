@@ -93,12 +93,12 @@ export default function PrivacyPolicyPage() {
               <h2 className="font-heading font-bold text-xl md:text-2xl text-foreground-900 mb-4">1. Who We Are</h2>
               <div className="prose-custom space-y-4">
                 <p className="text-foreground-600 leading-relaxed">
-                  TABI operates <strong className="text-foreground-800">jtabi.com</strong>. We provide travel guides, local recommendations, and planning resources for visitors exploring Japan beyond the typical tourist trail.
+                  TABI operates <strong className="text-foreground-800">tabi47.com</strong>. We provide travel guides, local recommendations, and planning resources for visitors exploring Japan beyond the typical tourist trail.
                 </p>
                 <p className="text-foreground-600 leading-relaxed">
                   For any privacy-related inquiries, you can reach us at:{' '}
-                  <a href="mailto:privacy@jtabi.com" className="text-primary-500 hover:text-primary-600 underline cursor-pointer">
-                    privacy@jtabi.com
+                  <a href="mailto:privacy@tabi47.com" className="text-primary-500 hover:text-primary-600 underline cursor-pointer">
+                    privacy@tabi47.com
                   </a>
                 </p>
               </div>
@@ -199,8 +199,8 @@ export default function PrivacyPolicyPage() {
               </ul>
               <p className="text-foreground-600 leading-relaxed mt-4">
                 To exercise any of these rights, contact us at{' '}
-                <a href="mailto:privacy@jtabi.com" className="text-primary-500 hover:text-primary-600 underline cursor-pointer">
-                  privacy@jtabi.com
+                <a href="mailto:privacy@tabi47.com" className="text-primary-500 hover:text-primary-600 underline cursor-pointer">
+                  privacy@tabi47.com
                 </a>.
               </p>
             </section>
@@ -216,8 +216,8 @@ export default function PrivacyPolicyPage() {
               <h2 className="font-heading font-bold text-xl md:text-2xl text-foreground-900 mb-4">8. Contact</h2>
               <p className="text-foreground-600 leading-relaxed">
                 If you have any questions about this Privacy Policy or how we handle your data, please contact us at:{' '}
-                <a href="mailto:privacy@jtabi.com" className="text-primary-500 hover:text-primary-600 underline cursor-pointer">
-                  privacy@jtabi.com
+                <a href="mailto:privacy@tabi47.com" className="text-primary-500 hover:text-primary-600 underline cursor-pointer">
+                  privacy@tabi47.com
                 </a>
               </p>
             </section>
