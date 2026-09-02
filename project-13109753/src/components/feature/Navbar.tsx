@@ -52,12 +52,12 @@ export default function Navbar() {
             <h1 className={`font-heading font-bold text-xl md:text-2xl tracking-[0.08em] leading-none transition-colors duration-300 ${
               scrolled ? 'text-foreground-900' : 'text-white'
             }`}>
-              TABI
+              TABI47
             </h1>
             <span className={`text-xs mt-1 transition-colors duration-300 whitespace-nowrap ${
               scrolled ? 'text-foreground-500' : 'text-white/70'
             }`}>
-              Explore Japan Deeply
+              47 prefectures. Millions of local stories. One Japan.
             </span>
           </span>
         </a>
