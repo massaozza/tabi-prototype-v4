@@ -11,12 +11,22 @@ interface TripOption {
 interface AddToTripButtonProps {
   spotId: string;
   spotTitle: string;
+  // 「Saved for Trip」のカード表示（写真＋概要）用。SPOT詳細ページの
+  // destination.image / destination.description をそのまま渡す想定。
+  spotImageUrl?: string;
+  spotDescription?: string;
   className?: string;
 }
 
 // TABI 3.0：SPOT詳細ページ等から、既存の（まだ公開していない）Tripに、
 // その場所を直接追加できるボタン。Mindtrip等の「+ Add to trip」を参考にした機能。
-export default function AddToTripButton({ spotId, spotTitle, className }: AddToTripButtonProps) {
+export default function AddToTripButton({
+  spotId,
+  spotTitle,
+  spotImageUrl,
+  spotDescription,
+  className,
+}: AddToTripButtonProps) {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [trips, setTrips] = useState<TripOption[]>([]);
@@ -63,6 +73,8 @@ export default function AddToTripButton({ spotId, spotTitle, className }: AddToT
           title: spotTitle,
           itemType: 'spot',
           spotId,
+          imageUrl: spotImageUrl,
+          description: spotDescription,
           planLevel: 'saved',
           status: 'planned',
         }),
