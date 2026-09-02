@@ -1,12 +1,11 @@
 export const navLinks = [
-  // TABI 2.0：グローバルナビの新構成（事業戦略書10章の8項目に準拠）。
+  // TABI 3.0：ナビゲーションの簡素化。「Trips」「Guides」「Spots」は、
+  // 全て /explore の中のタブとして統合されているため、個別のナビ項目としては
+  // 廃止した（同じ内容がナビに重複して並び、分かりにくいという指摘のため）。
   // 「My Trip」「Profile」は、ログイン中のユーザーのみ意味を持つため、
   // ここには含めず、Navbar.tsx側でログイン状態に応じて動的に追加している。
   { label: 'Plan with AI', href: '/' },
   { label: 'Explore', href: '/explore' },
-  { label: 'Trips', href: '/trips' },
-  { label: 'Guides', href: '/guides' },
-  { label: 'Spots', href: '/#destinations' },
   { label: 'Share', href: '/share' },
 ];
 
