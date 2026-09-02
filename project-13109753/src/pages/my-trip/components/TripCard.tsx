@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { BookingStatus, Trip, TripDay, TripMeal, TripStay, TransportMode } from '../types';
+import type { BookingStatus, Trip, TripDay, TripItem, TripMeal, TripStay, TransportMode } from '../types';
 import { formatSavedDate } from '../types';
 import ReflectionModal from './ReflectionModal';
 import TripPlanningPanel from './TripPlanningPanel';
@@ -38,6 +38,23 @@ interface DayRow {
 
 function findStayForDay(stays: TripStay[], dayNum: number): TripStay | undefined {
   return stays.find((s) => dayNum >= s.checkInDay && dayNum <= s.checkOutDay);
+}
+
+// TABI 3.0：My Trip中心の循環。Trip Planner（items配列）でDayに割り当てられた
+// SPOT/Restaurant/Experienceを、元の旅程（SCHEDULE列、days[].activities）にも
+// 反映して見せるためのヘルパー。items配列を書き換えず「表示用に統合」するだけ
+// なので、既存のdays構造・保存処理には一切影響しない。
+// 時間未設定（Day Assignedのみ）の項目は末尾に、時間設定済み（Scheduled）の
+// 項目は時刻順に並べる。
+function getItemsForDay(items: TripItem[] | undefined, dayNum: number): TripItem[] {
+  return (items || [])
+    .filter((it) => it.planLevel !== 'saved' && (it.day || 1) === dayNum)
+    .sort((a, b) => {
+      if (a.time && b.time) return a.time.localeCompare(b.time);
+      if (a.time) return -1;
+      if (b.time) return 1;
+      return 0;
+    });
 }
 
 /** Builds one row per day, grouping consecutive days under the same stay so the
@@ -325,7 +342,7 @@ export default function TripCard({
                         )}
                         <ul className="space-y-2">
                           {nonTransport.map((activity, idx) => (
-                            <li key={idx} className="text-sm">
+                            <li key={`legacy-${idx}`} className="text-sm">
                               {activity.time && (
                                 <span className="text-foreground-400 text-xs mr-1.5 whitespace-nowrap">
                                   {activity.time}
@@ -337,6 +354,29 @@ export default function TripCard({
                               {activity.description && (
                                 <span className="block text-foreground-500 text-xs leading-relaxed mt-0.5">
                                   {activity.description}
+                                </span>
+                              )}
+                            </li>
+                          ))}
+                          {/* Trip Plannerで追加・Day割り当てされた項目（items）を、
+                              元の旅程にも同じ見た目で表示する */}
+                          {getItemsForDay(trip.items, row.day.day).map((item) => (
+                            <li key={`item-${item.id}`} className="text-sm">
+                              {item.time ? (
+                                <span className="text-foreground-400 text-xs mr-1.5 whitespace-nowrap">
+                                  {item.time}
+                                </span>
+                              ) : (
+                                <span className="text-foreground-300 text-xs mr-1.5 whitespace-nowrap italic">
+                                  Want to go
+                                </span>
+                              )}
+                              <span className="text-foreground-800 font-medium">
+                                {item.title}
+                              </span>
+                              {item.description && (
+                                <span className="block text-foreground-500 text-xs leading-relaxed mt-0.5">
+                                  {item.description}
                                 </span>
                               )}
                             </li>
