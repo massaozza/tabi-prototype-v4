@@ -90,7 +90,7 @@ export default function DisclaimerPage() {
             <section id="general">
               <h2 className="font-heading font-bold text-xl md:text-2xl text-foreground-900 mb-4">1. General Information</h2>
               <p className="text-foreground-600 leading-relaxed">
-                All content published on jtabi.com is for general informational and entertainment purposes only. We make every effort to ensure our guides, recommendations, and travel information are accurate and up to date, but we make no warranties of any kind — express or implied — about the completeness, accuracy, reliability, suitability, or availability of the information, products, services, or related graphics on this website.
+                All content published on tabi47.com is for general informational and entertainment purposes only. We make every effort to ensure our guides, recommendations, and travel information are accurate and up to date, but we make no warranties of any kind — express or implied — about the completeness, accuracy, reliability, suitability, or availability of the information, products, services, or related graphics on this website.
               </p>
             </section>
 
@@ -157,8 +157,8 @@ export default function DisclaimerPage() {
               <h2 className="font-heading font-bold text-xl md:text-2xl text-foreground-900 mb-4">6. Contact</h2>
               <p className="text-foreground-600 leading-relaxed">
                 If you notice inaccurate information or have questions about this disclaimer, please contact us at{' '}
-                <a href="mailto:hello@jtabi.com" className="text-primary-500 hover:text-primary-600 underline cursor-pointer">
-                  hello@jtabi.com
+                <a href="mailto:hello@tabi47.com" className="text-primary-500 hover:text-primary-600 underline cursor-pointer">
+                  hello@tabi47.com
                 </a>
               </p>
             </section>
