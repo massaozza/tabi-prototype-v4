@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { BookingStatus, Trip, TripDay, TripItem, TripMeal, TripStay, TransportMode } from '../types';
 import { formatSavedDate } from '../types';
 import ReflectionModal from './ReflectionModal';
@@ -58,6 +58,7 @@ function timeSortKey(time?: string): string {
 
 interface ScheduleEntry {
   key: string;
+  itemId?: string;
   time?: string;
   title: string;
   description?: string;
@@ -71,12 +72,15 @@ function findStayForDay(stays: TripStay[], dayNum: number): TripStay | undefined
 // SPOT/Restaurant/Experienceを、元の旅程（SCHEDULE列、days[].activities）にも
 // 反映して見せるためのヘルパー。items配列を書き換えず「表示用に統合」するだけ
 // なので、既存のdays構造・保存処理には一切影響しない。
-// 時間未設定（Day Assignedのみ）の項目は末尾に、時間設定済み（Scheduled）の
-// 項目は時刻順に並べる。
+// 並び順はドラッグで保存された`order`を優先し、未設定の場合のみ時刻順に
+// フォールバックする。
 function getItemsForDay(items: TripItem[] | undefined, dayNum: number): TripItem[] {
   return (items || [])
     .filter((it) => it.planLevel !== 'saved' && (it.day || 1) === dayNum)
     .sort((a, b) => {
+      if (a.order !== undefined && b.order !== undefined) return a.order - b.order;
+      if (a.order !== undefined) return -1;
+      if (b.order !== undefined) return 1;
       if (a.time && b.time) return a.time.localeCompare(b.time);
       if (a.time) return -1;
       if (b.time) return 1;
@@ -134,9 +138,60 @@ export default function TripCard({
   const [showReflectionModal, setShowReflectionModal] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [publishError, setPublishError] = useState('');
+  const [migrating, setMigrating] = useState(false);
+  const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
 
   const status = trip.status || 'planning';
   const statusBadge = STATUS_BADGE[status] || STATUS_BADGE.planning;
+
+  // TABI 3.0：Copyより前に作られた古いTripは、days[].activities（長谷寺・江ノ島
+  // など）がまだitems化されていない。SCHEDULE列を開いたときに1回だけ自動で
+  // itemsへ移行し、以後はTrip Plannerでの編集・SCHEDULE列でのドラッグ並び替え
+  // の対象にする。daysの元データ自体は変更しない。
+  useEffect(() => {
+    if (!expanded) return;
+    if (trip.daysActivitiesMigrated) return;
+    const hasActivities = (trip.days || []).some(
+      (d) => (d.activities || []).some((a) => a.type !== 'transport')
+    );
+    if (!hasActivities) return;
+    if (migrating) return;
+
+    setMigrating(true);
+    fetch(`/api/trips?id=${encodeURIComponent(trip.id)}&action=migrateActivitiesToItems`, {
+      method: 'PATCH',
+      credentials: 'include',
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.trip) onTripUpdate(data.trip);
+      })
+      .catch(() => {
+        // 移行に失敗しても、既存のdays表示（フォールバック）で読めるため、
+        // ここでは静かに無視する（次回開いた時に再試行される）
+      })
+      .finally(() => setMigrating(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [expanded, trip.id, trip.daysActivitiesMigrated]);
+
+  // TABI 3.0：SCHEDULE列でのドラッグ並び替え。同じday内でのみ入れ替え可能。
+  const handleReorderDay = async (day: number, orderedItemIds: string[]) => {
+    try {
+      const res = await fetch(
+        `/api/trips?id=${encodeURIComponent(trip.id)}&action=reorderDayItems`,
+        {
+          method: 'PATCH',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ day, itemIds: orderedItemIds }),
+        }
+      );
+      const data = await res.json();
+      if (data.success && data.trip) onTripUpdate(data.trip);
+    } catch {
+      // 並び替えの保存に失敗した場合は、次のtrip更新で元の並びに戻る
+    }
+  };
 
   const handlePublish = async () => {
     setPublishing(true);
@@ -326,20 +381,37 @@ export default function TripCard({
                     lunch: dayItems.filter((it) => it.mealSlot === 'lunch'),
                     dinner: dayItems.filter((it) => it.mealSlot === 'dinner'),
                   };
-                  const scheduleEntries: ScheduleEntry[] = [
-                    ...nonTransport.map((activity, idx) => ({
-                      key: `legacy-${idx}`,
-                      time: activity.time,
-                      title: activity.title,
-                      description: activity.description,
-                    })),
-                    ...scheduleItems.map((item) => ({
-                      key: `item-${item.id}`,
-                      time: item.time,
-                      title: item.title,
-                      description: item.description,
-                    })),
-                  ].sort((a, b) => timeSortKey(a.time).localeCompare(timeSortKey(b.time)));
+                  // 移行済み（daysActivitiesMigrated）のTripは、items配列だけが
+                  // 正のデータになっており、そのまま並び順（order/time）で
+                  // ドラッグ並び替え可能。移行前（古いTripを初めて開いた直後の
+                  // 一瞬）は、legacy activitiesとitemsを混在させて表示するのみで
+                  // ドラッグは無効にする。
+                  const migrated = !!trip.daysActivitiesMigrated;
+                  const scheduleEntries: ScheduleEntry[] = migrated
+                    ? scheduleItems.map((item) => ({
+                        key: `item-${item.id}`,
+                        itemId: item.id,
+                        time: item.time,
+                        title: item.title,
+                        description: item.description,
+                      }))
+                    : [
+                        ...nonTransport.map((activity, idx) => ({
+                          key: `legacy-${idx}`,
+                          time: activity.time,
+                          title: activity.title,
+                          description: activity.description,
+                        })),
+                        ...scheduleItems.map((item) => ({
+                          key: `item-${item.id}`,
+                          time: item.time,
+                          title: item.title,
+                          description: item.description,
+                        })),
+                      ].sort((a, b) => timeSortKey(a.time).localeCompare(timeSortKey(b.time)));
+                  const orderedItemIdsForDay = scheduleEntries
+                    .map((e) => e.itemId)
+                    .filter((itemId): itemId is string => !!itemId);
                   const mealSlots: {
                     label: string;
                     short: string;
@@ -411,27 +483,59 @@ export default function TripCard({
                           </div>
                         )}
                         <ul className="space-y-2">
-                          {scheduleEntries.map((entry) => (
-                            <li key={entry.key} className="text-sm">
-                              {entry.time ? (
-                                <span className="text-foreground-400 text-xs mr-1.5 whitespace-nowrap">
-                                  {entry.time}
+                          {scheduleEntries.map((entry) => {
+                            const draggable = migrated && !!entry.itemId;
+                            const isDragging = draggable && draggedItemId === entry.itemId;
+                            return (
+                              <li
+                                key={entry.key}
+                                draggable={draggable}
+                                onDragStart={() => {
+                                  if (draggable) setDraggedItemId(entry.itemId!);
+                                }}
+                                onDragOver={(e) => {
+                                  if (draggable) e.preventDefault();
+                                }}
+                                onDrop={(e) => {
+                                  if (!draggable || !draggedItemId || draggedItemId === entry.itemId) return;
+                                  e.preventDefault();
+                                  const fromIdx = orderedItemIdsForDay.indexOf(draggedItemId);
+                                  const toIdx = orderedItemIdsForDay.indexOf(entry.itemId!);
+                                  if (fromIdx === -1 || toIdx === -1) return;
+                                  const reordered = [...orderedItemIdsForDay];
+                                  reordered.splice(fromIdx, 1);
+                                  reordered.splice(toIdx, 0, draggedItemId);
+                                  handleReorderDay(row.day.day, reordered);
+                                  setDraggedItemId(null);
+                                }}
+                                onDragEnd={() => setDraggedItemId(null)}
+                                className={`text-sm rounded-md ${draggable ? 'cursor-grab active:cursor-grabbing' : ''} ${
+                                  isDragging ? 'opacity-40' : ''
+                                }`}
+                              >
+                                {draggable && (
+                                  <i className="ri-draggable text-foreground-300 mr-1 align-middle"></i>
+                                )}
+                                {entry.time ? (
+                                  <span className="text-foreground-400 text-xs mr-1.5 whitespace-nowrap">
+                                    {entry.time}
+                                  </span>
+                                ) : (
+                                  <span className="text-foreground-300 text-xs mr-1.5 whitespace-nowrap italic">
+                                    Want to go
+                                  </span>
+                                )}
+                                <span className="text-foreground-800 font-medium">
+                                  {entry.title}
                                 </span>
-                              ) : (
-                                <span className="text-foreground-300 text-xs mr-1.5 whitespace-nowrap italic">
-                                  Want to go
-                                </span>
-                              )}
-                              <span className="text-foreground-800 font-medium">
-                                {entry.title}
-                              </span>
-                              {entry.description && (
-                                <span className="block text-foreground-500 text-xs leading-relaxed mt-0.5">
-                                  {entry.description}
-                                </span>
-                              )}
-                            </li>
-                          ))}
+                                {entry.description && (
+                                  <span className="block text-foreground-500 text-xs leading-relaxed mt-0.5">
+                                    {entry.description}
+                                  </span>
+                                )}
+                              </li>
+                            );
+                          })}
                         </ul>
                       </td>
 
