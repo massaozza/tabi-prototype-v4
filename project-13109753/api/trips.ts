@@ -87,6 +87,12 @@ export interface TripItem {
   title: string;
   spotId?: string;
 
+  // 「Saved for Trip」カード表示用（SPOT詳細ページのdestinationから受け取る）。
+  // 古いデータ（この変更前に追加されたItem）には存在しないため、
+  // フロントエンド側では常にオプショナルとして扱い、フォールバック表示にする。
+  imageUrl?: string;
+  description?: string;
+
   planLevel: PlanLevel;
   day?: number; // day_assigned 以上で設定
   time?: string; // scheduled でのみ設定
@@ -714,6 +720,8 @@ export default async function handler(req: Request): Promise<Response> {
       title?: string;
       spotId?: string;
       itemType?: ItemType;
+      imageUrl?: string;
+      description?: string;
       planLevel?: PlanLevel;
       day?: number;
       time?: string;
@@ -741,6 +749,8 @@ export default async function handler(req: Request): Promise<Response> {
         itemType: body.itemType || 'spot',
         title,
         spotId: body.spotId?.trim() || undefined,
+        imageUrl: body.imageUrl?.trim() || undefined,
+        description: body.description?.trim() || undefined,
         planLevel: body.planLevel || 'saved',
         day: body.day,
         time: body.time,
