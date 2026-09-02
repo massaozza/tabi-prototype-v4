@@ -110,7 +110,7 @@ export default function CreatorsHomePage() {
           </Link>
 
           <Link
-            to={user ? '/experiences/new' : '/login'}
+            to={user ? '/creators/experiences/new' : '/login'}
             className="group relative flex flex-col bg-background-50 border border-background-200 rounded-2xl p-7 hover:-translate-y-1.5 hover:border-secondary-300 transition-all duration-300 cursor-pointer overflow-hidden"
           >
             <span className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-secondary-400 to-secondary-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
