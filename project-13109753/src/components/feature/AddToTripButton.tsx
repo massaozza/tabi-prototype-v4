@@ -55,11 +55,17 @@ export default function AddToTripButton({ spotId, spotTitle, className }: AddToT
     setAddingId(tripId);
     setError('');
     try {
-      const res = await fetch(`/api/trips?id=${encodeURIComponent(tripId)}&action=addSpot`, {
+      const res = await fetch(`/api/trips?id=${encodeURIComponent(tripId)}&action=addItem`, {
         method: 'PATCH',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: spotTitle, spotId }),
+        body: JSON.stringify({
+          title: spotTitle,
+          itemType: 'spot',
+          spotId,
+          planLevel: 'saved',
+          status: 'planned',
+        }),
       });
       const data = await res.json();
       if (!res.ok || !data.success) {
