@@ -36,6 +36,33 @@ interface DayRow {
   staySpan: number;
 }
 
+// TABI 3.0：SCHEDULE表示の並び替え用。「09:24」のような実時刻と、
+// 「morning」「afternoon」のような大まかなラベル（Creatorが手動作成した
+// Recommended Tripのdays.activitiesで使われる）が混在するため、
+// どちらでも比較できるよう、並び替え専用の代表時刻に正規化する。
+// 表示上の文字列（activity.time / item.time）自体は変更しない。
+const QUALITATIVE_TIME_SORT_KEY: Record<string, string> = {
+  morning: '07:00',
+  afternoon: '13:00',
+  evening: '18:00',
+  night: '21:00',
+};
+
+function timeSortKey(time?: string): string {
+  if (!time) return '99:99'; // 時刻未設定は最後に表示
+  const normalized = time.trim().toLowerCase();
+  if (QUALITATIVE_TIME_SORT_KEY[normalized]) return QUALITATIVE_TIME_SORT_KEY[normalized];
+  if (/^\d{1,2}:\d{2}$/.test(time.trim())) return time.trim();
+  return '99:98'; // 認識できない形式は、時刻未設定の直前に表示
+}
+
+interface ScheduleEntry {
+  key: string;
+  time?: string;
+  title: string;
+  description?: string;
+}
+
 function findStayForDay(stays: TripStay[], dayNum: number): TripStay | undefined {
   return stays.find((s) => dayNum >= s.checkInDay && dayNum <= s.checkOutDay);
 }
@@ -290,10 +317,53 @@ export default function TripCard({
                   const transportItems = (row.day.activities || []).filter(
                     (a) => a.type === 'transport'
                   );
-                  const mealSlots: { label: string; short: string; meal?: TripMeal }[] = [
-                    { label: 'Breakfast', short: 'B', meal: (row.day.meals || {}).breakfast },
-                    { label: 'Lunch', short: 'L', meal: (row.day.meals || {}).lunch },
-                    { label: 'Dinner', short: 'D', meal: (row.day.meals || {}).dinner },
+                  const dayItems = getItemsForDay(trip.items, row.day.day);
+                  // mealSlotが指定されているitem（レストラン）はMeals列に表示するため、
+                  // SCHEDULE列には出さない
+                  const scheduleItems = dayItems.filter((it) => !it.mealSlot);
+                  const mealItemsBySlot = {
+                    breakfast: dayItems.filter((it) => it.mealSlot === 'breakfast'),
+                    lunch: dayItems.filter((it) => it.mealSlot === 'lunch'),
+                    dinner: dayItems.filter((it) => it.mealSlot === 'dinner'),
+                  };
+                  const scheduleEntries: ScheduleEntry[] = [
+                    ...nonTransport.map((activity, idx) => ({
+                      key: `legacy-${idx}`,
+                      time: activity.time,
+                      title: activity.title,
+                      description: activity.description,
+                    })),
+                    ...scheduleItems.map((item) => ({
+                      key: `item-${item.id}`,
+                      time: item.time,
+                      title: item.title,
+                      description: item.description,
+                    })),
+                  ].sort((a, b) => timeSortKey(a.time).localeCompare(timeSortKey(b.time)));
+                  const mealSlots: {
+                    label: string;
+                    short: string;
+                    meal?: TripMeal;
+                    items: TripItem[];
+                  }[] = [
+                    {
+                      label: 'Breakfast',
+                      short: 'B',
+                      meal: (row.day.meals || {}).breakfast,
+                      items: mealItemsBySlot.breakfast,
+                    },
+                    {
+                      label: 'Lunch',
+                      short: 'L',
+                      meal: (row.day.meals || {}).lunch,
+                      items: mealItemsBySlot.lunch,
+                    },
+                    {
+                      label: 'Dinner',
+                      short: 'D',
+                      meal: (row.day.meals || {}).dinner,
+                      items: mealItemsBySlot.dinner,
+                    },
                   ];
 
                   return (
@@ -341,30 +411,11 @@ export default function TripCard({
                           </div>
                         )}
                         <ul className="space-y-2">
-                          {nonTransport.map((activity, idx) => (
-                            <li key={`legacy-${idx}`} className="text-sm">
-                              {activity.time && (
+                          {scheduleEntries.map((entry) => (
+                            <li key={entry.key} className="text-sm">
+                              {entry.time ? (
                                 <span className="text-foreground-400 text-xs mr-1.5 whitespace-nowrap">
-                                  {activity.time}
-                                </span>
-                              )}
-                              <span className="text-foreground-800 font-medium">
-                                {activity.title}
-                              </span>
-                              {activity.description && (
-                                <span className="block text-foreground-500 text-xs leading-relaxed mt-0.5">
-                                  {activity.description}
-                                </span>
-                              )}
-                            </li>
-                          ))}
-                          {/* Trip Plannerで追加・Day割り当てされた項目（items）を、
-                              元の旅程にも同じ見た目で表示する */}
-                          {getItemsForDay(trip.items, row.day.day).map((item) => (
-                            <li key={`item-${item.id}`} className="text-sm">
-                              {item.time ? (
-                                <span className="text-foreground-400 text-xs mr-1.5 whitespace-nowrap">
-                                  {item.time}
+                                  {entry.time}
                                 </span>
                               ) : (
                                 <span className="text-foreground-300 text-xs mr-1.5 whitespace-nowrap italic">
@@ -372,11 +423,11 @@ export default function TripCard({
                                 </span>
                               )}
                               <span className="text-foreground-800 font-medium">
-                                {item.title}
+                                {entry.title}
                               </span>
-                              {item.description && (
+                              {entry.description && (
                                 <span className="block text-foreground-500 text-xs leading-relaxed mt-0.5">
-                                  {item.description}
+                                  {entry.description}
                                 </span>
                               )}
                             </li>
@@ -386,7 +437,7 @@ export default function TripCard({
 
                       <td className="py-3 pl-2">
                         <div className="flex flex-col gap-2">
-                          {mealSlots.map(({ label, short, meal }) => (
+                          {mealSlots.map(({ label, short, meal, items: mealItems }) => (
                             <div key={label} className="text-xs" title={label}>
                               {meal ? (
                                 <div>
@@ -399,11 +450,30 @@ export default function TripCard({
                                   </div>
                                   {renderBookingError(meal.id)}
                                 </div>
-                              ) : (
+                              ) : mealItems.length === 0 ? (
                                 <span className="text-foreground-300">
                                   <span className="font-semibold mr-1">{short}</span>—
                                 </span>
-                              )}
+                              ) : null}
+                              {/* Trip Plannerでこの食事に割り当てられたレストラン */}
+                              {mealItems.map((item) => (
+                                <div key={item.id} className={meal ? 'mt-1.5' : ''}>
+                                  {!meal && (
+                                    <span className="text-foreground-400 font-semibold mr-1">
+                                      {short}
+                                    </span>
+                                  )}
+                                  <span className="text-foreground-700">{item.title}</span>
+                                  {item.time && (
+                                    <span className="text-foreground-400 ml-1">{item.time}</span>
+                                  )}
+                                  {item.description && (
+                                    <span className="block text-foreground-500 leading-relaxed mt-0.5">
+                                      {item.description}
+                                    </span>
+                                  )}
+                                </div>
+                              ))}
                             </div>
                           ))}
                         </div>
