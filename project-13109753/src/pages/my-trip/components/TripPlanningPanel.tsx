@@ -12,7 +12,7 @@ type ItemStatus = 'fixed' | 'planned' | 'option';
 
 interface TripItem {
   id: string;
-  itemType: 'spot' | 'restaurant' | 'experience';
+  itemType: 'sightseeing' | 'restaurant' | 'shopping' | 'accommodation' | 'activity' | 'transport' | 'other';
   title: string;
   spotId?: string;
   // 「Saved for Trip」のカード表示用。この変更より前に追加されたItemには
@@ -24,6 +24,10 @@ interface TripItem {
   time?: string;
   status: ItemStatus;
   optionGroupId?: string;
+  // TABI 3.0：この項目をMeals（B/L/D）欄に表示するかどうか。SPOTデータには
+  // レストランを判別できる明確なカテゴリがないため、ユーザーが手動で
+  // 「これは食事です」と指定する方式にしている。
+  mealSlot?: 'breakfast' | 'lunch' | 'dinner';
 }
 
 interface ActualVisitLogEntry {
@@ -52,10 +56,18 @@ const STATUS_COLORS: Record<ItemStatus, string> = {
   option: 'text-accent-700 bg-accent-50',
 };
 
+// TABI 3.0：旅行で実際に行く「場所の種類」を表すカテゴリ。TABIのコンテンツ種別
+// （TRIP/SPOT/EXPERIENCE）とは別の概念で、Trip Planner上でユーザーが手動で
+// 選ぶ・SPOTのcategoryから推測する際に使う。'restaurant'のみMeals（B/L/D）への
+// 割り当てができる。
 const ITEM_TYPE_ICON: Record<TripItem['itemType'], string> = {
-  spot: 'ri-map-pin-line',
+  sightseeing: 'ri-map-pin-line',
   restaurant: 'ri-restaurant-line',
-  experience: 'ri-camera-3-line',
+  shopping: 'ri-shopping-bag-line',
+  accommodation: 'ri-hotel-line',
+  activity: 'ri-footprint-line',
+  transport: 'ri-train-line',
+  other: 'ri-more-line',
 };
 
 export default function TripPlanningPanel({
@@ -66,6 +78,7 @@ export default function TripPlanningPanel({
   onTripUpdate,
 }: TripPlanningPanelProps) {
   const [newItemTitle, setNewItemTitle] = useState('');
+  const [newItemType, setNewItemType] = useState<TripItem['itemType']>('sightseeing');
   const [adding, setAdding] = useState(false);
   const [busyItemId, setBusyItemId] = useState<string | null>(null);
   const [error, setError] = useState('');
@@ -109,13 +122,14 @@ export default function TripPlanningPanel({
     setError('');
     const result = await callTripAction('addItem', {
       title,
-      itemType: 'spot',
+      itemType: newItemType,
       planLevel: 'saved',
       status: 'planned',
     });
     if (result) {
       onTripUpdate(result);
       setNewItemTitle('');
+      setNewItemType('sightseeing');
     }
     setAdding(false);
   };
@@ -160,6 +174,21 @@ export default function TripPlanningPanel({
     const result = await callTripAction('updateItem', {
       itemId: item.id,
       status,
+    });
+    if (result) onTripUpdate(result);
+    setBusyItemId(null);
+  };
+
+  // TABI 3.0：itemType==='restaurant'の項目を、Meals（B/L/D）欄に割り当てる。
+  // 'none'を渡すと割り当てを解除する。
+  const handleSetMealSlot = async (
+    item: TripItem,
+    mealSlot: 'breakfast' | 'lunch' | 'dinner' | 'none'
+  ) => {
+    setBusyItemId(item.id);
+    const result = await callTripAction('updateItem', {
+      itemId: item.id,
+      mealSlot,
     });
     if (result) onTripUpdate(result);
     setBusyItemId(null);
@@ -327,6 +356,29 @@ export default function TripPlanningPanel({
               >
                 Make this day flexible (remove time)
               </button>
+            )}
+
+            {item.itemType === 'restaurant' && (
+              <label className="flex items-center gap-2 text-xs text-foreground-500">
+                Meal
+                <select
+                  value={item.mealSlot || 'none'}
+                  onChange={(e) =>
+                    handleSetMealSlot(
+                      item,
+                      e.target.value as 'breakfast' | 'lunch' | 'dinner' | 'none'
+                    )
+                  }
+                  disabled={busy}
+                  title="Show this in the Meals (B/L/D) column instead of the Schedule column"
+                  className="bg-background-100 border border-background-200 rounded-md px-2 py-1.5 text-sm text-foreground-900 focus:outline-none focus:ring-2 focus:ring-primary-400 cursor-pointer"
+                >
+                  <option value="none">Not a meal</option>
+                  <option value="breakfast">Breakfast</option>
+                  <option value="lunch">Lunch</option>
+                  <option value="dinner">Dinner</option>
+                </select>
+              </label>
             )}
           </div>
         )}
@@ -518,6 +570,20 @@ export default function TripPlanningPanel({
       {/* 新規アイテム追加（Planningフェーズのみ） */}
       {!isTraveling && (
         <div className="flex items-center gap-2">
+          <select
+            value={newItemType}
+            onChange={(e) => setNewItemType(e.target.value as TripItem['itemType'])}
+            title="Category — pick Restaurant / Café if you'll want to assign it to a meal (B/L/D) later"
+            className="bg-background-50 border border-background-200 rounded-md px-2 py-2 text-sm text-foreground-700 focus:outline-none focus:ring-2 focus:ring-primary-400 cursor-pointer flex-shrink-0"
+          >
+            <option value="sightseeing">Sightseeing</option>
+            <option value="restaurant">Restaurant / Café</option>
+            <option value="shopping">Shopping</option>
+            <option value="accommodation">Accommodation</option>
+            <option value="activity">Activity</option>
+            <option value="transport">Transport</option>
+            <option value="other">Other</option>
+          </select>
           <input
             type="text"
             value={newItemTitle}
