@@ -41,14 +41,14 @@ export default function CreatorNavbar() {
               </button>
               {userMenuOpen && (
                 <div className="absolute right-0 top-full mt-2 min-w-[160px] bg-background-50 border border-background-200 rounded-md py-1 shadow-lg">
-                  
+                  <a
                     href="/creators/dashboard"
                     onClick={() => setUserMenuOpen(false)}
                     className="block w-full text-left px-4 py-2.5 text-sm text-foreground-700 hover:bg-background-100 hover:text-foreground-900 transition-colors whitespace-nowrap"
                   >
                     マイページ
                   </a>
-                  
+                  <a
                     href={`/creator/${user.uid}`}
                     onClick={() => setUserMenuOpen(false)}
                     className="block w-full text-left px-4 py-2.5 text-sm text-foreground-700 hover:bg-background-100 hover:text-foreground-900 transition-colors whitespace-nowrap"
@@ -65,7 +65,7 @@ export default function CreatorNavbar() {
               )}
             </div>
           ) : (
-            
+            <a
               href="/login"
               className="bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-4 py-2 rounded-md transition-colors whitespace-nowrap cursor-pointer"
             >
@@ -73,7 +73,7 @@ export default function CreatorNavbar() {
             </a>
           )}
 
-          
+          <a
             href="/"
             className="text-xs text-white/40 hover:text-white/70 transition-colors whitespace-nowrap"
           >
