@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import CreatorNavbar from '@/components/feature/CreatorNavbar';
 import Footer from '@/components/feature/Footer';
 import { useAuth } from '@/context/AuthContext';
+import { destinations as fallbackDestinations } from '@/mocks/homeData';
 
 // TABI 3.0：日本人が慣れ親しんだ「旅行記」形式（フォートラベル等を参考にした、
 // 時系列の自由記述＋写真）で投稿してもらい、AIが裏側で解析して、TABIの
@@ -30,6 +31,13 @@ export default function WriteTravelogueePage() {
   const { user, loading } = useAuth();
 
   const [title, setTitle] = useState('');
+  const [area, setArea] = useState('');
+  const [travelStartDate, setTravelStartDate] = useState('');
+  const [travelEndDate, setTravelEndDate] = useState('');
+  const [tagsInput, setTagsInput] = useState('');
+  const [prefectureOptions, setPrefectureOptions] = useState<string[]>(
+    Array.from(new Set(fallbackDestinations.map((d) => d.prefecture).filter(Boolean))) as string[]
+  );
   const [bodyJa, setBodyJa] = useState('');
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const photosRef = useRef<PhotoItem[]>([]);
@@ -49,6 +57,29 @@ export default function WriteTravelogueePage() {
     const current = photosRef.current;
     return () => {
       current.forEach((p) => URL.revokeObjectURL(p.previewUrl));
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchPrefectures() {
+      try {
+        const res = await fetch('/api/content?type=destinations');
+        if (!res.ok) throw new Error('failed');
+        const json = await res.json();
+        if (!cancelled && Array.isArray(json.data)) {
+          const prefs = Array.from(
+            new Set(json.data.map((d: { prefecture?: string }) => d.prefecture).filter(Boolean))
+          ) as string[];
+          setPrefectureOptions(prefs);
+        }
+      } catch {
+        // フォールバック（homeData.tsの静的データ）のまま
+      }
+    }
+    fetchPrefectures();
+    return () => {
+      cancelled = true;
     };
   }, []);
 
@@ -146,6 +177,14 @@ export default function WriteTravelogueePage() {
           title: title.trim(),
           bodyJa: bodyJa.trim(),
           authorName: user.displayName,
+          area: area.trim() || undefined,
+          travelStartDate: travelStartDate || undefined,
+          travelEndDate: travelEndDate || undefined,
+          tags: tagsInput
+            .split(/[,、\s]+/)
+            .map((t) => t.trim())
+            .filter(Boolean)
+            .slice(0, 10),
           photos: photos
             .filter((p) => p.status === 'success' && p.publicUrl)
             .map((p) => ({ url: p.publicUrl, caption: p.caption.trim() })),
@@ -243,6 +282,62 @@ export default function WriteTravelogueePage() {
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="例：太平洋岸「津軽」②「聖地巡り」ローカル路線バスの旅"
+                  className={inputClass}
+                />
+              </div>
+
+              <div>
+                <label className="block font-heading font-semibold text-sm text-foreground-700 mb-2">
+                  エリア（任意）
+                </label>
+                <input
+                  type="text"
+                  list="prefecture-options"
+                  value={area}
+                  onChange={(e) => setArea(e.target.value)}
+                  placeholder="例：青森県（分かる範囲で構いません）"
+                  className={inputClass}
+                />
+                <datalist id="prefecture-options">
+                  {prefectureOptions.map((p) => (
+                    <option key={p} value={p} />
+                  ))}
+                </datalist>
+                <p className="text-xs text-foreground-400 mt-1">
+                  指定しておくと、AIによる場所の判定がより確実になります。
+                </p>
+              </div>
+
+              <div>
+                <label className="block font-heading font-semibold text-sm text-foreground-700 mb-2">
+                  旅行期間（任意）
+                </label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="date"
+                    value={travelStartDate}
+                    onChange={(e) => setTravelStartDate(e.target.value)}
+                    className={`${inputClass} flex-1`}
+                  />
+                  <span className="text-foreground-400 text-sm">〜</span>
+                  <input
+                    type="date"
+                    value={travelEndDate}
+                    onChange={(e) => setTravelEndDate(e.target.value)}
+                    className={`${inputClass} flex-1`}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-heading font-semibold text-sm text-foreground-700 mb-2">
+                  関連するタグ（任意）
+                </label>
+                <input
+                  type="text"
+                  value={tagsInput}
+                  onChange={(e) => setTagsInput(e.target.value)}
+                  placeholder="例：食べ歩き 絶景スポット ローカルバス（スペースまたは読点区切り、最大10個）"
                   className={inputClass}
                 />
               </div>
