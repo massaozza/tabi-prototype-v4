@@ -218,7 +218,7 @@ export default function WriteTravelogueePage() {
             </h1>
             <p className="text-foreground-600 text-sm mb-8">
               あなたの旅行記を解析し、
-              {result.contentType === 'trip' ? 'おすすめ旅程（Trip）' : 'スポットガイド（Guide）'}
+              {result.contentType === 'trip' ? 'おすすめ旅程' : 'スポットガイド'}
               として自動的に整理しました。AIによる英訳も完了しています。
             </p>
             <div className="flex items-center justify-center gap-3">
