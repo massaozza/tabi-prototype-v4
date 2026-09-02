@@ -48,18 +48,11 @@ export default function Navbar() {
       <nav className="flex items-center justify-between px-6 md:px-10 py-3 md:py-4">
         <a href="/" className="flex items-center gap-3">
           <LogoMark />
-          <span className="flex flex-col">
-            <h1 className={`font-heading font-bold text-xl md:text-2xl tracking-[0.08em] leading-none transition-colors duration-300 ${
-              scrolled ? 'text-foreground-900' : 'text-white'
-            }`}>
-              TABI47
-            </h1>
-            <span className={`text-xs mt-1 transition-colors duration-300 whitespace-nowrap ${
-              scrolled ? 'text-foreground-500' : 'text-white/70'
-            }`}>
-              47 prefectures. Millions of local stories. One Japan.
-            </span>
-          </span>
+          <h1 className={`font-heading font-bold text-xl md:text-2xl tracking-[0.08em] leading-none transition-colors duration-300 ${
+            scrolled ? 'text-foreground-900' : 'text-white'
+          }`}>
+            TABI47
+          </h1>
         </a>
 
         <div className="hidden md:flex items-center gap-6">
