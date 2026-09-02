@@ -148,13 +148,12 @@ export default function TripCard({
   // など）がまだitems化されていない。SCHEDULE列を開いたときに1回だけ自動で
   // itemsへ移行し、以後はTrip Plannerでの編集・SCHEDULE列でのドラッグ並び替え
   // の対象にする。daysの元データ自体は変更しない。
+  // 移行対象のactivitiesが元から無いTrip（items単体で作られたTripなど）でも、
+  // 「migrated」フラグ自体は必ず立てる（フラグが立たないと、SCHEDULE列の
+  // ドラッグ並び替えが永久に有効化されないため）。
   useEffect(() => {
     if (!expanded) return;
     if (trip.daysActivitiesMigrated) return;
-    const hasActivities = (trip.days || []).some(
-      (d) => (d.activities || []).some((a) => a.type !== 'transport')
-    );
-    if (!hasActivities) return;
     if (migrating) return;
 
     setMigrating(true);
