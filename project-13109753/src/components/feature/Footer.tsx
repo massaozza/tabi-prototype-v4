@@ -10,7 +10,7 @@ export default function Footer() {
             <a href="/" className="flex items-center gap-3 mb-4">
               <LogoMark />
               <span className="font-heading font-bold text-xl md:text-2xl tracking-[0.08em]">
-                TABI
+                TABI47
               </span>
             </a>
             <p className="text-white/60 text-sm leading-relaxed mb-6 max-w-sm">
@@ -104,7 +104,7 @@ export default function Footer() {
         <div className="border-t border-white/10 mt-12 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-5">
             <p className="text-white/40 text-sm">
-              &copy; 2026 TABI. All rights reserved.
+              &copy; 2026 TABI47. All rights reserved.
             </p>
             <div className="flex items-center gap-3">
               <a href="/privacy-policy" className="text-white/35 hover:text-white/60 transition-colors text-xs cursor-pointer">Privacy Policy</a>
