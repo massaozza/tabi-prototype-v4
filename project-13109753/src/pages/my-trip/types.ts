@@ -44,7 +44,7 @@ export type ItemStatus = 'fixed' | 'planned' | 'option';
 
 export interface TripItem {
   id: string;
-  itemType: 'spot' | 'restaurant' | 'experience';
+  itemType: 'sightseeing' | 'restaurant' | 'shopping' | 'accommodation' | 'activity' | 'transport' | 'other';
   title: string;
   spotId?: string;
   imageUrl?: string;
@@ -54,6 +54,10 @@ export interface TripItem {
   time?: string;
   status: ItemStatus;
   optionGroupId?: string;
+  // TABI 3.0：この項目をMeals（B/L/D）欄に表示するかどうか。SPOTデータには
+  // レストランを判別できる明確なカテゴリがないため、自動判定ではなく
+  // ユーザーが手動で「これは食事です」と指定する方式にしている。
+  mealSlot?: 'breakfast' | 'lunch' | 'dinner';
 }
 
 export interface ActualVisitLogEntry {
