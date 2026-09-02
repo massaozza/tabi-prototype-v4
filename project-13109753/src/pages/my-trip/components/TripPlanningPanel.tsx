@@ -36,10 +36,22 @@ interface TripPlanningPanelProps {
   onTripUpdate: (trip: { items: TripItem[]; actualVisitLog: ActualVisitLogEntry[]; status?: string }) => void;
 }
 
-const STATUS_BADGE: Record<ItemStatus, { label: string; className: string }> = {
-  fixed: { label: 'Fixed', className: 'bg-emerald-100 text-emerald-700' },
-  planned: { label: 'Planned', className: 'bg-background-200 text-foreground-600' },
-  option: { label: 'Option', className: 'bg-accent-100 text-accent-700' },
+const STATUS_LABELS: Record<ItemStatus, string> = {
+  fixed: 'Fixed',
+  planned: 'Planned',
+  option: 'Option',
+};
+
+const STATUS_COLORS: Record<ItemStatus, string> = {
+  fixed: 'text-emerald-700 bg-emerald-50',
+  planned: 'text-foreground-600 bg-background-100',
+  option: 'text-accent-700 bg-accent-50',
+};
+
+const ITEM_TYPE_ICON: Record<TripItem['itemType'], string> = {
+  spot: 'ri-map-pin-line',
+  restaurant: 'ri-restaurant-line',
+  experience: 'ri-camera-3-line',
 };
 
 export default function TripPlanningPanel({
@@ -138,17 +150,12 @@ export default function TripPlanningPanel({
     setBusyItemId(null);
   };
 
-  const cycleStatus = (current: ItemStatus): ItemStatus => {
-    if (current === 'planned') return 'fixed';
-    if (current === 'fixed') return 'option';
-    return 'planned';
-  };
-
-  const handleToggleStatus = async (item: TripItem) => {
+  const handleSetStatus = async (item: TripItem, status: ItemStatus) => {
+    if (status === item.status) return;
     setBusyItemId(item.id);
     const result = await callTripAction('updateItem', {
       itemId: item.id,
-      status: cycleStatus(item.status),
+      status,
     });
     if (result) onTripUpdate(result);
     setBusyItemId(null);
@@ -196,7 +203,6 @@ export default function TripPlanningPanel({
   const dayChoices = [...existingDayNumbers, (existingDayNumbers[existingDayNumbers.length - 1] || 0) + 1];
 
   const renderItemRow = (item: TripItem) => {
-    const badge = STATUS_BADGE[item.status];
     const visited = visitedItemIds.has(item.id);
     const busy = busyItemId === item.id;
     const expanded = expandedItemId === item.id;
@@ -206,21 +212,31 @@ export default function TripPlanningPanel({
         key={item.id}
         className="bg-background-50 border border-background-200 rounded-lg overflow-hidden"
       >
-        <div className="flex items-center justify-between gap-3 px-3.5 py-2.5">
+        <div className="flex items-center justify-between gap-3 px-3.5 py-2.5 flex-wrap">
           <div className="flex items-center gap-2 min-w-0">
+            <i
+              className={`${ITEM_TYPE_ICON[item.itemType]} text-foreground-400 flex-shrink-0`}
+              title={item.itemType}
+            ></i>
             {item.time && (
               <span className="text-xs text-foreground-500 whitespace-nowrap font-semibold">
                 {item.time}
               </span>
             )}
             <span className="text-sm text-foreground-900 truncate">{item.title}</span>
-            <button
-              onClick={() => handleToggleStatus(item)}
-              disabled={busy}
-              className={`text-xs font-semibold px-2 py-0.5 rounded-full whitespace-nowrap cursor-pointer disabled:opacity-50 ${badge.className}`}
+            <select
+              value={item.status}
+              onChange={(e) => handleSetStatus(item, e.target.value as ItemStatus)}
+              disabled={busy || isTraveling}
+              title="Fixed = booked, can't change. Planned = tentative. Option = one of a few choices."
+              className={`text-xs font-semibold pl-2 pr-1 py-0.5 rounded-full whitespace-nowrap cursor-pointer disabled:opacity-50 border-0 focus:outline-none focus:ring-1 focus:ring-primary-400 ${STATUS_COLORS[item.status]}`}
             >
-              {badge.label}
-            </button>
+              {(Object.keys(STATUS_LABELS) as ItemStatus[]).map((s) => (
+                <option key={s} value={s}>
+                  {STATUS_LABELS[s]}
+                </option>
+              ))}
+            </select>
             {visited && (
               <span className="text-xs text-emerald-600 font-semibold whitespace-nowrap">
                 <i className="ri-checkbox-circle-fill mr-0.5"></i>
@@ -338,6 +354,8 @@ export default function TripPlanningPanel({
       {!isTraveling && (
         <p className="text-foreground-400 text-xs mb-4">
           Add places below, then tap a place to assign it to a day and (optionally) a time.
+          The status dropdown (Fixed / Planned / Option) shows how certain each plan is —
+          Fixed means booked and can't change, Option means it's one of a few choices.
         </p>
       )}
 
