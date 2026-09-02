@@ -16,11 +16,11 @@ export default function FeaturesSection() {
               Our Philosophy
             </span>
             <h2 className="font-heading font-bold text-3xl md:text-5xl text-foreground-900 leading-tight">
-              Why TABI
+              Why TABI47
             </h2>
           </div>
           <p className="text-foreground-500 text-base mt-4 lg:mt-0 lg:max-w-sm">
-            We are not just another travel site — we are your connection to a deeper, more meaningful Japan
+            We're not just another travel site — we're the bridge between Japan's 47 prefectures and the travelers who want to experience them like locals do.
           </p>
         </div>
 
@@ -34,7 +34,7 @@ export default function FeaturesSection() {
                 <img
                   src={featureImages[idx]}
                   alt={feat.title}
-                  title={`${feat.title} — TABI`}
+                  title={`${feat.title} — TABI47`}
                   className="w-full h-full object-cover object-top"
                 />
               </div>
