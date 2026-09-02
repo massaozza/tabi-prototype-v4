@@ -15,7 +15,46 @@ interface AddToTripButtonProps {
   // destination.image / destination.description をそのまま渡す想定。
   spotImageUrl?: string;
   spotDescription?: string;
+  // SPOTのcategory（destination.category）。'Restaurant'カテゴリの場合、
+  // Trip Planner側でMeals（B/L/D）への割り当てができるitemType='restaurant'
+  // として追加する。SPOTデータに今後カテゴリが追加された場合に備え、
+  // 判定は大文字小文字を区別せず「restaurant」を含むかで行う。
+  spotCategory?: string;
   className?: string;
+}
+
+// TABI 3.0：旅行で実際に行く「場所の種類」。'restaurant'のみTrip Planner側で
+// Meals（B/L/D）への割り当てができる。
+type ItemType =
+  | 'sightseeing'
+  | 'restaurant'
+  | 'shopping'
+  | 'accommodation'
+  | 'activity'
+  | 'transport'
+  | 'other';
+
+// SPOTのcategory（destination.category）から、Trip Item用のitemTypeを判定する。
+// 現行の既存カテゴリ（Nature & Scenery、Culture & Historyなど）は、旅行者の
+// 訪問先としては大半が"sightseeing"に該当するため、明確に対応するものが
+// 無ければ'sightseeing'にフォールバックする。将来的にSPOT側へ専用の
+// 「Restaurant」「Shopping」等のカテゴリが追加された場合、そのまま対応する。
+const CATEGORY_TO_ITEM_TYPE: Record<string, ItemType> = {
+  'food': 'restaurant',
+  'city & food culture': 'restaurant',
+  'restaurant': 'restaurant',
+  'shopping & fashion': 'shopping',
+  'shopping': 'shopping',
+  'activities': 'activity',
+  'skiing & winter sports': 'activity',
+  'theme parks & entertainment': 'activity',
+  'transport': 'transport',
+};
+
+function categoryToItemType(category?: string): ItemType {
+  if (!category) return 'sightseeing';
+  const normalized = category.trim().toLowerCase();
+  return CATEGORY_TO_ITEM_TYPE[normalized] || 'sightseeing';
 }
 
 // TABI 3.0：SPOT詳細ページ等から、既存の（まだ公開していない）Tripに、
@@ -25,6 +64,7 @@ export default function AddToTripButton({
   spotTitle,
   spotImageUrl,
   spotDescription,
+  spotCategory,
   className,
 }: AddToTripButtonProps) {
   const { user } = useAuth();
@@ -71,7 +111,7 @@ export default function AddToTripButton({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: spotTitle,
-          itemType: 'spot',
+          itemType: categoryToItemType(spotCategory),
           spotId,
           imageUrl: spotImageUrl,
           description: spotDescription,
