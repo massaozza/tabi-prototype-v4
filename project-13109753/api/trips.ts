@@ -73,6 +73,36 @@ interface TripDay {
   };
 }
 
+// TABI 3.0：My Trip中心の循環（Plan → Travel → Actual Trip → Review → Share）の
+// 基盤となる、計画レベル・ステータスを持つTripItem。
+// 既存の days[].activities（確定した旅程の表示用）とは別の配列として持たせ、
+// 「計画中の柔軟な管理」に使う。互換性のため、既存フィールドには一切触れない。
+export type PlanLevel = 'saved' | 'day_assigned' | 'scheduled';
+export type ItemStatus = 'fixed' | 'planned' | 'option';
+export type ItemType = 'spot' | 'restaurant' | 'experience';
+
+export interface TripItem {
+  id: string;
+  itemType: ItemType;
+  title: string;
+  spotId?: string;
+
+  planLevel: PlanLevel;
+  day?: number; // day_assigned 以上で設定
+  time?: string; // scheduled でのみ設定
+
+  status: ItemStatus;
+  optionGroupId?: string; // status: 'option' の場合、同じ候補グループをまとめるID
+
+  createdAt: string;
+}
+
+export interface ActualVisitLogEntry {
+  itemId: string;
+  visitedAt: string;
+  order: number;
+}
+
 export interface Trip {
   id: string;
   uid: string;
@@ -103,6 +133,12 @@ export interface Trip {
   copiedFromTripId?: string;
   copyCount: number;
   saveCount: number;
+
+  // TABI 3.0：My Trip中心の循環の基盤（既存データには存在しない場合があるため、
+  // applyDefaults() で空配列を補う）
+  items?: TripItem[];
+  actualVisitLog?: ActualVisitLogEntry[];
+  derivedFromActualTripId?: string;
 }
 
 interface SessionRecord {
@@ -153,6 +189,8 @@ function applyDefaults(trip: Trip): Trip {
     isPublic: trip.isPublic ?? false,
     copyCount: trip.copyCount ?? 0,
     saveCount: trip.saveCount ?? 0,
+    items: trip.items ?? [],
+    actualVisitLog: trip.actualVisitLog ?? [],
   };
 }
 
@@ -661,6 +699,243 @@ export default async function handler(req: Request): Promise<Response> {
       return jsonResponse({ success: true, trip: updated }, 200);
     } catch (err) {
       return jsonResponse({ error: 'Failed to add spot to trip', detail: String(err) }, 500);
+    }
+  }
+
+  // ── PATCH: TripItemを追加する（計画レベル・ステータス付き） ──
+  // TABI 3.0：My Trip中心の循環の基盤。SPOT/Restaurant/Experienceを、
+  // 「まだ日程未定（saved）」「日だけ決めた（day_assigned）」「時間まで決めた
+  // （scheduled）」のいずれかとして追加できる。
+  if (req.method === 'PATCH' && url.searchParams.get('action') === 'addItem') {
+    const id = url.searchParams.get('id') || '';
+    if (!id) return jsonResponse({ error: 'id is required' }, 400);
+
+    let body: {
+      title?: string;
+      spotId?: string;
+      itemType?: ItemType;
+      planLevel?: PlanLevel;
+      day?: number;
+      time?: string;
+      status?: ItemStatus;
+      optionGroupId?: string;
+    };
+    try {
+      body = await req.json();
+    } catch {
+      return jsonResponse({ error: 'Invalid JSON body' }, 400);
+    }
+
+    const title = (body.title || '').trim();
+    if (!title) return jsonResponse({ error: 'title is required' }, 400);
+
+    try {
+      const trip = await kv.get<Trip>(recordKey(id));
+      if (!trip) return jsonResponse({ error: 'Trip not found' }, 404);
+      if (trip.uid !== uid) {
+        return jsonResponse({ error: 'You can only edit your own trips' }, 403);
+      }
+
+      const newItem: TripItem = {
+        id: crypto.randomUUID(),
+        itemType: body.itemType || 'spot',
+        title,
+        spotId: body.spotId?.trim() || undefined,
+        planLevel: body.planLevel || 'saved',
+        day: body.day,
+        time: body.time,
+        status: body.status || 'planned',
+        optionGroupId: body.optionGroupId,
+        createdAt: new Date().toISOString(),
+      };
+
+      const updated = applyDefaults({
+        ...trip,
+        items: [...(trip.items || []), newItem],
+      });
+      await kv.set(recordKey(id), updated);
+
+      return jsonResponse({ success: true, trip: updated, item: newItem }, 200);
+    } catch (err) {
+      return jsonResponse({ error: 'Failed to add item', detail: String(err) }, 500);
+    }
+  }
+
+  // ── PATCH: TripItemを更新する（計画レベルを進める・ステータス変更等） ──
+  if (req.method === 'PATCH' && url.searchParams.get('action') === 'updateItem') {
+    const id = url.searchParams.get('id') || '';
+    if (!id) return jsonResponse({ error: 'id is required' }, 400);
+
+    let body: {
+      itemId?: string;
+      planLevel?: PlanLevel;
+      day?: number;
+      time?: string;
+      status?: ItemStatus;
+      optionGroupId?: string;
+    };
+    try {
+      body = await req.json();
+    } catch {
+      return jsonResponse({ error: 'Invalid JSON body' }, 400);
+    }
+
+    const itemId = body.itemId || '';
+    if (!itemId) return jsonResponse({ error: 'itemId is required' }, 400);
+
+    try {
+      const trip = await kv.get<Trip>(recordKey(id));
+      if (!trip) return jsonResponse({ error: 'Trip not found' }, 404);
+      if (trip.uid !== uid) {
+        return jsonResponse({ error: 'You can only edit your own trips' }, 403);
+      }
+
+      const items = trip.items || [];
+      const idx = items.findIndex((i) => i.id === itemId);
+      if (idx < 0) return jsonResponse({ error: 'Item not found' }, 404);
+
+      const updatedItem: TripItem = {
+        ...items[idx],
+        planLevel: body.planLevel ?? items[idx].planLevel,
+        day: body.day ?? items[idx].day,
+        time: body.time ?? items[idx].time,
+        status: body.status ?? items[idx].status,
+        optionGroupId: body.optionGroupId ?? items[idx].optionGroupId,
+      };
+      const newItems = [...items];
+      newItems[idx] = updatedItem;
+
+      const updated = applyDefaults({ ...trip, items: newItems });
+      await kv.set(recordKey(id), updated);
+
+      return jsonResponse({ success: true, trip: updated, item: updatedItem }, 200);
+    } catch (err) {
+      return jsonResponse({ error: 'Failed to update item', detail: String(err) }, 500);
+    }
+  }
+
+  // ── PATCH: TripItemを削除する ──
+  if (req.method === 'PATCH' && url.searchParams.get('action') === 'removeItem') {
+    const id = url.searchParams.get('id') || '';
+    if (!id) return jsonResponse({ error: 'id is required' }, 400);
+
+    let body: { itemId?: string };
+    try {
+      body = await req.json();
+    } catch {
+      return jsonResponse({ error: 'Invalid JSON body' }, 400);
+    }
+
+    const itemId = body.itemId || '';
+    if (!itemId) return jsonResponse({ error: 'itemId is required' }, 400);
+
+    try {
+      const trip = await kv.get<Trip>(recordKey(id));
+      if (!trip) return jsonResponse({ error: 'Trip not found' }, 404);
+      if (trip.uid !== uid) {
+        return jsonResponse({ error: 'You can only edit your own trips' }, 403);
+      }
+
+      const items = (trip.items || []).filter((i) => i.id !== itemId);
+      const updated = applyDefaults({ ...trip, items });
+      await kv.set(recordKey(id), updated);
+
+      return jsonResponse({ success: true, trip: updated }, 200);
+    } catch (err) {
+      return jsonResponse({ error: 'Failed to remove item', detail: String(err) }, 500);
+    }
+  }
+
+  // ── PATCH: 旅行を開始する（Travel Modeへ移行） ──
+  if (req.method === 'PATCH' && url.searchParams.get('action') === 'startTravel') {
+    const id = url.searchParams.get('id') || '';
+    if (!id) return jsonResponse({ error: 'id is required' }, 400);
+
+    try {
+      const trip = await kv.get<Trip>(recordKey(id));
+      if (!trip) return jsonResponse({ error: 'Trip not found' }, 404);
+      if (trip.uid !== uid) {
+        return jsonResponse({ error: 'You can only edit your own trips' }, 403);
+      }
+
+      const updated = applyDefaults({
+        ...trip,
+        status: 'traveling',
+        actualVisitLog: trip.actualVisitLog && trip.actualVisitLog.length > 0
+          ? trip.actualVisitLog
+          : [],
+      });
+      await kv.set(recordKey(id), updated);
+
+      return jsonResponse({ success: true, trip: updated }, 200);
+    } catch (err) {
+      return jsonResponse({ error: 'Failed to start travel', detail: String(err) }, 500);
+    }
+  }
+
+  // ── PATCH: 実際に訪問したことを記録する（Travel Mode中） ──
+  // 【設計方針】旅行中にユーザーへ大量の入力を要求しないため、
+  // 「訪問した」を押すだけの、ワンタップの記録にとどめる。訪問順序は、
+  // このAPIが呼ばれた順に自動的に記録される。
+  if (req.method === 'PATCH' && url.searchParams.get('action') === 'markVisited') {
+    const id = url.searchParams.get('id') || '';
+    if (!id) return jsonResponse({ error: 'id is required' }, 400);
+
+    let body: { itemId?: string; title?: string; spotId?: string };
+    try {
+      body = await req.json();
+    } catch {
+      return jsonResponse({ error: 'Invalid JSON body' }, 400);
+    }
+
+    try {
+      const trip = await kv.get<Trip>(recordKey(id));
+      if (!trip) return jsonResponse({ error: 'Trip not found' }, 404);
+      if (trip.uid !== uid) {
+        return jsonResponse({ error: 'You can only edit your own trips' }, 403);
+      }
+
+      let items = trip.items || [];
+      let itemId = body.itemId || '';
+
+      // itemIdが無い場合、予定に無かった場所を旅行中に追加した扱いにする
+      if (!itemId) {
+        const title = (body.title || '').trim();
+        if (!title) return jsonResponse({ error: 'itemId or title is required' }, 400);
+        const newItem: TripItem = {
+          id: crypto.randomUUID(),
+          itemType: 'spot',
+          title,
+          spotId: body.spotId?.trim() || undefined,
+          planLevel: 'scheduled',
+          status: 'planned',
+          createdAt: new Date().toISOString(),
+        };
+        items = [...items, newItem];
+        itemId = newItem.id;
+      }
+
+      const log = trip.actualVisitLog || [];
+      if (log.some((l) => l.itemId === itemId)) {
+        return jsonResponse({ error: 'This item is already marked as visited' }, 400);
+      }
+
+      const newLogEntry: ActualVisitLogEntry = {
+        itemId,
+        visitedAt: new Date().toISOString(),
+        order: log.length + 1,
+      };
+
+      const updated = applyDefaults({
+        ...trip,
+        items,
+        actualVisitLog: [...log, newLogEntry],
+      });
+      await kv.set(recordKey(id), updated);
+
+      return jsonResponse({ success: true, trip: updated }, 200);
+    } catch (err) {
+      return jsonResponse({ error: 'Failed to mark visited', detail: String(err) }, 500);
     }
   }
 
