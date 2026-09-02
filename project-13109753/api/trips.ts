@@ -604,6 +604,66 @@ export default async function handler(req: Request): Promise<Response> {
     }
   }
 
+  // ── PATCH: 既存Tripに、SPOTを1件アクティビティとして追加する ──
+  // TABI 3.0：SPOT詳細ページ等から、「+ Add to Trip」で、自分の既存Tripに
+  // その場所を直接追加できるようにする（Mindtrip等を参考にした機能）。
+  // day を指定しなければ、最後の日に追加する（Tripに日が無ければDay 1を作る）。
+  if (req.method === 'PATCH' && url.searchParams.get('action') === 'addSpot') {
+    const id = url.searchParams.get('id') || '';
+    if (!id) {
+      return jsonResponse({ error: 'id is required' }, 400);
+    }
+
+    let body: { title?: string; spotId?: string; day?: number };
+    try {
+      body = await req.json();
+    } catch {
+      return jsonResponse({ error: 'Invalid JSON body' }, 400);
+    }
+
+    const title = (body.title || '').trim();
+    if (!title) {
+      return jsonResponse({ error: 'title is required' }, 400);
+    }
+
+    try {
+      const trip = await kv.get<Trip>(recordKey(id));
+      if (!trip) {
+        return jsonResponse({ error: 'Trip not found' }, 404);
+      }
+      if (trip.uid !== uid) {
+        return jsonResponse({ error: 'You can only edit your own trips' }, 403);
+      }
+
+      const days = [...(trip.days || [])];
+      const targetDayNum =
+        typeof body.day === 'number' ? body.day : days.length > 0 ? days[days.length - 1].day : 1;
+
+      const dayIndex = days.findIndex((d) => d.day === targetDayNum);
+      const newActivity: TripActivity = {
+        type: 'activity',
+        title,
+        spotId: body.spotId?.trim() || undefined,
+      };
+
+      if (dayIndex >= 0) {
+        days[dayIndex] = {
+          ...days[dayIndex],
+          activities: [...days[dayIndex].activities, newActivity],
+        };
+      } else {
+        days.push({ day: targetDayNum, activities: [newActivity], meals: {} });
+      }
+
+      const updated = applyDefaults({ ...trip, days });
+      await kv.set(recordKey(id), updated);
+
+      return jsonResponse({ success: true, trip: updated }, 200);
+    } catch (err) {
+      return jsonResponse({ error: 'Failed to add spot to trip', detail: String(err) }, 500);
+    }
+  }
+
   // ── PATCH: 宿泊・食事の予約状況を更新（既存の挙動） ──
   if (req.method === 'PATCH') {
     const id = url.searchParams.get('id') || '';
