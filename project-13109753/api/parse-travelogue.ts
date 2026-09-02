@@ -231,12 +231,22 @@ export default async function handler(
     bodyJa?: string;
     photos?: PhotoInput[];
     authorName?: string;
+    area?: string;
+    travelStartDate?: string;
+    travelEndDate?: string;
+    tags?: string[];
   } = req.body || {};
 
   const title = (body.title || '').trim();
   const bodyJa = (body.bodyJa || '').trim();
   const photos = Array.isArray(body.photos) ? body.photos : [];
   const authorName = (body.authorName || '').trim() || '匿名クリエイター';
+  const userProvidedArea = (body.area || '').trim();
+  const tags = Array.isArray(body.tags) ? body.tags.slice(0, 10) : [];
+  const travelPeriod =
+    body.travelStartDate && body.travelEndDate
+      ? `${body.travelStartDate} 〜 ${body.travelEndDate}`
+      : body.travelStartDate || undefined;
 
   if (!title || !bodyJa) {
     res.status(400).json({ error: 'title and bodyJa are required' });
@@ -254,11 +264,15 @@ export default async function handler(
       return;
     }
 
+    // ユーザーが明示的にエリアを指定していれば、AIの推測より優先する
+    // （SPOT照合の精度が上がるため）
+    const effectiveArea = userProvidedArea || parsed.area;
+
     // 抽出された各場所について、既存SPOTとの一致を並列で判定する
     const spotsWithIds = await Promise.all(
       parsed.spots.map(async (s) => ({
         ...s,
-        spotId: (await matchSpotId(req, s.name, parsed.area)) ?? undefined,
+        spotId: (await matchSpotId(req, s.name, effectiveArea)) ?? undefined,
       }))
     );
 
@@ -310,6 +324,8 @@ export default async function handler(
         isPublic: false,
         copyCount: 0,
         saveCount: 0,
+        tags: tags.length > 0 ? tags : undefined,
+        travelPeriod,
       };
 
       await kv.set(`trips:${id}`, trip);
@@ -330,7 +346,7 @@ export default async function handler(
       title,
       titleEn: parsed.titleEn,
       theme: parsed.theme || 'Travel Story',
-      area: parsed.area,
+      area: effectiveArea,
       areaEn: parsed.areaEn,
       bodyJa: bodyJaWithCaptions,
       bodyEn: bodyEnWithCaptions,
@@ -344,6 +360,8 @@ export default async function handler(
       })),
       photos: photoUrls,
       published: true,
+      tags: tags.length > 0 ? tags : undefined,
+      travelPeriod,
     };
 
     await kv.set(`guides:${id}`, guide);
