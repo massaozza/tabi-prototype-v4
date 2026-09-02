@@ -26,6 +26,13 @@
 // PATCH  /api/trips?id=xxx                → 宿泊・食事の予約状況を更新（既存の挙動）
 // PATCH  /api/trips?id=xxx&action=reflect → status・振り返り・旅行者属性を更新
 // PATCH  /api/trips?id=xxx&action=publish → 振り返り入力済みのTripを公開する
+// PATCH  /api/trips?id=xxx&action=addItem → TripItemを追加
+// PATCH  /api/trips?id=xxx&action=updateItem → TripItemを更新
+// PATCH  /api/trips?id=xxx&action=removeItem → TripItemを削除
+// PATCH  /api/trips?id=xxx&action=migrateActivitiesToItems
+//                                          → 古いTripのdays[].activitiesをitems化（1回のみ）
+// PATCH  /api/trips?id=xxx&action=reorderDayItems
+//                                          → SCHEDULE列のドラッグ並び替え結果を保存
 // DELETE /api/trips?id=xxx                → 削除（認証必須、本人のみ）
 
 import { kv } from '@vercel/kv';
@@ -115,6 +122,10 @@ export interface TripItem {
   // ユーザーが手動で「これは食事です」と指定する方式にしている。
   mealSlot?: 'breakfast' | 'lunch' | 'dinner';
 
+  // TABI 3.0：SCHEDULE列でのドラッグ並び替え用。同じday内での表示順
+  // （小さいほど先）。未設定の場合は時刻順にフォールバックする。
+  order?: number;
+
   createdAt: string;
 }
 
@@ -160,6 +171,8 @@ export interface Trip {
   items?: TripItem[];
   actualVisitLog?: ActualVisitLogEntry[];
   derivedFromActualTripId?: string;
+  // TABI 3.0：days[].activitiesからitemsへの自動移行が完了したかどうか。
+  daysActivitiesMigrated?: boolean;
 }
 
 interface SessionRecord {
@@ -210,6 +223,7 @@ function savedIndexKey(uid: string): string {
 function buildItemsFromDays(days: TripDay[]): TripItem[] {
   const items: TripItem[] = [];
   for (const day of days || []) {
+    let order = 0;
     for (const activity of day.activities || []) {
       if (activity.type === 'transport') continue; // 移動手段はitem化しない
       items.push({
@@ -221,6 +235,7 @@ function buildItemsFromDays(days: TripDay[]): TripItem[] {
         planLevel: activity.time ? 'scheduled' : 'day_assigned',
         day: day.day,
         time: activity.time,
+        order: order++,
         status: 'planned',
         createdAt: new Date().toISOString(),
       });
@@ -865,10 +880,23 @@ export default async function handler(req: Request): Promise<Response> {
       const idx = items.findIndex((i) => i.id === itemId);
       if (idx < 0) return jsonResponse({ error: 'Item not found' }, 404);
 
+      const resolvedDay = body.day ?? items[idx].day;
+      // Dayが（新しく）割り当てられて、まだorderを持っていない場合は、
+      // その日の末尾（最大order + 1）に配置する
+      let resolvedOrder = items[idx].order;
+      if (resolvedOrder === undefined && resolvedDay !== undefined) {
+        const maxOrder = items.reduce((max, i) => {
+          if (i.id === itemId) return max;
+          if ((i.day || 1) !== resolvedDay || i.order === undefined) return max;
+          return Math.max(max, i.order);
+        }, -1);
+        resolvedOrder = maxOrder + 1;
+      }
+
       const updatedItem: TripItem = {
         ...items[idx],
         planLevel: body.planLevel ?? items[idx].planLevel,
-        day: body.day ?? items[idx].day,
+        day: resolvedDay,
         time: body.time ?? items[idx].time,
         status: body.status ?? items[idx].status,
         optionGroupId: body.optionGroupId ?? items[idx].optionGroupId,
@@ -878,6 +906,7 @@ export default async function handler(req: Request): Promise<Response> {
             : body.mealSlot === 'none'
               ? undefined
               : body.mealSlot,
+        order: resolvedOrder,
       };
       const newItems = [...items];
       newItems[idx] = updatedItem;
@@ -888,6 +917,83 @@ export default async function handler(req: Request): Promise<Response> {
       return jsonResponse({ success: true, trip: updated, item: updatedItem }, 200);
     } catch (err) {
       return jsonResponse({ error: 'Failed to update item', detail: String(err) }, 500);
+    }
+  }
+
+  // ── PATCH: 既存のdays[].activitiesを、まだitems化されていない場合に限り
+  //           itemsへ変換する（1回だけ実行、以後はdaysActivitiesMigratedで
+  //           スキップする）。SCHEDULE列でのドラッグ並び替え等、items基盤の
+  //           機能を、Copyより前の古いTripにも使えるようにするための移行。
+  //           daysの元データ自体は削除・変更しない（互換性維持）。 ──
+  if (req.method === 'PATCH' && url.searchParams.get('action') === 'migrateActivitiesToItems') {
+    const id = url.searchParams.get('id') || '';
+    if (!id) return jsonResponse({ error: 'id is required' }, 400);
+
+    try {
+      const trip = await kv.get<Trip>(recordKey(id));
+      if (!trip) return jsonResponse({ error: 'Trip not found' }, 404);
+      if (trip.uid !== uid) {
+        return jsonResponse({ error: 'You can only edit your own trips' }, 403);
+      }
+
+      if (trip.daysActivitiesMigrated) {
+        // 既に移行済みなら何もしない（冗長な呼び出しに対して安全）
+        return jsonResponse({ success: true, trip: applyDefaults(trip) }, 200);
+      }
+
+      const migratedItems = buildItemsFromDays(trip.days || []);
+      const updated = applyDefaults({
+        ...trip,
+        items: [...(trip.items || []), ...migratedItems],
+        daysActivitiesMigrated: true,
+      });
+      await kv.set(recordKey(id), updated);
+
+      return jsonResponse({ success: true, trip: updated }, 200);
+    } catch (err) {
+      return jsonResponse({ error: 'Failed to migrate activities', detail: String(err) }, 500);
+    }
+  }
+
+  // ── PATCH: SCHEDULE列でのドラッグ並び替え結果を保存する。
+  //           指定したday内のitemIdsを、新しい順番（配列の並び）でorderに
+  //           反映する。 ──
+  if (req.method === 'PATCH' && url.searchParams.get('action') === 'reorderDayItems') {
+    const id = url.searchParams.get('id') || '';
+    if (!id) return jsonResponse({ error: 'id is required' }, 400);
+
+    let body: { day?: number; itemIds?: string[] };
+    try {
+      body = await req.json();
+    } catch {
+      return jsonResponse({ error: 'Invalid JSON body' }, 400);
+    }
+
+    const day = body.day;
+    const itemIds = Array.isArray(body.itemIds) ? body.itemIds : [];
+    if (day === undefined || itemIds.length === 0) {
+      return jsonResponse({ error: 'day and itemIds are required' }, 400);
+    }
+
+    try {
+      const trip = await kv.get<Trip>(recordKey(id));
+      if (!trip) return jsonResponse({ error: 'Trip not found' }, 404);
+      if (trip.uid !== uid) {
+        return jsonResponse({ error: 'You can only edit your own trips' }, 403);
+      }
+
+      const orderIndex = new Map(itemIds.map((itemId, i) => [itemId, i]));
+      const newItems = (trip.items || []).map((it) => {
+        if (!orderIndex.has(it.id)) return it;
+        return { ...it, order: orderIndex.get(it.id) };
+      });
+
+      const updated = applyDefaults({ ...trip, items: newItems });
+      await kv.set(recordKey(id), updated);
+
+      return jsonResponse({ success: true, trip: updated }, 200);
+    } catch (err) {
+      return jsonResponse({ error: 'Failed to reorder items', detail: String(err) }, 500);
     }
   }
 
