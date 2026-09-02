@@ -47,6 +47,8 @@ export interface TripItem {
   itemType: 'spot' | 'restaurant' | 'experience';
   title: string;
   spotId?: string;
+  imageUrl?: string;
+  description?: string;
   planLevel: PlanLevel;
   day?: number;
   time?: string;
