@@ -33,17 +33,8 @@ export default function Navbar() {
       <div className={`hidden md:flex items-center justify-between px-6 md:px-10 py-2 text-xs gap-4 transition-colors duration-300 ${
         scrolled ? 'text-foreground-600 border-b border-background-200' : 'text-white/80'
       }`}>
-        <a
-          href="/creators"
-          className={`group inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold tracking-wide transition-all duration-300 whitespace-nowrap ${
-            scrolled
-              ? 'bg-primary-50 text-primary-700 border border-primary-200 hover:bg-primary-100'
-              : 'bg-white/10 text-white border border-white/30 backdrop-blur-sm hover:bg-white/20'
-          }`}
-        >
-          <i className="ri-flag-2-line text-[13px]"></i>
-          日本の方はこちら
-          <i className="ri-arrow-right-line text-[13px] transition-transform duration-300 group-hover:translate-x-0.5"></i>
+        <a href="/creators" className="hover:opacity-70 transition-opacity whitespace-nowrap">
+          日本の方はこちら →
         </a>
         <div className="flex items-center gap-4">
           <span className="whitespace-nowrap">Follow our journey</span>
@@ -93,21 +84,6 @@ export default function Navbar() {
             )
           )}
 
-          {!loading && user && (
-            <>
-              <a href="/my-trip" className={`text-sm font-semibold whitespace-nowrap transition-colors duration-300 hover:opacity-70 ${
-                  scrolled ? 'text-foreground-800' : 'text-white'
-                }`}>
-                My Trip
-              </a>
-              <a href={`/creator/${user.uid}`} className={`text-sm font-semibold whitespace-nowrap transition-colors duration-300 hover:opacity-70 ${
-                  scrolled ? 'text-foreground-800' : 'text-white'
-                }`}>
-                Profile
-              </a>
-            </>
-          )}
-
           <div className="hidden md:flex items-center gap-5">
             {loading ? null : user ? (
               <div className="relative">
@@ -122,9 +98,23 @@ export default function Navbar() {
                 </button>
                 {userMenuOpen && (
                   <div className="absolute right-0 top-full mt-2 min-w-[160px] bg-background-50 border border-background-200 rounded-md py-1">
+                    <a
+                      href="/my-trip"
+                      onClick={() => setUserMenuOpen(false)}
+                      className="block w-full text-left px-4 py-2.5 text-sm text-foreground-700 hover:bg-background-100 hover:text-foreground-900 transition-colors whitespace-nowrap"
+                    >
+                      My Trip
+                    </a>
+                    <a
+                      href={`/creator/${user.uid}`}
+                      onClick={() => setUserMenuOpen(false)}
+                      className="block w-full text-left px-4 py-2.5 text-sm text-foreground-700 hover:bg-background-100 hover:text-foreground-900 transition-colors whitespace-nowrap"
+                    >
+                      Profile
+                    </a>
                     <button
                       onClick={handleLogout}
-                      className="w-full text-left px-4 py-2.5 text-sm text-foreground-700 hover:bg-background-100 hover:text-foreground-900 transition-colors whitespace-nowrap cursor-pointer"
+                      className="w-full text-left px-4 py-2.5 text-sm text-foreground-700 hover:bg-background-100 hover:text-foreground-900 transition-colors whitespace-nowrap cursor-pointer border-t border-background-200"
                     >
                       Logout
                     </button>
