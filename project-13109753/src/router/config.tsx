@@ -38,6 +38,7 @@ import CreatorsHomePage from "../pages/creators/page";
 import CreatorDashboardPage from "../pages/creators/dashboard/page";
 import NewRecommendedTripPage from "../pages/creators/trips/new/page";
 import WriteTravelogueePage from "../pages/creators/guides/write/page";
+import NewExperiencePageJa from "../pages/creators/experiences/new/page";
 
 const routes: RouteObject[] = [
   {
@@ -189,6 +190,10 @@ const routes: RouteObject[] = [
   {
     path: "/creators/guides/write",
     element: <WriteTravelogueePage />,
+  },
+  {
+    path: "/creators/experiences/new",
+    element: <NewExperiencePageJa />,
   },
   {
     path: "/:category/:articleSlug",
