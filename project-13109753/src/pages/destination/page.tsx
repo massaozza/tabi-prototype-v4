@@ -450,6 +450,8 @@ export default function DestinationPage() {
                     <AddToTripButton
                       spotId={destination.id}
                       spotTitle={destination.title}
+                      spotImageUrl={destination.image}
+                      spotDescription={destination.description}
                       className="inline-flex items-center gap-2 bg-background-100 hover:bg-background-200 text-foreground-800 font-semibold text-sm md:text-base px-6 py-3.5 rounded-lg transition-colors whitespace-nowrap cursor-pointer"
                     />
                   </div>
