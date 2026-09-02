@@ -186,6 +186,34 @@ function savedIndexKey(uid: string): string {
 }
 
 /** 既存データ（新フィールドを持たない）にデフォルト値を補う */
+// TABI 3.0：My Trip中心の循環。Recommended Trip等をCopyした際、
+// days[].activities（従来の確定旅程表示用データ）から、Trip Planner用の
+// items（planLevel/statusを持つ、柔軟な計画管理用データ）を生成する。
+// これにより、Copy直後からTrip Plannerで「Saved for Trip」等として
+// 扱えるようになり、SCHEDULE表示とTrip Plannerの両方が同じデータを指す。
+// 既存のdays配列自体は変更しない（互換性維持）。
+function buildItemsFromDays(days: TripDay[]): TripItem[] {
+  const items: TripItem[] = [];
+  for (const day of days || []) {
+    for (const activity of day.activities || []) {
+      if (activity.type === 'transport') continue; // 移動手段はitem化しない
+      items.push({
+        id: crypto.randomUUID(),
+        itemType: 'spot',
+        title: activity.title,
+        spotId: activity.spotId,
+        description: activity.description,
+        planLevel: activity.time ? 'scheduled' : 'day_assigned',
+        day: day.day,
+        time: activity.time,
+        status: 'planned',
+        createdAt: new Date().toISOString(),
+      });
+    }
+  }
+  return items;
+}
+
 function applyDefaults(trip: Trip): Trip {
   return {
     ...trip,
@@ -415,6 +443,16 @@ export default async function handler(req: Request): Promise<Response> {
       }
 
       const id = crypto.randomUUID();
+      // 既存にitemsを持つ場合はそれを引き継ぎ（id再発行）、持たない場合は
+      // days[].activitiesから生成する。両方は起きない想定だが、念のため
+      // 両方あれば両方引き継ぐ。
+      const carriedItems: TripItem[] = (source.items || []).map((it) => ({
+        ...it,
+        id: crypto.randomUUID(),
+      }));
+      const generatedItems =
+        carriedItems.length > 0 ? [] : buildItemsFromDays(source.days || []);
+
       const copy: Trip = {
         ...source,
         id,
@@ -428,6 +466,7 @@ export default async function handler(req: Request): Promise<Response> {
         actualTotalCost: undefined,
         reflectionWhatWorked: undefined,
         reflectionWhatToChange: undefined,
+        items: [...carriedItems, ...generatedItems],
       };
 
       await kv.set(recordKey(id), copy);
@@ -515,6 +554,9 @@ export default async function handler(req: Request): Promise<Response> {
       isPublic: false,
       copyCount: 0,
       saveCount: 0,
+      // TABI 3.0：daysで作成された旅程も、最初からTrip Planner（items）で
+      // 管理できるようにする
+      items: buildItemsFromDays(days),
     };
 
     try {
