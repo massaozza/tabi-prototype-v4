@@ -39,6 +39,33 @@ export default function CreatorsHomePage() {
       </section>
 
       <section className="py-14 md:py-20 px-6 md:px-10">
+        <div className="max-w-5xl mx-auto mb-8">
+          <Link
+            to={user ? '/creators/guides/write' : '/login'}
+            className="group relative flex flex-col sm:flex-row sm:items-center gap-5 bg-gradient-to-r from-accent-600 to-accent-700 rounded-2xl p-7 hover:-translate-y-1 transition-all duration-300 cursor-pointer overflow-hidden text-white"
+          >
+            <span className="w-14 h-14 rounded-full bg-white/15 flex items-center justify-center flex-shrink-0">
+              <i className="ri-quill-pen-line text-2xl"></i>
+            </span>
+            <div className="flex-1">
+              <span className="inline-block text-xs font-semibold tracking-widest uppercase text-white/70 mb-1">
+                おすすめ・いちばん簡単
+              </span>
+              <h2 className="font-heading font-bold text-xl text-white mb-1">
+                旅行記を書く
+              </h2>
+              <p className="text-white/80 text-sm leading-relaxed">
+                いつものブログのように、自由に書くだけ。あとはAIが自動で
+                読み解き、ガイドや旅程として整理します。
+              </p>
+            </div>
+            <span className="inline-flex items-center gap-1 text-white font-semibold text-sm whitespace-nowrap group-hover:gap-2 transition-all flex-shrink-0">
+              はじめる
+              <i className="ri-arrow-right-line"></i>
+            </span>
+          </Link>
+        </div>
+
         <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
           <Link
             to={user ? '/creators/trips/new' : '/login'}
