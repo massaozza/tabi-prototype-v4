@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { BookingStatus, Trip, TripDay, TripMeal, TripStay, TransportMode } from '../types';
 import { formatSavedDate } from '../types';
 import ReflectionModal from './ReflectionModal';
+import TripPlanningPanel from './TripPlanningPanel';
 
 const TRANSPORT_ICONS: Record<TransportMode, string> = {
   walk: 'ri-walk-line',
@@ -373,6 +374,18 @@ export default function TripCard({
               </tbody>
             </table>
           </div>
+
+          {(status === 'planning' || status === 'traveling') && (
+            <TripPlanningPanel
+              tripId={trip.id}
+              items={trip.items || []}
+              actualVisitLog={trip.actualVisitLog || []}
+              tripStatus={status}
+              onTripUpdate={(updates) => {
+                onTripUpdate({ ...trip, ...updates });
+              }}
+            />
+          )}
 
           {/* 振り返り・公開アクション */}
           <div className="mt-6 pt-5 border-t border-background-200">
