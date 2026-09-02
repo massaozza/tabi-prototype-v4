@@ -16,6 +16,7 @@ interface ExploreResult {
   href: string;
   lat?: number;
   lng?: number;
+  category?: string;
 }
 
 const TYPE_BADGE: Record<ContentType, { label: string; className: string }> = {
@@ -29,6 +30,17 @@ const TABS: { key: 'all' | ContentType; label: string }[] = [
   { key: 'trip', label: 'Trips' },
   { key: 'guide', label: 'Guides' },
   { key: 'spot', label: 'Spots' },
+];
+
+const SPOT_CATEGORIES = [
+  'Temple',
+  'Nature',
+  'Restaurant',
+  'Cafe',
+  'Activity',
+  'Hotel',
+  'Shop',
+  'Other',
 ];
 
 // TABI 3.0：検索結果（SPOTのみ、緯度経度を持つもの）を地図にピン表示し、
@@ -53,7 +65,7 @@ function ExploreMapPanel({ results }: { results: ExploreResult[] }) {
 
         mapRef.current = new googleAny.maps.Map(containerRef.current, {
           zoom: 5,
-          center: { lat: 36.5, lng: 138.0 }, // 日本全体が収まる程度の初期位置
+          center: { lat: 36.5, lng: 138.0 },
           disableDefaultUI: true,
           zoomControl: true,
         });
@@ -71,7 +83,6 @@ function ExploreMapPanel({ results }: { results: ExploreResult[] }) {
     const googleAny = (window as any).google;
     if (!googleAny?.maps) return;
 
-    // 既存のピンをクリアしてから、新しいピンを打ち直す
     markersRef.current.forEach((m) => m.setMap(null));
     markersRef.current = [];
 
@@ -115,10 +126,55 @@ function ExploreMapPanel({ results }: { results: ExploreResult[] }) {
   );
 }
 
+function ResultCard({ r }: { r: ExploreResult }) {
+  const badge = TYPE_BADGE[r.contentType];
+  return (
+    <Link
+      to={r.href}
+      className="group flex flex-col bg-background-50 border border-background-200 rounded-xl overflow-hidden hover:-translate-y-0.5 transition-all duration-300 cursor-pointer"
+    >
+      <div className="relative w-full h-40 flex-shrink-0 overflow-hidden bg-background-100">
+        {r.image ? (
+          <img
+            src={r.image}
+            alt={r.title}
+            className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-foreground-300">
+            <i className="ri-image-line text-4xl"></i>
+          </div>
+        )}
+        <span
+          className={`absolute top-3 left-3 text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap ${badge.className}`}
+        >
+          {badge.label}
+        </span>
+      </div>
+      <div className="p-5 flex flex-col flex-1">
+        {r.area && (
+          <span className="text-xs text-foreground-400 mb-1.5 whitespace-nowrap">
+            <i className="ri-map-pin-line mr-1"></i>
+            {r.area}
+          </span>
+        )}
+        <h3 className="font-heading font-bold text-base text-foreground-900 mb-2 leading-snug line-clamp-2">
+          {r.title}
+        </h3>
+        {r.summary && (
+          <p className="text-foreground-600 text-sm leading-relaxed line-clamp-2">{r.summary}</p>
+        )}
+      </div>
+    </Link>
+  );
+}
+
 export default function ExplorePage() {
   const [activeTab, setActiveTab] = useState<'all' | ContentType>('all');
   const [query, setQuery] = useState('');
   const [area, setArea] = useState('');
+  const [category, setCategory] = useState('');
+  const [sort, setSort] = useState<'popular' | 'rating' | 'az'>('popular');
   const [results, setResults] = useState<ExploreResult[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -131,6 +187,8 @@ export default function ExplorePage() {
         if (activeTab !== 'all') params.set('type', activeTab);
         if (query.trim()) params.set('q', query.trim());
         if (area.trim()) params.set('area', area.trim());
+        if (activeTab === 'spot' && category) params.set('category', category);
+        params.set('sort', sort);
 
         const res = await fetch(`/api/explore?${params.toString()}`);
         if (!res.ok) throw new Error('Failed to fetch');
@@ -145,12 +203,17 @@ export default function ExplorePage() {
       }
     }
 
-    const timeout = setTimeout(fetchData, 300); // 入力ごとの検索を少し間引く
+    const timeout = setTimeout(fetchData, 300);
     return () => {
       cancelled = true;
       clearTimeout(timeout);
     };
-  }, [activeTab, query, area]);
+  }, [activeTab, query, area, category, sort]);
+
+  // 「All」タブでの、種類ごとのグルーピング（混在を避けるため）
+  const spotsResults = results.filter((r) => r.contentType === 'spot');
+  const guidesResults = results.filter((r) => r.contentType === 'guide');
+  const tripsResults = results.filter((r) => r.contentType === 'trip');
 
   return (
     <main className="min-h-screen bg-background-50">
@@ -208,25 +271,73 @@ export default function ExplorePage() {
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-1 bg-background-100 rounded-lg p-1 w-fit mb-5">
-            {TABS.map((tab) => (
+          <div className="flex items-center justify-between flex-wrap gap-3 mb-5">
+            <div className="flex gap-1 bg-background-100 rounded-lg p-1 w-fit">
+              {TABS.map((tab) => (
+                <button
+                  key={tab.key}
+                  onClick={() => {
+                    setActiveTab(tab.key);
+                    setCategory('');
+                  }}
+                  className={`px-4 py-2 rounded-md text-sm font-semibold transition-colors whitespace-nowrap cursor-pointer ${
+                    activeTab === tab.key
+                      ? 'bg-background-50 text-foreground-900 shadow-sm'
+                      : 'text-foreground-500 hover:text-foreground-700'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {/* 個別タブ選択時のみ、並び替えの意味があるので表示する
+                （「All」はSpots/Guides/Tripsごとにセクション分けしているため、
+                このドロップダウンでの並び替えは非表示にする） */}
+            {activeTab !== 'all' && (
+              <select
+                value={sort}
+                onChange={(e) => setSort(e.target.value as 'popular' | 'rating' | 'az')}
+                className="text-sm font-semibold text-foreground-700 bg-background-50 border border-background-200 rounded-md px-3 py-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-400"
+              >
+                <option value="popular">Sort: Most Popular</option>
+                {activeTab === 'spot' && <option value="rating">Sort: Highest Rated</option>}
+                <option value="az">Sort: A-Z</option>
+              </select>
+            )}
+          </div>
+
+          {/* SPOTタブの時だけ、カテゴリ絞り込みを表示 */}
+          {activeTab === 'spot' && (
+            <div className="flex items-center gap-2 flex-wrap mb-5">
               <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
-                className={`px-4 py-2 rounded-md text-sm font-semibold transition-colors whitespace-nowrap cursor-pointer ${
-                  activeTab === tab.key
-                    ? 'bg-background-50 text-foreground-900 shadow-sm'
-                    : 'text-foreground-500 hover:text-foreground-700'
+                onClick={() => setCategory('')}
+                className={`text-xs font-semibold px-3 py-1.5 rounded-full whitespace-nowrap transition-colors cursor-pointer ${
+                  category === ''
+                    ? 'bg-foreground-900 text-white'
+                    : 'bg-background-100 text-foreground-600 hover:bg-background-200'
                 }`}
               >
-                {tab.label}
+                All Categories
               </button>
-            ))}
-          </div>
+              {SPOT_CATEGORIES.map((c) => (
+                <button
+                  key={c}
+                  onClick={() => setCategory(c)}
+                  className={`text-xs font-semibold px-3 py-1.5 rounded-full whitespace-nowrap transition-colors cursor-pointer ${
+                    category === c
+                      ? 'bg-foreground-900 text-white'
+                      : 'bg-background-100 text-foreground-600 hover:bg-background-200'
+                  }`}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
-      {/* 地図とカード一覧の分割表示（モバイルは地図が上、PCは右） */}
       <section className="px-6 md:px-10 lg:px-20 pb-16">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row-reverse gap-6">
           {/* 地図パネル */}
@@ -253,56 +364,82 @@ export default function ExplorePage() {
                   No results found
                 </h2>
                 <p className="text-foreground-500 text-sm">
-                  Try a different keyword or area, or check back later as more content is added.
+                  Try a different keyword, area, or category.
                 </p>
               </div>
-            ) : (
+            ) : activeTab !== 'all' ? (
+              // 個別タブ：そのままフラットなグリッド
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                {results.map((r) => {
-                  const badge = TYPE_BADGE[r.contentType];
-                  return (
-                    <Link
-                      key={`${r.contentType}-${r.id}`}
-                      to={r.href}
-                      className="group flex flex-col bg-background-50 border border-background-200 rounded-xl overflow-hidden hover:-translate-y-0.5 transition-all duration-300 cursor-pointer"
-                    >
-                      <div className="relative w-full h-40 flex-shrink-0 overflow-hidden bg-background-100">
-                        {r.image ? (
-                          <img
-                            src={r.image}
-                            alt={r.title}
-                            className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-foreground-300">
-                            <i className="ri-image-line text-4xl"></i>
-                          </div>
-                        )}
-                        <span
-                          className={`absolute top-3 left-3 text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap ${badge.className}`}
-                        >
-                          {badge.label}
-                        </span>
-                      </div>
-                      <div className="p-5 flex flex-col flex-1">
-                        {r.area && (
-                          <span className="text-xs text-foreground-400 mb-1.5 whitespace-nowrap">
-                            <i className="ri-map-pin-line mr-1"></i>
-                            {r.area}
-                          </span>
-                        )}
-                        <h3 className="font-heading font-bold text-base text-foreground-900 mb-2 leading-snug line-clamp-2">
-                          {r.title}
-                        </h3>
-                        {r.summary && (
-                          <p className="text-foreground-600 text-sm leading-relaxed line-clamp-2">
-                            {r.summary}
-                          </p>
-                        )}
-                      </div>
-                    </Link>
-                  );
-                })}
+                {results.map((r) => (
+                  <ResultCard key={`${r.contentType}-${r.id}`} r={r} />
+                ))}
+              </div>
+            ) : (
+              // 「All」タブ：種類が混ざって分かりにくくならないよう、
+              // Spots / Guides / Trips ごとにセクションを分けて表示する
+              <div className="space-y-10">
+                {spotsResults.length > 0 && (
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="font-heading font-bold text-lg text-foreground-900">
+                        Spots
+                      </h2>
+                      <button
+                        onClick={() => setActiveTab('spot')}
+                        className="text-primary-500 hover:text-primary-600 text-sm font-semibold whitespace-nowrap cursor-pointer"
+                      >
+                        View all →
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                      {spotsResults.slice(0, 4).map((r) => (
+                        <ResultCard key={`${r.contentType}-${r.id}`} r={r} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {guidesResults.length > 0 && (
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="font-heading font-bold text-lg text-foreground-900">
+                        Guides
+                      </h2>
+                      <button
+                        onClick={() => setActiveTab('guide')}
+                        className="text-primary-500 hover:text-primary-600 text-sm font-semibold whitespace-nowrap cursor-pointer"
+                      >
+                        View all →
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                      {guidesResults.slice(0, 4).map((r) => (
+                        <ResultCard key={`${r.contentType}-${r.id}`} r={r} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {tripsResults.length > 0 && (
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="font-heading font-bold text-lg text-foreground-900">
+                        Trips
+                      </h2>
+                      <button
+                        onClick={() => setActiveTab('trip')}
+                        className="text-primary-500 hover:text-primary-600 text-sm font-semibold whitespace-nowrap cursor-pointer"
+                      >
+                        View all →
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                      {tripsResults.slice(0, 4).map((r) => (
+                        <ResultCard key={`${r.contentType}-${r.id}`} r={r} />
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
