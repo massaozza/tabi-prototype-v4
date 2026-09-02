@@ -37,6 +37,7 @@ import ExplorePage from "../pages/explore/page";
 import CreatorsHomePage from "../pages/creators/page";
 import CreatorDashboardPage from "../pages/creators/dashboard/page";
 import NewRecommendedTripPage from "../pages/creators/trips/new/page";
+import WriteTravelogueePage from "../pages/creators/guides/write/page";
 
 const routes: RouteObject[] = [
   {
@@ -184,6 +185,10 @@ const routes: RouteObject[] = [
   {
     path: "/creators/trips/new",
     element: <NewRecommendedTripPage />,
+  },
+  {
+    path: "/creators/guides/write",
+    element: <WriteTravelogueePage />,
   },
   {
     path: "/:category/:articleSlug",
