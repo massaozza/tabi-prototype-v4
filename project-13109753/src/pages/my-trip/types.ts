@@ -58,6 +58,9 @@ export interface TripItem {
   // レストランを判別できる明確なカテゴリがないため、自動判定ではなく
   // ユーザーが手動で「これは食事です」と指定する方式にしている。
   mealSlot?: 'breakfast' | 'lunch' | 'dinner';
+  // TABI 3.0：SCHEDULE列でのドラッグ並び替え用。同じday内での表示順
+  // （小さいほど先）。未設定の場合は時刻順にフォールバックする。
+  order?: number;
 }
 
 export interface ActualVisitLogEntry {
@@ -94,6 +97,10 @@ export interface Trip {
 
   items?: TripItem[];
   actualVisitLog?: ActualVisitLogEntry[];
+  // TABI 3.0：days[].activitiesからitemsへの自動移行が完了したかどうか。
+  // trueの場合、SCHEDULE表示はitemsのみを見る（daysの元データは互換性の
+  // ため保持し続けるが、表示には使わない）。
+  daysActivitiesMigrated?: boolean;
 }
 
 const MONTH_NAMES = [
