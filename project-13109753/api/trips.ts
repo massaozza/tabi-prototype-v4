@@ -79,7 +79,17 @@ interface TripDay {
 // 「計画中の柔軟な管理」に使う。互換性のため、既存フィールドには一切触れない。
 export type PlanLevel = 'saved' | 'day_assigned' | 'scheduled';
 export type ItemStatus = 'fixed' | 'planned' | 'option';
-export type ItemType = 'spot' | 'restaurant' | 'experience';
+// TABI 3.0：旅行で実際に行く「場所の種類」。TABIのコンテンツ種別
+// （TRIP/SPOT/EXPERIENCE）とは別の概念。'restaurant'のみMeals（B/L/D）への
+// 割り当てが可能。
+export type ItemType =
+  | 'sightseeing'
+  | 'restaurant'
+  | 'shopping'
+  | 'accommodation'
+  | 'activity'
+  | 'transport'
+  | 'other';
 
 export interface TripItem {
   id: string;
@@ -99,6 +109,11 @@ export interface TripItem {
 
   status: ItemStatus;
   optionGroupId?: string; // status: 'option' の場合、同じ候補グループをまとめるID
+
+  // TABI 3.0：この項目をMeals（B/L/D）欄に表示するかどうか。SPOTデータには
+  // レストランを判別できる明確なカテゴリがないため、自動判定ではなく
+  // ユーザーが手動で「これは食事です」と指定する方式にしている。
+  mealSlot?: 'breakfast' | 'lunch' | 'dinner';
 
   createdAt: string;
 }
@@ -199,7 +214,7 @@ function buildItemsFromDays(days: TripDay[]): TripItem[] {
       if (activity.type === 'transport') continue; // 移動手段はitem化しない
       items.push({
         id: crypto.randomUUID(),
-        itemType: 'spot',
+        itemType: 'sightseeing',
         title: activity.title,
         spotId: activity.spotId,
         description: activity.description,
@@ -769,6 +784,7 @@ export default async function handler(req: Request): Promise<Response> {
       time?: string;
       status?: ItemStatus;
       optionGroupId?: string;
+      mealSlot?: 'breakfast' | 'lunch' | 'dinner';
     };
     try {
       body = await req.json();
@@ -788,7 +804,7 @@ export default async function handler(req: Request): Promise<Response> {
 
       const newItem: TripItem = {
         id: crypto.randomUUID(),
-        itemType: body.itemType || 'spot',
+        itemType: body.itemType || 'sightseeing',
         title,
         spotId: body.spotId?.trim() || undefined,
         imageUrl: body.imageUrl?.trim() || undefined,
@@ -798,6 +814,7 @@ export default async function handler(req: Request): Promise<Response> {
         time: body.time,
         status: body.status || 'planned',
         optionGroupId: body.optionGroupId,
+        mealSlot: body.mealSlot,
         createdAt: new Date().toISOString(),
       };
 
@@ -825,6 +842,8 @@ export default async function handler(req: Request): Promise<Response> {
       time?: string;
       status?: ItemStatus;
       optionGroupId?: string;
+      // 'none' を送ることで、設定済みのmealSlotを明示的に解除できる
+      mealSlot?: 'breakfast' | 'lunch' | 'dinner' | 'none';
     };
     try {
       body = await req.json();
@@ -853,6 +872,12 @@ export default async function handler(req: Request): Promise<Response> {
         time: body.time ?? items[idx].time,
         status: body.status ?? items[idx].status,
         optionGroupId: body.optionGroupId ?? items[idx].optionGroupId,
+        mealSlot:
+          body.mealSlot === undefined
+            ? items[idx].mealSlot
+            : body.mealSlot === 'none'
+              ? undefined
+              : body.mealSlot,
       };
       const newItems = [...items];
       newItems[idx] = updatedItem;
@@ -956,7 +981,7 @@ export default async function handler(req: Request): Promise<Response> {
         if (!title) return jsonResponse({ error: 'itemId or title is required' }, 400);
         const newItem: TripItem = {
           id: crypto.randomUUID(),
-          itemType: 'spot',
+          itemType: 'sightseeing',
           title,
           spotId: body.spotId?.trim() || undefined,
           planLevel: 'scheduled',
