@@ -39,6 +39,27 @@ export interface TripDay {
 export type TripStatus = 'planning' | 'traveling' | 'completed' | 'published';
 export type TripKind = 'recommended' | 'actual';
 
+export type PlanLevel = 'saved' | 'day_assigned' | 'scheduled';
+export type ItemStatus = 'fixed' | 'planned' | 'option';
+
+export interface TripItem {
+  id: string;
+  itemType: 'spot' | 'restaurant' | 'experience';
+  title: string;
+  spotId?: string;
+  planLevel: PlanLevel;
+  day?: number;
+  time?: string;
+  status: ItemStatus;
+  optionGroupId?: string;
+}
+
+export interface ActualVisitLogEntry {
+  itemId: string;
+  visitedAt: string;
+  order: number;
+}
+
 export interface Trip {
   id: string;
   uid: string;
@@ -64,6 +85,9 @@ export interface Trip {
   copiedFromTripId?: string;
   copyCount?: number;
   saveCount?: number;
+
+  items?: TripItem[];
+  actualVisitLog?: ActualVisitLogEntry[];
 }
 
 const MONTH_NAMES = [
