@@ -28,6 +28,8 @@ interface TripItem {
   // レストランを判別できる明確なカテゴリがないため、ユーザーが手動で
   // 「これは食事です」と指定する方式にしている。
   mealSlot?: 'breakfast' | 'lunch' | 'dinner';
+  // TABI 3.0：SCHEDULE列でのドラッグ並び替え用（TripCard.tsx側で使用）。
+  order?: number;
 }
 
 interface ActualVisitLogEntry {
@@ -536,7 +538,12 @@ export default function TripPlanningPanel({
       {existingDayNumbers.map((dayNum) => {
         const dayItems = items
           .filter((i) => i.planLevel !== 'saved' && (i.day || 1) === dayNum)
-          .sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+          .sort((a, b) => {
+            if (a.order !== undefined && b.order !== undefined) return a.order - b.order;
+            if (a.order !== undefined) return -1;
+            if (b.order !== undefined) return 1;
+            return (a.time || '').localeCompare(b.time || '');
+          });
         return (
           <div key={dayNum} className="mb-5">
             <span className="block text-xs font-semibold text-foreground-500 uppercase tracking-wide mb-2">
