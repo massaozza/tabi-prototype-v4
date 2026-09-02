@@ -15,6 +15,10 @@ interface TripItem {
   itemType: 'spot' | 'restaurant' | 'experience';
   title: string;
   spotId?: string;
+  // 「Saved for Trip」のカード表示用。この変更より前に追加されたItemには
+  // 存在しないため、常にオプショナルとして扱い、無い場合はフォールバック表示にする。
+  imageUrl?: string;
+  description?: string;
   planLevel: PlanLevel;
   day?: number;
   time?: string;
@@ -330,6 +334,111 @@ export default function TripPlanningPanel({
     );
   };
 
+  // 「Saved for Trip」用のカード表示。まだ日程未定のSPOTは、リストの1行ではなく
+  // 写真＋概要のカードとして見せることで、「どこを保存したか」がひと目で分かるようにする。
+  // imageUrl/descriptionを持たない古いItem（この変更より前に追加されたもの）は、
+  // アイコンのプレースホルダーと概要非表示のフォールバック表示にする。
+  const renderSavedItemCard = (item: TripItem) => {
+    const busy = busyItemId === item.id;
+    const expanded = expandedItemId === item.id;
+
+    return (
+      <div
+        key={item.id}
+        className="bg-background-50 border border-background-200 rounded-lg overflow-hidden"
+      >
+        <div className="flex gap-3 p-3">
+          {item.imageUrl ? (
+            <img
+              src={item.imageUrl}
+              alt={item.title}
+              className="w-20 h-20 sm:w-24 sm:h-24 rounded-md object-cover flex-shrink-0 bg-background-200"
+            />
+          ) : (
+            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-md bg-background-200 flex items-center justify-center flex-shrink-0">
+              <i
+                className={`${ITEM_TYPE_ICON[item.itemType]} text-foreground-400 text-xl`}
+                title={item.itemType}
+              ></i>
+            </div>
+          )}
+
+          <div className="flex-1 min-w-0 flex flex-col">
+            <div className="flex items-start justify-between gap-2">
+              <span className="text-sm font-semibold text-foreground-900 line-clamp-1">
+                {item.title}
+              </span>
+              <button
+                onClick={() => handleRemove(item)}
+                disabled={busy}
+                className="w-6 h-6 flex items-center justify-center text-foreground-300 hover:text-red-500 transition-colors cursor-pointer disabled:opacity-50 flex-shrink-0"
+                aria-label="Remove"
+              >
+                <i className="ri-close-line"></i>
+              </button>
+            </div>
+
+            {item.description ? (
+              <p className="text-xs text-foreground-500 line-clamp-2 mt-0.5">{item.description}</p>
+            ) : (
+              <p className="text-xs text-foreground-300 italic mt-0.5">No description available</p>
+            )}
+
+            <div className="flex items-center gap-2 mt-auto pt-2 flex-wrap">
+              <select
+                value={item.status}
+                onChange={(e) => handleSetStatus(item, e.target.value as ItemStatus)}
+                disabled={busy || isTraveling}
+                title="Fixed = booked, can't change. Planned = tentative. Option = one of a few choices."
+                className={`text-xs font-semibold pl-2 pr-1 py-0.5 rounded-full whitespace-nowrap cursor-pointer disabled:opacity-50 border-0 focus:outline-none focus:ring-1 focus:ring-primary-400 ${STATUS_COLORS[item.status]}`}
+              >
+                {(Object.keys(STATUS_LABELS) as ItemStatus[]).map((s) => (
+                  <option key={s} value={s}>
+                    {STATUS_LABELS[s]}
+                  </option>
+                ))}
+              </select>
+              {!isTraveling && (
+                <button
+                  onClick={() => setExpandedItemId(expanded ? null : item.id)}
+                  disabled={busy}
+                  className="text-xs font-semibold text-primary-600 hover:text-primary-700 whitespace-nowrap cursor-pointer disabled:opacity-50 flex items-center gap-1"
+                >
+                  Assign day
+                  <i className={`text-sm ${expanded ? 'ri-arrow-up-s-line' : 'ri-arrow-down-s-line'}`}></i>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {expanded && !isTraveling && (
+          <div className="px-3 pb-3 pt-1 border-t border-background-200 flex flex-wrap items-center gap-3">
+            <label className="flex items-center gap-2 text-xs text-foreground-500">
+              Day
+              <select
+                value=""
+                onChange={(e) => handleAssignDay(item, Number(e.target.value))}
+                disabled={busy}
+                className="bg-background-100 border border-background-200 rounded-md px-2 py-1.5 text-sm text-foreground-900 focus:outline-none focus:ring-2 focus:ring-primary-400 cursor-pointer"
+              >
+                <option value="" disabled>
+                  Choose a day
+                </option>
+                {dayChoices.map((d) => (
+                  <option key={d} value={d}>
+                    Day {d}
+                    {!existingDayNumbers.includes(d) ? ' (new)' : ''}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="mt-6 pt-6 border-t border-background-200">
       <div className="flex items-center justify-between mb-1.5 flex-wrap gap-2">
@@ -361,13 +470,13 @@ export default function TripPlanningPanel({
 
       {error && <p className="text-red-500 text-xs mb-3">{error}</p>}
 
-      {/* Saved for Trip（まだ日程未定） */}
+      {/* Saved for Trip（まだ日程未定）：写真＋概要のカード形式 */}
       {savedItems.length > 0 && (
         <div className="mb-5">
           <span className="block text-xs font-semibold text-foreground-500 uppercase tracking-wide mb-2">
             Saved for Trip
           </span>
-          <div className="space-y-2">{savedItems.map(renderItemRow)}</div>
+          <div className="space-y-2">{savedItems.map(renderSavedItemCard)}</div>
         </div>
       )}
 
