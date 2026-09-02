@@ -502,30 +502,30 @@ export default function TripCard({
                             };
 
                             return (
-                              <li key={entry.key} className="text-sm flex items-start gap-1.5">
+                              <li key={entry.key} className="text-sm flex items-start gap-2">
                                 {reorderable && (
-                                  <div className="flex flex-col flex-shrink-0 -ml-1 mt-0.5">
+                                  <div className="flex flex-col flex-shrink-0 gap-1 -ml-1.5">
                                     <button
                                       type="button"
                                       onClick={() => moveEntry(-1)}
                                       disabled={isFirst}
                                       aria-label="Move up"
-                                      className="w-5 h-5 flex items-center justify-center text-foreground-400 hover:text-foreground-800 disabled:opacity-20 disabled:hover:text-foreground-400 cursor-pointer"
+                                      className="w-9 h-9 flex items-center justify-center text-foreground-500 hover:bg-background-100 active:bg-background-200 rounded-md disabled:opacity-20 disabled:hover:bg-transparent cursor-pointer"
                                     >
-                                      <i className="ri-arrow-up-s-line"></i>
+                                      <i className="ri-arrow-up-s-line text-lg"></i>
                                     </button>
                                     <button
                                       type="button"
                                       onClick={() => moveEntry(1)}
                                       disabled={isLast}
                                       aria-label="Move down"
-                                      className="w-5 h-5 flex items-center justify-center text-foreground-400 hover:text-foreground-800 disabled:opacity-20 disabled:hover:text-foreground-400 cursor-pointer"
+                                      className="w-9 h-9 flex items-center justify-center text-foreground-500 hover:bg-background-100 active:bg-background-200 rounded-md disabled:opacity-20 disabled:hover:bg-transparent cursor-pointer"
                                     >
-                                      <i className="ri-arrow-down-s-line"></i>
+                                      <i className="ri-arrow-down-s-line text-lg"></i>
                                     </button>
                                   </div>
                                 )}
-                                <div className="flex-1 min-w-0">
+                                <div className="flex-1 min-w-0 pt-1.5">
                                   {entry.time ? (
                                     <span className="text-foreground-400 text-xs mr-1.5 whitespace-nowrap">
                                       {entry.time}
