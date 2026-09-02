@@ -212,8 +212,8 @@ export default function AffiliateDisclosurePage() {
               <h2 className="font-heading font-bold text-xl md:text-2xl text-foreground-900 mb-4">7. Contact</h2>
               <p className="text-foreground-600 leading-relaxed">
                 Questions about our affiliate relationships or editorial policies? Reach out at{' '}
-                <a href="mailto:hello@jtabi.com" className="text-primary-500 hover:text-primary-600 underline cursor-pointer">
-                  hello@jtabi.com
+                <a href="mailto:hello@tabi47.com" className="text-primary-500 hover:text-primary-600 underline cursor-pointer">
+                  hello@tabi47.com
                 </a>
               </p>
             </section>
