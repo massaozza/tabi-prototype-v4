@@ -3,33 +3,97 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 
 // TABI47：TOPページの中核セクション。
-// 初訪問者にとって「保存したいもの」がまだ無い状態を解消するため、
-// すでに公開されている完成済みの旅程を提示し、「Copy to My Trip」
+// パンフレット風のリッチカードで旅程を提示し、「Copy to My Trip」
 // ワンクリックでMy Tripが作られる状態まで一気に運ぶ導線。
-// （PDFの「すべてのコンテンツからMY TRIPへつなげる」という原則、および
-// 「Recommended Trip → Copy → Customize → Travel」の循環の入口にあたる）
+// カードには写真グリッド・タグ・予算・日別行程（最大4スポット）を含む。
+
+interface Activity {
+  type: string;
+  title: string;
+  description?: string;
+  time?: string;
+  spotId?: string;
+}
+
+interface TripDay {
+  day: number;
+  activities?: Activity[];
+}
 
 interface PublicTrip {
   id: string;
   title: string;
   summary?: string;
   stays: { id: string }[];
-  days: { day: number }[];
+  days: TripDay[];
   totalDays?: number;
   nationality?: string;
   travelStyle?: string;
   authorName?: string;
   saveCount?: number;
   copyCount?: number;
+  highlights?: string[];
+  tags?: string[];
+  budgetMin?: number;
+  budgetMax?: number;
 }
 
-function TripCard({ trip }: { trip: PublicTrip }) {
+// Spotのimageフィールドを取得するためのDestination型
+interface Destination {
+  id: string;
+  title: string;
+  image: string;
+  prefecture?: string;
+}
+
+// SpotIDから画像URLを引いてくるためのキャッシュ
+const spotImageCache = new Map<string, string>();
+
+function formatBudget(min?: number, max?: number): string | null {
+  if (!min && !max) return null;
+  const fmt = (n: number) =>
+    n >= 10000 ? `¥${(n / 10000).toFixed(n % 10000 === 0 ? 0 : 1)}万` : `¥${n.toLocaleString()}`;
+  if (min && max) return `${fmt(min)} – ${fmt(max)} / person`;
+  if (min) return `From ${fmt(min)} / person`;
+  if (max) return `Under ${fmt(max)} / person`;
+  return null;
+}
+
+// TOPページカードに表示するSpotを最大n件取得（transport以外）
+function getCardActivities(days: TripDay[], max = 4): Activity[] {
+  const result: Activity[] = [];
+  for (const day of days) {
+    if (result.length >= max) break;
+    for (const act of day.activities || []) {
+      if (act.type === 'transport') continue;
+      result.push(act);
+      if (result.length >= max) break;
+    }
+  }
+  return result;
+}
+
+function TripCard({
+  trip,
+  spotImages,
+}: {
+  trip: PublicTrip;
+  spotImages: Map<string, string>;
+}) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [copying, setCopying] = useState(false);
   const [error, setError] = useState('');
 
   const dayCount = trip.totalDays ?? trip.days?.length ?? 0;
+  const activities = getCardActivities(trip.days);
+
+  // Spot画像をspotId→image URLで引く（最大3枚）
+  const spotIds = activities
+    .map((a) => a.spotId)
+    .filter((id): id is string => !!id)
+    .slice(0, 3);
+  const coverImages = spotIds.map((id) => spotImages.get(id)).filter(Boolean) as string[];
 
   const handleCopy = async () => {
     if (!user) {
@@ -47,52 +111,168 @@ function TripCard({ trip }: { trip: PublicTrip }) {
       if (!res.ok || !data.success) throw new Error(data.error || 'Failed to copy');
       navigate('/my-trip');
     } catch {
-      setError('Could not copy this trip. Please try again.');
+      setError('Could not copy. Please try again.');
       setCopying(false);
     }
   };
 
+  // カバー写真プレースホルダーの背景色（写真が無い場合）
+  const PLACEHOLDER_COLORS = [
+    'from-green-700 to-green-900',
+    'from-stone-500 to-stone-700',
+    'from-blue-700 to-blue-900',
+  ];
+
   return (
-    <div className="bg-white border border-background-200 rounded-xl p-6 flex flex-col hover:border-primary-300 transition-colors">
-      <div className="flex items-center gap-2 text-xs text-foreground-500 mb-3">
-        {dayCount > 0 && (
-          <span className="bg-background-100 px-2 py-0.5 rounded-full font-medium">
-            {dayCount} {dayCount === 1 ? 'day' : 'days'}
-          </span>
+    <div className="bg-white border border-background-200 rounded-2xl overflow-hidden flex flex-col">
+      {/* 写真グリッド */}
+      <div
+        className="grid gap-0.5"
+        style={{ gridTemplateColumns: '2fr 1fr', gridTemplateRows: '160px 90px' }}
+      >
+        {/* メイン写真（左、縦長） */}
+        {coverImages[0] ? (
+          <img
+            src={coverImages[0]}
+            alt={activities[0]?.title || trip.title}
+            className="w-full h-full object-cover"
+            style={{ gridRow: '1 / 3' }}
+          />
+        ) : (
+          <div
+            className={`w-full h-full bg-gradient-to-br ${PLACEHOLDER_COLORS[0]} flex items-center justify-center`}
+            style={{ gridRow: '1 / 3' }}
+          >
+            <i className="ri-map-pin-2-line text-white/60 text-4xl"></i>
+          </div>
         )}
-        {trip.travelStyle && (
-          <span className="bg-background-100 px-2 py-0.5 rounded-full font-medium">
-            {trip.travelStyle}
-          </span>
+        {/* サブ写真1 */}
+        {coverImages[1] ? (
+          <img
+            src={coverImages[1]}
+            alt={activities[1]?.title || ''}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div
+            className={`w-full h-full bg-gradient-to-br ${PLACEHOLDER_COLORS[1]} flex items-center justify-center`}
+          >
+            <i className="ri-landscape-line text-white/50 text-2xl"></i>
+          </div>
+        )}
+        {/* サブ写真2 */}
+        {coverImages[2] ? (
+          <img
+            src={coverImages[2]}
+            alt={activities[2]?.title || ''}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div
+            className={`w-full h-full bg-gradient-to-br ${PLACEHOLDER_COLORS[2]} flex items-center justify-center`}
+          >
+            <i className="ri-restaurant-line text-white/50 text-xl"></i>
+          </div>
         )}
       </div>
 
-      <Link
-        to={`/trips/${trip.id}`}
-        className="font-heading font-bold text-lg text-foreground-900 mb-2 hover:text-primary-600 transition-colors block"
-      >
-        {trip.title}
-      </Link>
+      {/* カード本文 */}
+      <div className="p-4 flex flex-col flex-1">
+        {/* タグ行 */}
+        <div className="flex flex-wrap gap-1.5 mb-2.5">
+          {dayCount > 0 && (
+            <span className="bg-primary-50 text-primary-700 text-xs font-semibold px-2.5 py-0.5 rounded-full">
+              {dayCount} {dayCount === 1 ? 'day' : 'days'}
+            </span>
+          )}
+          {trip.travelStyle && (
+            <span className="bg-background-100 text-foreground-600 text-xs font-medium px-2.5 py-0.5 rounded-full border border-background-200">
+              {trip.travelStyle}
+            </span>
+          )}
+          {(trip.tags || []).slice(0, 2).map((tag) => (
+            <span
+              key={tag}
+              className="bg-background-100 text-foreground-600 text-xs font-medium px-2.5 py-0.5 rounded-full border border-background-200"
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
 
-      {trip.summary && (
-        <p className="text-foreground-600 text-sm leading-relaxed mb-4 line-clamp-3 flex-1">
-          {trip.summary}
-        </p>
-      )}
+        {/* タイトル */}
+        <Link
+          to={`/trips/${trip.id}`}
+          className="font-heading font-bold text-base text-foreground-900 hover:text-primary-600 transition-colors leading-snug mb-1 block"
+        >
+          {trip.title}
+        </Link>
 
-      {(trip.authorName || trip.nationality) && (
-        <p className="text-xs text-foreground-400 mb-4">
-          {trip.authorName && <span>by {trip.authorName}</span>}
-          {trip.authorName && trip.nationality && <span> · </span>}
-          {trip.nationality && <span>{trip.nationality}</span>}
-        </p>
-      )}
+        {/* 概要 */}
+        {trip.summary && (
+          <p className="text-xs text-foreground-500 leading-relaxed mb-3 line-clamp-2">
+            {trip.summary}
+          </p>
+        )}
 
-      <div className="mt-auto">
+        {/* 日程（タイムライン） */}
+        {activities.length > 0 && (
+          <div className="mb-3 space-y-0">
+            {activities.map((act, idx) => (
+              <div key={idx} className="flex items-start gap-2.5">
+                <div className="flex flex-col items-center flex-shrink-0 w-3 pt-1">
+                  <div
+                    className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                      idx === activities.length - 1
+                        ? 'bg-background-300'
+                        : 'bg-primary-400'
+                    }`}
+                  ></div>
+                  {idx < activities.length - 1 && (
+                    <div className="w-px bg-background-200 flex-1 min-h-3 mt-0.5"></div>
+                  )}
+                </div>
+                <div className="pb-2.5 min-w-0">
+                  <div className="flex items-baseline gap-1.5">
+                    {act.time && (
+                      <span className="text-xs text-foreground-400 whitespace-nowrap flex-shrink-0">
+                        {act.time}
+                      </span>
+                    )}
+                    <span className="text-sm font-medium text-foreground-900 leading-snug">
+                      {act.title}
+                    </span>
+                  </div>
+                  {act.description && (
+                    <p className="text-xs text-foreground-400 mt-0.5 line-clamp-1">
+                      {act.description}
+                    </p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* 予算・投稿者 */}
+        <div className="flex items-center justify-between mb-3 mt-auto">
+          {formatBudget(trip.budgetMin, trip.budgetMax) ? (
+            <span className="text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">
+              {formatBudget(trip.budgetMin, trip.budgetMax)}
+            </span>
+          ) : (
+            <span></span>
+          )}
+          {trip.authorName && (
+            <span className="text-xs text-foreground-400">by {trip.authorName}</span>
+          )}
+        </div>
+
+        {/* CTAボタン */}
         <button
           onClick={handleCopy}
           disabled={copying}
-          className="w-full bg-primary-600 hover:bg-primary-700 disabled:opacity-60 text-white font-semibold text-sm px-4 py-2.5 rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-2"
+          className="w-full bg-primary-600 hover:bg-primary-700 disabled:opacity-60 text-white font-semibold text-sm px-4 py-2.5 rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-2"
         >
           {copying ? (
             'Copying...'
@@ -103,8 +283,8 @@ function TripCard({ trip }: { trip: PublicTrip }) {
             </>
           )}
         </button>
-        {error && <p className="text-xs text-red-600 mt-2">{error}</p>}
-        <p className="text-xs text-foreground-400 mt-2 text-center">
+        {error && <p className="text-xs text-red-600 mt-1.5">{error}</p>}
+        <p className="text-xs text-foreground-400 mt-1.5 text-center">
           Then customize it however you like
         </p>
       </div>
@@ -114,33 +294,49 @@ function TripCard({ trip }: { trip: PublicTrip }) {
 
 export default function CopyableTripsSection() {
   const [trips, setTrips] = useState<PublicTrip[]>([]);
+  const [spotImages, setSpotImages] = useState<Map<string, string>>(new Map());
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
-    fetch('/api/trips?public=1')
-      .then((res) => res.json())
-      .then((data) => {
+
+    const fetchData = async () => {
+      try {
+        // Tripsと Destinationsを並列で取得
+        const [tripRes, destRes] = await Promise.all([
+          fetch('/api/trips?public=1'),
+          fetch('/api/content?type=destinations'),
+        ]);
+
+        const tripJson = await tripRes.json();
+        const destJson = await destRes.json();
+
         if (cancelled) return;
-        const items: PublicTrip[] = Array.isArray(data?.trips) ? data.trips : [];
-        // /api/trips?public=1 はすでにスコア順（Copy数・Save数・閲覧数・
-        // 新しさ）で返ってくるため、先頭3件をそのまま使う
+
+        // SpotIDから画像URLへのマップを構築
+        const imgMap = new Map<string, string>();
+        if (Array.isArray(destJson?.data)) {
+          for (const dest of destJson.data as Destination[]) {
+            if (dest.id && dest.image) imgMap.set(dest.id, dest.image);
+          }
+        }
+        setSpotImages(imgMap);
+
+        const items: PublicTrip[] = Array.isArray(tripJson?.trips) ? tripJson.trips : [];
         setTrips(items.slice(0, 3));
-      })
-      .catch(() => {
+      } catch {
         if (!cancelled) setTrips([]);
-      })
-      .finally(() => {
+      } finally {
         if (!cancelled) setLoading(false);
-      });
+      }
+    };
+
+    fetchData();
     return () => {
       cancelled = true;
     };
   }, []);
 
-  // 公開Tripがまだ無い場合でも、セクション自体は表示する。
-  // 「まだ旅程が掲載されていません」という状態を見せることで、
-  // 機能の存在を伝えつつ、Creator/Travelerに投稿を促す効果もある。
   const showPlaceholder = !loading && trips.length === 0;
 
   return (
@@ -165,7 +361,7 @@ export default function CopyableTripsSection() {
             {[0, 1, 2].map((i) => (
               <div
                 key={i}
-                className="bg-white border border-background-200 rounded-xl p-6 animate-pulse h-64"
+                className="bg-white border border-background-200 rounded-2xl animate-pulse h-96"
               />
             ))}
           </div>
@@ -173,13 +369,15 @@ export default function CopyableTripsSection() {
           <div className="text-center py-16 text-foreground-400">
             <i className="ri-map-2-line text-4xl mb-4 block"></i>
             <p className="text-base font-medium text-foreground-500 mb-1">Trips coming soon</p>
-            <p className="text-sm">Real itineraries from locals and travelers are on their way.</p>
+            <p className="text-sm">
+              Real itineraries from locals and travelers are on their way.
+            </p>
           </div>
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {trips.map((trip) => (
-                <TripCard key={trip.id} trip={trip} />
+                <TripCard key={trip.id} trip={trip} spotImages={spotImages} />
               ))}
             </div>
             <div className="text-center mt-10">
