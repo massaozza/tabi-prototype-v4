@@ -6,8 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import type { Trip, TripItem } from '../types';
 
 // TABI47：My Trip詳細ページ（/my-trip/:id）
-// 削除・並び替え・追加ボタンをDAYカード内に直接配置。
-// 「Edit Trip」ボタンは廃止 — 見ているページがそのまま編集できる状態にする。
+// 削除・並び替え・追加・時刻編集・ホテル編集をDAYカード内に直接配置。
 
 interface TripMeal { id: string; suggestion: string; }
 interface TripActivity { type?: 'activity' | 'transport'; time?: string; title: string; description?: string; spotId?: string; category?: string; }
@@ -89,6 +88,10 @@ export default function MyTripDetailPage() {
   const [busyItemId, setBusyItemId] = useState<string | null>(null);
   const [addingToDay, setAddingToDay] = useState<number | null>(null);
   const [newSpotTitle, setNewSpotTitle] = useState('');
+  const [editingTimeItemId, setEditingTimeItemId] = useState<string | null>(null);
+  const [editingTimeValue, setEditingTimeValue] = useState('');
+  const [editingStayDay, setEditingStayDay] = useState<number | null>(null);
+  const [editingStayValue, setEditingStayValue] = useState('');
   const addInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -163,6 +166,43 @@ export default function MyTripDetailPage() {
     if (data?.trip) setTrip(data.trip);
     setNewSpotTitle('');
     setAddingToDay(null);
+  };
+
+  // 時刻を更新
+  const handleUpdateTime = async (item: TripItem) => {
+    if (!trip) return;
+    setBusyItemId(item.id);
+    const data = await callTripAction(trip.id, 'updateItem', {
+      itemId: item.id,
+      time: editingTimeValue.trim() || undefined,
+      planLevel: editingTimeValue.trim() ? 'scheduled' : 'day_assigned',
+    });
+    if (data?.trip) setTrip(data.trip);
+    setBusyItemId(null);
+    setEditingTimeItemId(null);
+    setEditingTimeValue('');
+  };
+
+  // ホテルを更新（PATCH /api/trips で宿泊情報を直接更新）
+  const handleUpdateStay = async (stay: TripStay) => {
+    if (!trip) return;
+    const newName = editingStayValue.trim();
+    if (!newName) return;
+    try {
+      const res = await fetch(`/api/trips?id=${encodeURIComponent(trip.id)}`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          stayId: stay.id,
+          hotelName: newName,
+        }),
+      });
+      const data = await res.json();
+      if (data?.trip) setTrip(data.trip);
+    } catch { /* silent */ }
+    setEditingStayDay(null);
+    setEditingStayValue('');
   };
 
   const getHeaderImages = (trip: Trip): string[] => {
@@ -292,10 +332,32 @@ export default function MyTripDetailPage() {
                               {/* コンテンツ */}
                               <div className={`flex-1 min-w-0 flex gap-2 ${isLast ? 'pb-0' : 'pb-3'}`}>
                                 <div className="flex-1 min-w-0">
-                                  {entry.time ? (
-                                    <p className="text-xs text-foreground-400 mb-0.5">{entry.time}</p>
+                                  {editingTimeItemId === entry.id ? (
+                                    <div className="flex items-center gap-1.5 mb-1">
+                                      <input
+                                        type="time"
+                                        value={editingTimeValue}
+                                        onChange={(e) => setEditingTimeValue(e.target.value)}
+                                        onKeyDown={(e) => { if (e.key === 'Enter') handleUpdateTime(entry as TripItem); if (e.key === 'Escape') { setEditingTimeItemId(null); setEditingTimeValue(''); } }}
+                                        className="bg-background-50 border border-primary-300 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-primary-400"
+                                        autoFocus
+                                      />
+                                      <button onClick={() => handleUpdateTime(entry as TripItem)} className="text-xs text-primary-600 font-semibold cursor-pointer">Save</button>
+                                      <button onClick={() => { setEditingTimeItemId(null); setEditingTimeValue(''); }} className="text-xs text-foreground-400 cursor-pointer">✕</button>
+                                    </div>
                                   ) : (
-                                    <p className="text-xs text-foreground-300 italic mb-0.5">Want to go</p>
+                                    <div
+                                      className={`flex items-center gap-1 mb-0.5 group cursor-pointer w-fit ${isItem ? 'hover:text-primary-600' : ''}`}
+                                      onClick={() => { if (isItem) { setEditingTimeItemId(entry.id); setEditingTimeValue(entry.time || ''); } }}
+                                      title={isItem ? 'Click to set time' : undefined}
+                                    >
+                                      {entry.time ? (
+                                        <p className="text-xs text-foreground-400">{entry.time}</p>
+                                      ) : (
+                                        <p className="text-xs text-foreground-300 italic">Want to go</p>
+                                      )}
+                                      {isItem && <i className="ri-pencil-line text-xs text-foreground-300 opacity-0 group-hover:opacity-100 transition-opacity"></i>}
+                                    </div>
                                   )}
                                   <p className="text-sm font-semibold text-foreground-900">{entry.title}</p>
                                   {catStyle && (
@@ -411,18 +473,41 @@ export default function MyTripDetailPage() {
                           <p className="text-xs font-bold tracking-widest uppercase text-foreground-400 mb-3 flex items-center gap-1.5">
                             <i className="ri-hotel-line"></i>Stay
                           </p>
-                          <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-xl bg-primary-50 flex items-center justify-center flex-shrink-0">
-                              <i className="ri-building-line text-primary-600 text-lg"></i>
+                          {editingStayDay === day.day ? (
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                value={editingStayValue}
+                                onChange={(e) => setEditingStayValue(e.target.value)}
+                                onKeyDown={(e) => { if (e.key === 'Enter') handleUpdateStay(stay); if (e.key === 'Escape') { setEditingStayDay(null); setEditingStayValue(''); } }}
+                                placeholder="Hotel name..."
+                                className="flex-1 bg-background-50 border border-primary-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
+                                autoFocus
+                              />
+                              <button onClick={() => handleUpdateStay(stay)} className="px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold rounded-lg cursor-pointer">Save</button>
+                              <button onClick={() => { setEditingStayDay(null); setEditingStayValue(''); }} className="px-3 py-2 bg-background-100 hover:bg-background-200 text-foreground-600 text-xs font-semibold rounded-lg cursor-pointer">Cancel</button>
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-semibold text-foreground-900 truncate">{stay.hotelName}</p>
-                              {isSameStay && <p className="text-xs text-foreground-400">Same hotel — no check-in today</p>}
+                          ) : (
+                            <div className="flex items-center gap-3">
+                              <div className="w-9 h-9 rounded-xl bg-primary-50 flex items-center justify-center flex-shrink-0">
+                                <i className="ri-building-line text-primary-600 text-lg"></i>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-semibold text-foreground-900 truncate">{stay.hotelName}</p>
+                                {isSameStay && <p className="text-xs text-foreground-400">Same hotel — no check-in today</p>}
+                              </div>
+                              <span className="text-xs font-semibold text-primary-600 bg-primary-50 px-2.5 py-1 rounded-full flex-shrink-0">
+                                {getStayNightLabel(stay, day.day)}
+                              </span>
+                              <button
+                                onClick={() => { setEditingStayDay(day.day); setEditingStayValue(stay.hotelName); }}
+                                className="w-7 h-7 flex items-center justify-center bg-background-50 border border-background-200 rounded-lg text-foreground-400 hover:bg-background-100 transition-colors cursor-pointer flex-shrink-0"
+                                aria-label="Edit hotel"
+                              >
+                                <i className="ri-pencil-line text-sm"></i>
+                              </button>
                             </div>
-                            <span className="text-xs font-semibold text-primary-600 bg-primary-50 px-2.5 py-1 rounded-full flex-shrink-0">
-                              {getStayNightLabel(stay, day.day)}
-                            </span>
-                          </div>
+                          )}
                         </div>
                       )}
                     </div>
