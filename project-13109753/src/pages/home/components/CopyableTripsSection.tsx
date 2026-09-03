@@ -138,9 +138,10 @@ export default function CopyableTripsSection() {
     };
   }, []);
 
-  // 公開Tripがまだ無い場合は、セクション自体を出さない
-  // （空の枠だけが並ぶのを避ける）
-  if (!loading && trips.length === 0) return null;
+  // 公開Tripがまだ無い場合でも、セクション自体は表示する。
+  // 「まだ旅程が掲載されていません」という状態を見せることで、
+  // 機能の存在を伝えつつ、Creator/Travelerに投稿を促す効果もある。
+  const showPlaceholder = !loading && trips.length === 0;
 
   return (
     <section className="py-16 md:py-24 px-6 md:px-10 bg-background-100">
@@ -167,6 +168,12 @@ export default function CopyableTripsSection() {
                 className="bg-white border border-background-200 rounded-xl p-6 animate-pulse h-64"
               />
             ))}
+          </div>
+        ) : showPlaceholder ? (
+          <div className="text-center py-16 text-foreground-400">
+            <i className="ri-map-2-line text-4xl mb-4 block"></i>
+            <p className="text-base font-medium text-foreground-500 mb-1">Trips coming soon</p>
+            <p className="text-sm">Real itineraries from locals and travelers are on their way.</p>
           </div>
         ) : (
           <>
