@@ -1,25 +1,111 @@
 import { useEffect, useState } from 'react';
-import { Link, Navigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/feature/Navbar';
 import Footer from '@/components/feature/Footer';
 import { useAuth } from '@/context/AuthContext';
 import type { Trip } from './types';
-import TripCard from './components/TripCard';
 import DeleteConfirmModal from './components/DeleteConfirmModal';
 
-export default function TripsPage() {
+// TABI47：My Tripページ（/my-trip）
+// 自分のTripをカード一覧で表示。カードをタップすると詳細ページ（/my-trip/:id）へ。
+
+const STATUS_BADGE: Record<string, { label: string; color: string }> = {
+  planning: { label: 'Planning', color: 'bg-blue-50 text-blue-700 border-blue-200' },
+  traveling: { label: 'Traveling', color: 'bg-green-50 text-green-700 border-green-200' },
+  completed: { label: 'Completed', color: 'bg-background-100 text-foreground-600 border-background-200' },
+  published: { label: 'Published', color: 'bg-accent-50 text-accent-700 border-accent-200' },
+};
+
+function TripSummaryCard({ trip, onDelete }: { trip: Trip; onDelete: () => void }) {
+  const navigate = useNavigate();
+  const dayCount = trip.totalDays ?? trip.days?.length ?? 0;
+  const statusBadge = STATUS_BADGE[trip.status || 'planning'] || STATUS_BADGE.planning;
+  const savedDate = trip.createdAt
+    ? new Date(trip.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+    : '';
+
+  return (
+    <div
+      className="bg-white border border-background-200 rounded-2xl overflow-hidden hover:border-primary-200 transition-colors cursor-pointer"
+      onClick={() => navigate(`/my-trip/${trip.id}`)}
+    >
+      {/* カードヘッダー */}
+      <div className="p-4">
+        <div className="flex items-start justify-between gap-3 mb-2">
+          <div className="flex flex-wrap gap-1.5">
+            <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${statusBadge.color}`}>
+              {statusBadge.label}
+            </span>
+            {dayCount > 0 && (
+              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-primary-50 text-primary-700">
+                {dayCount} {dayCount === 1 ? 'day' : 'days'}
+              </span>
+            )}
+            {(trip.tags || []).slice(0, 2).map((tag) => (
+              <span key={tag} className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-background-100 text-foreground-600 border border-background-200">
+                {tag}
+              </span>
+            ))}
+          </div>
+          {/* 削除ボタン */}
+          <button
+            onClick={(e) => { e.stopPropagation(); onDelete(); }}
+            className="w-8 h-8 flex items-center justify-center text-foreground-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer flex-shrink-0"
+            aria-label="Delete trip"
+          >
+            <i className="ri-delete-bin-line text-sm"></i>
+          </button>
+        </div>
+
+        <h3 className="font-heading font-bold text-base text-foreground-900 leading-snug mb-1">
+          {trip.title}
+        </h3>
+
+        {trip.summary && (
+          <p className="text-xs text-foreground-500 leading-relaxed line-clamp-2 mb-2">
+            {trip.summary}
+          </p>
+        )}
+
+        <div className="flex items-center justify-between">
+          <p className="text-xs text-foreground-400">Saved {savedDate}</p>
+          <div className="flex items-center gap-3 text-xs text-foreground-400">
+            {trip.saveCount !== undefined && (
+              <span className="flex items-center gap-1">
+                <i className="ri-bookmark-line"></i>{trip.saveCount}
+              </span>
+            )}
+            {trip.copyCount !== undefined && (
+              <span className="flex items-center gap-1">
+                <i className="ri-file-copy-line"></i>{trip.copyCount}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* フッター：クリックを促す */}
+      <div className="border-t border-background-100 px-4 py-2.5 flex items-center justify-between bg-background-50">
+        <span className="text-xs text-primary-600 font-semibold flex items-center gap-1">
+          <i className="ri-eye-line"></i>View itinerary
+        </span>
+        <i className="ri-arrow-right-line text-foreground-300 text-sm"></i>
+      </div>
+    </div>
+  );
+}
+
+export default function MyTripListPage() {
   const { user, loading: authLoading } = useAuth();
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [expandedId, setExpandedId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Trip | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (authLoading || !user) return;
     let cancelled = false;
-
     async function fetchData() {
       try {
         const res = await fetch('/api/trips', { credentials: 'include' });
@@ -27,10 +113,7 @@ export default function TripsPage() {
         const json = await res.json();
         const list = json.trips || [];
         if (!cancelled && Array.isArray(list)) {
-          const sorted = [...list].sort((a, b) =>
-            (b.createdAt || '').localeCompare(a.createdAt || '')
-          );
-          setTrips(sorted);
+          setTrips([...list].sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || '')));
         }
       } catch {
         if (!cancelled) setError('Failed to load your trips. Please try again.');
@@ -38,11 +121,8 @@ export default function TripsPage() {
         if (!cancelled) setLoading(false);
       }
     }
-
     fetchData();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [authLoading, user]);
 
   const handleDelete = async () => {
@@ -50,8 +130,7 @@ export default function TripsPage() {
     setDeleting(true);
     try {
       const res = await fetch(`/api/trips?id=${encodeURIComponent(deleteTarget.id)}`, {
-        method: 'DELETE',
-        credentials: 'include',
+        method: 'DELETE', credentials: 'include',
       });
       if (!res.ok) throw new Error('Failed to delete');
       setTrips((prev) => prev.filter((t) => t.id !== deleteTarget.id));
@@ -64,80 +143,32 @@ export default function TripsPage() {
     }
   };
 
-  const handleTripUpdate = (updatedTrip: Trip) => {
-    setTrips((prev) => prev.map((t) => (t.id === updatedTrip.id ? updatedTrip : t)));
-  };
-
-  const handleBookingStatusChange = (tripId: string, targetId: string) => {
-    setTrips((prev) =>
-      prev.map((t) => {
-        if (t.id !== tripId) return t;
-        return {
-          ...t,
-          stays: t.stays.map((s) =>
-            s.id === targetId ? { ...s, status: 'booked' as const } : s
-          ),
-          days: t.days.map((d) => {
-            const meals = d.meals || {};
-            return {
-              ...d,
-              meals: {
-                breakfast:
-                  meals.breakfast && meals.breakfast.id === targetId
-                    ? { ...meals.breakfast, status: 'booked' as const }
-                    : meals.breakfast,
-                lunch:
-                  meals.lunch && meals.lunch.id === targetId
-                    ? { ...meals.lunch, status: 'booked' as const }
-                    : meals.lunch,
-                dinner:
-                  meals.dinner && meals.dinner.id === targetId
-                    ? { ...meals.dinner, status: 'booked' as const }
-                    : meals.dinner,
-              },
-            };
-          }),
-        };
-      })
-    );
-  };
-
   if (authLoading) {
     return (
       <main className="min-h-screen bg-background-50">
         <Navbar />
-        <div className="pt-32 md:pt-40 px-6 flex items-center justify-center">
+        <div className="pt-32 flex items-center justify-center">
           <i className="ri-loader-4-line animate-spin text-3xl text-foreground-300"></i>
         </div>
       </main>
     );
   }
 
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
+  if (!user) return <Navigate to="/login" replace />;
 
   return (
     <main className="min-h-screen bg-background-50">
       <Navbar />
 
-      <section className="bg-background-900 pt-24 md:pt-32 pb-16 md:pb-20">
-        <div className="max-w-7xl mx-auto px-6 md:px-10 lg:px-20 text-center">
-          <nav
-            className="flex items-center justify-center gap-2 text-white/50 text-xs mb-6 flex-wrap"
-            aria-label="Breadcrumb"
-          >
-            <Link to="/" className="hover:text-white/80 transition-colors whitespace-nowrap">
-              Home
-            </Link>
+      {/* ヒーロー */}
+      <section className="bg-foreground-900 pt-24 md:pt-32 pb-12">
+        <div className="max-w-7xl mx-auto px-6 md:px-10 text-center">
+          <nav className="flex items-center justify-center gap-2 text-white/50 text-xs mb-6 flex-wrap">
+            <Link to="/" className="hover:text-white/80 transition-colors">Home</Link>
             <span className="text-white/30">/</span>
-            <span className="text-white whitespace-nowrap">My Trips</span>
+            <span className="text-white">My Trips</span>
           </nav>
-
-          <span className="inline-block text-xs font-semibold tracking-widest uppercase text-accent-400 mb-3">
-            Saved Itineraries
-          </span>
-          <h1 className="font-heading font-bold text-3xl md:text-5xl text-white leading-tight mb-4">
+          <h1 className="font-heading font-bold text-3xl md:text-5xl text-white leading-tight mb-3">
             My Trips
           </h1>
           <p className="text-white/60 text-base max-w-xl mx-auto leading-relaxed mb-6">
@@ -146,63 +177,59 @@ export default function TripsPage() {
           <button
             type="button"
             onClick={() => window.dispatchEvent(new CustomEvent('tabi:open-chat'))}
-            className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-6 py-3 rounded-lg transition-colors cursor-pointer whitespace-nowrap"
+            className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-6 py-3 rounded-xl transition-colors cursor-pointer"
           >
             <i className="ri-add-line"></i>
-            新しい旅程を作る
+            Plan a new trip
           </button>
         </div>
       </section>
 
-      <section className="py-12 md:py-16 px-6 md:px-10 lg:px-20">
+      {/* カード一覧 */}
+      <section className="py-10 px-4 md:px-10">
         <div className="max-w-3xl mx-auto">
           {error && (
-            <div className="mb-6 bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg px-4 py-3">
-              {error}
-            </div>
+            <div className="mb-6 bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-3">{error}</div>
           )}
 
           {loading ? (
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="bg-background-50 border border-background-200 rounded-xl p-6 space-y-3"
-                >
-                  <div className="h-4 w-24 bg-background-200 rounded-full animate-pulse"></div>
-                  <div className="h-5 w-1/2 bg-background-200 rounded animate-pulse"></div>
-                  <div className="h-3 w-3/4 bg-background-200 rounded animate-pulse"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="bg-white border border-background-200 rounded-2xl p-4 space-y-3 animate-pulse">
+                  <div className="h-4 w-24 bg-background-200 rounded-full"></div>
+                  <div className="h-5 w-3/4 bg-background-200 rounded"></div>
+                  <div className="h-3 w-full bg-background-200 rounded"></div>
                 </div>
               ))}
             </div>
           ) : trips.length === 0 ? (
             <div className="text-center py-20">
-              <span className="w-16 h-16 rounded-full bg-background-100 flex items-center justify-center mx-auto mb-6">
+              <div className="w-16 h-16 rounded-full bg-background-100 flex items-center justify-center mx-auto mb-6">
                 <i className="ri-map-pin-line text-3xl text-foreground-400"></i>
-              </span>
-              <h2 className="font-heading font-bold text-xl md:text-2xl text-foreground-900 mb-2">
-                No trips saved yet
-              </h2>
+              </div>
+              <h2 className="font-heading font-bold text-xl text-foreground-900 mb-2">No trips saved yet</h2>
               <p className="text-foreground-500 text-sm mb-6 max-w-md mx-auto">
-                Start a conversation with Ask TABI and save your itinerary to plan your perfect
-                trip.
+                Start planning with AI or copy a trip from Explore to get started.
               </p>
-              <Link to="/" className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-6 py-3 rounded-lg transition-colors whitespace-nowrap">
-                <i className="ri-chat-3-line"></i>
-                Start with Ask TABI
-              </Link>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <button
+                  onClick={() => window.dispatchEvent(new CustomEvent('tabi:open-chat'))}
+                  className="inline-flex items-center justify-center gap-2 bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-6 py-3 rounded-xl transition-colors cursor-pointer"
+                >
+                  <i className="ri-sparkling-line"></i>Plan with AI
+                </button>
+                <Link to="/explore" className="inline-flex items-center justify-center gap-2 bg-white border border-background-200 hover:bg-background-50 text-foreground-700 font-semibold text-sm px-6 py-3 rounded-xl transition-colors">
+                  <i className="ri-compass-line"></i>Explore trips
+                </Link>
+              </div>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {trips.map((trip) => (
-                <TripCard
+                <TripSummaryCard
                   key={trip.id}
                   trip={trip}
-                  expanded={expandedId === trip.id}
-                  onToggle={() => setExpandedId(expandedId === trip.id ? null : trip.id)}
                   onDelete={() => setDeleteTarget(trip)}
-                  onBookingStatusChange={handleBookingStatusChange}
-                  onTripUpdate={handleTripUpdate}
                 />
               ))}
             </div>
