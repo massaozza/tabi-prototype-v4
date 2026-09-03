@@ -1,20 +1,21 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Navbar from '@/components/feature/Navbar';
 import Footer from '@/components/feature/Footer';
 import { useAuth } from '@/context/AuthContext';
-import type { Trip } from '../types';
-import TripPlanningPanel from '../components/TripPlanningPanel';
+import type { Trip, TripItem } from '../types';
 
 // TABI47：My Trip詳細ページ（/my-trip/:id）
-// 公開Trip詳細ページと同じUIをベースに、編集機能（TripPlanningPanel）を追加。
-// 自分のTripのみアクセス可能。
+// 削除・並び替え・追加ボタンをDAYカード内に直接配置。
+// 「Edit Trip」ボタンは廃止 — 見ているページがそのまま編集できる状態にする。
 
 interface TripMeal { id: string; suggestion: string; }
 interface TripActivity { type?: 'activity' | 'transport'; time?: string; title: string; description?: string; spotId?: string; category?: string; }
-interface TripDay { day: number; date?: string; activities: TripActivity[]; meals: { breakfast?: TripMeal; lunch?: TripMeal; dinner?: TripMeal }; }
+interface TripDay { day: number; activities: TripActivity[]; meals: { breakfast?: TripMeal; lunch?: TripMeal; dinner?: TripMeal }; }
 interface TripStay { id: string; hotelName: string; checkInDay: number; checkOutDay: number; }
 interface Destination { id: string; title: string; image: string; category?: string; }
+
+function isUsableImage(url: string): boolean { return !!url && !url.includes('readdy.ai'); }
 
 function formatBudget(min?: number, max?: number): string | null {
   if (!min && !max) return null;
@@ -24,24 +25,22 @@ function formatBudget(min?: number, max?: number): string | null {
   return `Under ${fmt(max!)}`;
 }
 
-function isUsableImage(url: string): boolean { return !!url && !url.includes('readdy.ai'); }
-
 const CATEGORY_STYLE: Record<string, { bg: string; text: string; label: string }> = {
-  'sightseeing': { bg: 'bg-blue-50', text: 'text-blue-700', label: 'Sightseeing' },
-  'restaurant': { bg: 'bg-orange-50', text: 'text-orange-700', label: 'Restaurant' },
-  'shopping': { bg: 'bg-pink-50', text: 'text-pink-700', label: 'Shopping' },
-  'accommodation': { bg: 'bg-primary-50', text: 'text-primary-700', label: 'Stay' },
-  'activity': { bg: 'bg-purple-50', text: 'text-purple-700', label: 'Activity' },
+  sightseeing: { bg: 'bg-blue-50', text: 'text-blue-700', label: 'Sightseeing' },
+  restaurant: { bg: 'bg-orange-50', text: 'text-orange-700', label: 'Restaurant' },
+  shopping: { bg: 'bg-pink-50', text: 'text-pink-700', label: 'Shopping' },
+  accommodation: { bg: 'bg-primary-50', text: 'text-primary-700', label: 'Stay' },
+  activity: { bg: 'bg-purple-50', text: 'text-purple-700', label: 'Activity' },
   'Culture & History': { bg: 'bg-blue-50', text: 'text-blue-700', label: 'Culture' },
   'Nature & Scenery': { bg: 'bg-green-50', text: 'text-green-700', label: 'Nature' },
-  'Food': { bg: 'bg-orange-50', text: 'text-orange-700', label: 'Food' },
+  Food: { bg: 'bg-orange-50', text: 'text-orange-700', label: 'Food' },
   'City & Food Culture': { bg: 'bg-orange-50', text: 'text-orange-700', label: 'Food' },
-  'Activities': { bg: 'bg-purple-50', text: 'text-purple-700', label: 'Activity' },
+  Activities: { bg: 'bg-purple-50', text: 'text-purple-700', label: 'Activity' },
   'Hot Springs & Nature': { bg: 'bg-green-50', text: 'text-green-700', label: 'Onsen' },
   'Shopping & Fashion': { bg: 'bg-pink-50', text: 'text-pink-700', label: 'Shopping' },
   'Beach & Lifestyle': { bg: 'bg-cyan-50', text: 'text-cyan-700', label: 'Beach' },
 };
-function getCatStyle(cat?: string) { if (!cat) return null; return CATEGORY_STYLE[cat] || null; }
+function getCatStyle(cat?: string) { return cat ? (CATEGORY_STYLE[cat] || null) : null; }
 
 function getDayRoute(day: TripDay): string {
   const spots = (day.activities || []).filter((a) => a.type !== 'transport');
@@ -69,6 +68,17 @@ const STATUS_BADGE: Record<string, { label: string; color: string }> = {
   published: { label: 'Published', color: 'bg-accent-50 text-accent-700 border-accent-200' },
 };
 
+// items配列のAPIを呼ぶラッパー
+async function callTripAction(tripId: string, action: string, body: Record<string, unknown>) {
+  const res = await fetch(`/api/trips?id=${encodeURIComponent(tripId)}&action=${action}`, {
+    method: 'PATCH',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  return res.ok ? res.json() : null;
+}
+
 export default function MyTripDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
@@ -76,7 +86,10 @@ export default function MyTripDetailPage() {
   const [trip, setTrip] = useState<Trip | null>(null);
   const [spotData, setSpotData] = useState<Map<string, Destination>>(new Map());
   const [loading, setLoading] = useState(true);
-  const [showPlanner, setShowPlanner] = useState(false);
+  const [busyItemId, setBusyItemId] = useState<string | null>(null);
+  const [addingToDay, setAddingToDay] = useState<number | null>(null);
+  const [newSpotTitle, setNewSpotTitle] = useState('');
+  const addInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!user) { navigate('/login'); return; }
@@ -107,6 +120,51 @@ export default function MyTripDetailPage() {
     return () => { cancelled = true; };
   }, [id, user, navigate]);
 
+  // itemを削除
+  const handleRemoveItem = async (item: TripItem) => {
+    if (!trip) return;
+    setBusyItemId(item.id);
+    const data = await callTripAction(trip.id, 'removeItem', { itemId: item.id });
+    if (data?.trip) setTrip(data.trip);
+    setBusyItemId(null);
+  };
+
+  // 同じday内でitemを上下に移動
+  const handleMoveItem = async (item: TripItem, direction: -1 | 1) => {
+    if (!trip) return;
+    const dayItems = (trip.items || [])
+      .filter((it) => it.planLevel !== 'saved' && (it.day || 1) === (item.day || 1) && !it.mealSlot)
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+    const idx = dayItems.findIndex((it) => it.id === item.id);
+    const targetIdx = idx + direction;
+    if (idx === -1 || targetIdx < 0 || targetIdx >= dayItems.length) return;
+    const reordered = [...dayItems];
+    [reordered[idx], reordered[targetIdx]] = [reordered[targetIdx], reordered[idx]];
+    setBusyItemId(item.id);
+    const data = await callTripAction(trip.id, 'reorderDayItems', {
+      day: item.day || 1,
+      itemIds: reordered.map((it) => it.id),
+    });
+    if (data?.trip) setTrip(data.trip);
+    setBusyItemId(null);
+  };
+
+  // Spotをその日の末尾に追加
+  const handleAddSpot = async (dayNum: number) => {
+    const title = newSpotTitle.trim();
+    if (!title || !trip) return;
+    const data = await callTripAction(trip.id, 'addItem', {
+      title,
+      itemType: 'sightseeing',
+      planLevel: 'day_assigned',
+      day: dayNum,
+      status: 'planned',
+    });
+    if (data?.trip) setTrip(data.trip);
+    setNewSpotTitle('');
+    setAddingToDay(null);
+  };
+
   const getHeaderImages = (trip: Trip): string[] => {
     const result: string[] = [];
     for (const day of trip.days || []) {
@@ -123,13 +181,19 @@ export default function MyTripDetailPage() {
     return result;
   };
 
+  // itemsをdayごとに整理（day_assigned + scheduled）
+  const getItemsForDay = (dayNum: number) => {
+    return (trip?.items || [])
+      .filter((it) => it.planLevel !== 'saved' && (it.day || 1) === dayNum && !it.mealSlot)
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  };
+
   return (
     <main className="min-h-screen bg-background-50">
       <Navbar />
       {loading ? (
         <div className="pt-28 pb-16 px-4 max-w-3xl mx-auto space-y-4">
-          <div className="h-72 bg-background-200 rounded-2xl animate-pulse"></div>
-          <div className="h-6 w-3/4 bg-background-200 rounded animate-pulse"></div>
+          <div className="h-64 bg-background-200 rounded-2xl animate-pulse"></div>
           <div className="h-48 bg-background-200 rounded-2xl animate-pulse"></div>
         </div>
       ) : !trip ? null : (() => {
@@ -141,31 +205,25 @@ export default function MyTripDetailPage() {
         return (
           <article>
             {/* Hero */}
-            <div style={{ position: 'relative', height: '340px', overflow: 'hidden' }}>
-              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'grid', gridTemplateColumns: '2fr 1fr', gridTemplateRows: '170px 170px', gap: '3px' }}>
+            <div style={{ position: 'relative', height: '280px', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'grid', gridTemplateColumns: '2fr 1fr', gridTemplateRows: '140px 140px', gap: '3px' }}>
                 <img src={headerImages[0]} alt={trip.title} style={{ gridRow: '1 / 3', width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                 <img src={headerImages[1]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                 <img src={headerImages[2]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
               </div>
-              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(10,18,40,0.65) 0%, rgba(10,18,40,0.0) 28%, rgba(10,18,40,0.0) 42%, rgba(10,18,40,0.90) 100%)' }}></div>
-              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '0 20px 24px', maxWidth: '768px', margin: '0 auto' }}>
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(10,18,40,0.55) 0%, rgba(10,18,40,0.0) 30%, rgba(10,18,40,0.0) 45%, rgba(10,18,40,0.88) 100%)' }}></div>
+              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '0 20px 20px', maxWidth: '768px', margin: '0 auto' }}>
                 <div className="flex flex-wrap gap-1.5 mb-2">
                   <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${statusBadge.color}`}>{statusBadge.label}</span>
                   <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-white/15 text-white">{dayCount} {dayCount === 1 ? 'day' : 'days'}</span>
-                  {(trip.tags || []).slice(0, 2).map((tag) => (
-                    <span key={tag} className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-white/10 text-white/80">{tag}</span>
-                  ))}
-                  {budgetText && (
-                    <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full text-amber-300" style={{ background: 'rgba(200,155,60,0.25)' }}>{budgetText}</span>
-                  )}
+                  {budgetText && <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full text-amber-300" style={{ background: 'rgba(200,155,60,0.25)' }}>{budgetText}</span>}
                 </div>
-                <h1 className="font-heading font-bold text-2xl text-white leading-snug">{trip.title}</h1>
+                <h1 className="font-heading font-bold text-xl text-white leading-snug">{trip.title}</h1>
               </div>
             </div>
 
             <div className="max-w-3xl mx-auto px-4 md:px-6 py-5">
-              {/* パンくず */}
-              <nav className="flex items-center gap-1.5 text-foreground-400 text-xs mb-5 flex-wrap">
+              <nav className="flex items-center gap-1.5 text-foreground-400 text-xs mb-4 flex-wrap">
                 <Link to="/" className="hover:text-foreground-700 transition-colors">Home</Link>
                 <span>/</span>
                 <Link to="/my-trip" className="hover:text-foreground-700 transition-colors">My Trips</Link>
@@ -173,42 +231,15 @@ export default function MyTripDetailPage() {
                 <span className="text-foreground-600 line-clamp-1">{trip.title}</span>
               </nav>
 
-              {trip.summary && <p className="text-foreground-600 text-sm leading-relaxed mb-4">{trip.summary}</p>}
-
-              {/* アクションボタン */}
-              <div className="flex gap-2.5 mb-6 flex-wrap">
-                <button
-                  onClick={() => setShowPlanner(!showPlanner)}
-                  className="inline-flex items-center gap-1.5 bg-primary-600 hover:bg-primary-700 text-white font-semibold text-sm px-4 py-2.5 rounded-xl transition-colors cursor-pointer"
-                >
-                  <i className={showPlanner ? 'ri-close-line' : 'ri-edit-line'}></i>
-                  {showPlanner ? 'Close Planner' : 'Edit Trip'}
-                </button>
+              {/* アクション */}
+              <div className="flex gap-2 mb-5 flex-wrap">
                 <Link
                   to={`/trips/${trip.id}`}
-                  className="inline-flex items-center gap-1.5 bg-white border border-background-200 hover:bg-background-50 text-foreground-700 font-semibold text-sm px-4 py-2.5 rounded-xl transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1.5 bg-white border border-background-200 hover:bg-background-50 text-foreground-700 font-semibold text-sm px-4 py-2 rounded-xl transition-colors"
                 >
-                  <i className="ri-eye-line"></i>
-                  Preview
+                  <i className="ri-eye-line"></i>Preview
                 </Link>
               </div>
-
-              {/* Trip Planner（展開式） */}
-              {showPlanner && (
-                <div className="bg-white border border-background-200 rounded-2xl p-4 mb-6">
-                  <h2 className="font-heading font-bold text-base text-foreground-900 mb-4 flex items-center gap-2">
-                    <i className="ri-map-pin-line text-primary-500"></i>
-                    Trip Planner
-                  </h2>
-                  <TripPlanningPanel
-                    tripId={trip.id}
-                    items={trip.items || []}
-                    actualVisitLog={trip.actualVisitLog || []}
-                    tripStatus={trip.status || 'planning'}
-                    onTripUpdate={(updates) => setTrip((prev) => prev ? { ...prev, ...updates } : prev)}
-                  />
-                </div>
-              )}
 
               {/* Dayカード */}
               <div className="space-y-4">
@@ -218,59 +249,129 @@ export default function MyTripDetailPage() {
                   const prevStay = (trip.stays || []).find((s: TripStay) => (day.day - 1) >= s.checkInDay && (day.day - 1) <= s.checkOutDay);
                   const isSameStay = stay && prevStay && stay.hotelName === prevStay.hotelName;
                   const dayRoute = getDayRoute(day as TripDay);
+                  const dayItems = getItemsForDay(day.day);
+
+                  // days[].activitiesとitems[]を統合（migration済みの場合はitemsのみ）
+                  const migrated = !!trip.daysActivitiesMigrated;
+                  const scheduleEntries = migrated
+                    ? dayItems
+                    : [...nonTransport.map((a: TripActivity, i: number) => ({ id: `legacy-${i}`, title: a.title, time: a.time, description: a.description, category: a.category, isLegacy: true })), ...dayItems];
 
                   return (
                     <div key={day.day} className="bg-white border border-background-200 rounded-2xl overflow-hidden">
+                      {/* DAYヘッダー */}
                       <div className="bg-foreground-900 px-4 py-2.5 flex items-center gap-3">
                         <span className="text-xs font-bold tracking-wider text-primary-300">DAY {day.day}</span>
                         {dayRoute && <span className="text-xs text-foreground-500 truncate">{dayRoute}</span>}
                       </div>
 
                       {/* Schedule */}
-                      {nonTransport.length > 0 && (
-                        <div className="px-4 py-3 border-b border-background-100">
-                          <p className="text-xs font-bold tracking-widest uppercase text-foreground-400 mb-3 flex items-center gap-1.5">
-                            <i className="ri-map-pin-line"></i>Schedule
-                          </p>
-                          {nonTransport.map((act: TripActivity, idx: number) => {
-                            const isLast = idx === nonTransport.length - 1;
-                            const dest = act.spotId ? spotData.get(act.spotId) : undefined;
-                            const imgUrl = dest?.image && isUsableImage(dest.image) ? dest.image : undefined;
-                            const catStyle = getCatStyle(dest?.category || act.category);
-                            const actIdx = day.activities.indexOf(act);
-                            const prevAct = actIdx > 0 ? day.activities[actIdx - 1] : undefined;
-                            const hasTransitBefore = prevAct?.type === 'transport';
+                      <div className="px-4 py-3 border-b border-background-100">
+                        <p className="text-xs font-bold tracking-widest uppercase text-foreground-400 mb-3 flex items-center gap-1.5">
+                          <i className="ri-map-pin-line"></i>Schedule
+                        </p>
+                        {scheduleEntries.length === 0 && (
+                          <p className="text-xs text-foreground-300 italic mb-3">No spots yet — add one below</p>
+                        )}
+                        {scheduleEntries.map((entry: any, idx: number) => {
+                          const isLast = idx === scheduleEntries.length - 1;
+                          const dest = entry.spotId ? spotData.get(entry.spotId) : undefined;
+                          const imgUrl = dest?.image && isUsableImage(dest.image) ? dest.image : undefined;
+                          const catStyle = getCatStyle(dest?.category || entry.category || (entry as TripItem).itemType);
+                          const isBusy = busyItemId === entry.id;
+                          const isItem = !entry.isLegacy && (entry as TripItem).planLevel !== undefined;
 
-                            return (
-                              <div key={idx}>
-                                {hasTransitBefore && (
-                                  <div className="flex items-center gap-2 text-xs text-foreground-400 py-2 -mx-4 px-8 bg-background-50 border-y border-background-100 mb-2 overflow-hidden">
-                                    <i className="ri-train-line flex-shrink-0"></i>
-                                    <span className="truncate">{prevAct!.title}</span>
-                                  </div>
-                                )}
-                                <div className="flex items-stretch gap-3">
-                                  <div className="flex flex-col items-center w-3 flex-shrink-0">
-                                    <div className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5" style={{ background: isLast && nonTransport.length > 1 ? '#cbd5e1' : '#3b6fd4' }}></div>
-                                    {!isLast && <div className="w-px bg-background-200 flex-1 mt-1"></div>}
-                                  </div>
-                                  <div className={`flex-1 min-w-0 flex gap-3 ${isLast ? 'pb-0' : 'pb-3'}`}>
-                                    <div className="flex-1 min-w-0">
-                                      {act.time && <p className="text-xs text-foreground-400 mb-0.5">{act.time}</p>}
-                                      <p className="text-sm font-semibold text-foreground-900">{act.title}</p>
-                                      {catStyle && (
-                                        <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-full inline-block mt-1 ${catStyle.bg} ${catStyle.text}`}>{catStyle.label}</span>
-                                      )}
-                                      {act.description && <p className="text-xs text-foreground-500 leading-relaxed mt-1">{act.description}</p>}
-                                    </div>
-                                    {imgUrl && <img src={imgUrl} alt={act.title} className="w-14 h-14 rounded-xl object-cover flex-shrink-0" />}
-                                  </div>
-                                </div>
+                          return (
+                            <div key={entry.id || idx} className="flex items-stretch gap-2">
+                              {/* タイムライン */}
+                              <div className="flex flex-col items-center w-3 flex-shrink-0">
+                                <div className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5" style={{ background: isLast && scheduleEntries.length > 1 ? '#cbd5e1' : '#3b6fd4' }}></div>
+                                {!isLast && <div className="w-px bg-background-200 flex-1 mt-1"></div>}
                               </div>
-                            );
-                          })}
-                        </div>
-                      )}
+
+                              {/* コンテンツ */}
+                              <div className={`flex-1 min-w-0 flex gap-2 ${isLast ? 'pb-0' : 'pb-3'}`}>
+                                <div className="flex-1 min-w-0">
+                                  {entry.time ? (
+                                    <p className="text-xs text-foreground-400 mb-0.5">{entry.time}</p>
+                                  ) : (
+                                    <p className="text-xs text-foreground-300 italic mb-0.5">Want to go</p>
+                                  )}
+                                  <p className="text-sm font-semibold text-foreground-900">{entry.title}</p>
+                                  {catStyle && (
+                                    <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-full inline-block mt-1 ${catStyle.bg} ${catStyle.text}`}>{catStyle.label}</span>
+                                  )}
+                                  {entry.description && <p className="text-xs text-foreground-500 leading-relaxed mt-1">{entry.description}</p>}
+                                </div>
+                                {imgUrl && <img src={imgUrl} alt={entry.title} className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />}
+                              </div>
+
+                              {/* 編集ボタン（itemsのみ） */}
+                              {isItem && (
+                                <div className="flex flex-col gap-1 flex-shrink-0 pt-1">
+                                  <button
+                                    onClick={() => handleMoveItem(entry as TripItem, -1)}
+                                    disabled={isBusy || idx === 0}
+                                    className="w-7 h-7 flex items-center justify-center bg-background-50 border border-background-200 rounded-lg text-foreground-400 hover:bg-background-100 disabled:opacity-20 cursor-pointer transition-colors"
+                                    aria-label="Move up"
+                                  >
+                                    <i className="ri-arrow-up-s-line text-sm"></i>
+                                  </button>
+                                  <button
+                                    onClick={() => handleMoveItem(entry as TripItem, 1)}
+                                    disabled={isBusy || isLast}
+                                    className="w-7 h-7 flex items-center justify-center bg-background-50 border border-background-200 rounded-lg text-foreground-400 hover:bg-background-100 disabled:opacity-20 cursor-pointer transition-colors"
+                                    aria-label="Move down"
+                                  >
+                                    <i className="ri-arrow-down-s-line text-sm"></i>
+                                  </button>
+                                  <button
+                                    onClick={() => handleRemoveItem(entry as TripItem)}
+                                    disabled={isBusy}
+                                    className="w-7 h-7 flex items-center justify-center bg-background-50 border border-background-200 rounded-lg text-foreground-300 hover:bg-red-50 hover:border-red-200 hover:text-red-500 disabled:opacity-20 cursor-pointer transition-colors"
+                                    aria-label="Remove"
+                                  >
+                                    <i className="ri-delete-bin-line text-sm"></i>
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+
+                        {/* Spot追加 */}
+                        {addingToDay === day.day ? (
+                          <div className="flex gap-2 mt-3">
+                            <input
+                              ref={addInputRef}
+                              type="text"
+                              value={newSpotTitle}
+                              onChange={(e) => setNewSpotTitle(e.target.value)}
+                              onKeyDown={(e) => { if (e.key === 'Enter') handleAddSpot(day.day); if (e.key === 'Escape') { setAddingToDay(null); setNewSpotTitle(''); } }}
+                              placeholder="Spot name..."
+                              className="flex-1 bg-background-50 border border-background-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
+                              autoFocus
+                            />
+                            <button
+                              onClick={() => handleAddSpot(day.day)}
+                              disabled={!newSpotTitle.trim()}
+                              className="px-3 py-2 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white text-xs font-semibold rounded-lg cursor-pointer"
+                            >Add</button>
+                            <button
+                              onClick={() => { setAddingToDay(null); setNewSpotTitle(''); }}
+                              className="px-3 py-2 bg-background-100 hover:bg-background-200 text-foreground-600 text-xs font-semibold rounded-lg cursor-pointer"
+                            >Cancel</button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setAddingToDay(day.day)}
+                            className="flex items-center gap-2 w-full mt-3 px-3 py-2 border border-dashed border-background-300 hover:border-primary-400 hover:bg-primary-50 rounded-lg text-foreground-400 hover:text-primary-600 text-xs font-semibold transition-colors cursor-pointer"
+                          >
+                            <i className="ri-add-line text-sm"></i>
+                            Add a spot
+                          </button>
+                        )}
+                      </div>
 
                       {/* Meals */}
                       {(day.meals?.breakfast || day.meals?.lunch || day.meals?.dinner) && (
@@ -278,23 +379,26 @@ export default function MyTripDetailPage() {
                           <p className="text-xs font-bold tracking-widest uppercase text-foreground-400 mb-3 flex items-center gap-1.5">
                             <i className="ri-restaurant-line"></i>Meals
                           </p>
-                          <div className="space-y-2.5">
+                          <div className="space-y-2">
                             {day.meals.breakfast && (
-                              <div className="flex items-start gap-2.5">
-                                <span className="text-xs font-bold text-orange-700 w-4 flex-shrink-0 pt-0.5">B</span>
-                                <p className="text-sm font-semibold text-foreground-900">{day.meals.breakfast.suggestion}</p>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-bold text-orange-700 w-4 flex-shrink-0">B</span>
+                                <span className="text-sm font-semibold text-foreground-900 flex-1">{day.meals.breakfast.suggestion}</span>
+                                <button className="w-7 h-7 flex items-center justify-center bg-background-50 border border-background-200 rounded-lg text-foreground-300 hover:bg-red-50 hover:border-red-200 hover:text-red-500 transition-colors cursor-pointer"><i className="ri-delete-bin-line text-sm"></i></button>
                               </div>
                             )}
                             {day.meals.lunch && (
-                              <div className="flex items-start gap-2.5">
-                                <span className="text-xs font-bold text-orange-700 w-4 flex-shrink-0 pt-0.5">L</span>
-                                <p className="text-sm font-semibold text-foreground-900">{day.meals.lunch.suggestion}</p>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-bold text-orange-700 w-4 flex-shrink-0">L</span>
+                                <span className="text-sm font-semibold text-foreground-900 flex-1">{day.meals.lunch.suggestion}</span>
+                                <button className="w-7 h-7 flex items-center justify-center bg-background-50 border border-background-200 rounded-lg text-foreground-300 hover:bg-red-50 hover:border-red-200 hover:text-red-500 transition-colors cursor-pointer"><i className="ri-delete-bin-line text-sm"></i></button>
                               </div>
                             )}
                             {day.meals.dinner && (
-                              <div className="flex items-start gap-2.5">
-                                <span className="text-xs font-bold text-orange-700 w-4 flex-shrink-0 pt-0.5">D</span>
-                                <p className="text-sm font-semibold text-foreground-900">{day.meals.dinner.suggestion}</p>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-bold text-orange-700 w-4 flex-shrink-0">D</span>
+                                <span className="text-sm font-semibold text-foreground-900 flex-1">{day.meals.dinner.suggestion}</span>
+                                <button className="w-7 h-7 flex items-center justify-center bg-background-50 border border-background-200 rounded-lg text-foreground-300 hover:bg-red-50 hover:border-red-200 hover:text-red-500 transition-colors cursor-pointer"><i className="ri-delete-bin-line text-sm"></i></button>
                               </div>
                             )}
                           </div>
