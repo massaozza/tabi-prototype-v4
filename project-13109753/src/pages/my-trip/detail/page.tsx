@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import React from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Navbar from '@/components/feature/Navbar';
 import Footer from '@/components/feature/Footer';
@@ -928,7 +929,8 @@ export default function MyTripDetailPage() {
                           }) : undefined;
 
                           return (
-                            <div key={entry.id || idx} className="flex items-stretch gap-2">
+                            <React.Fragment key={entry.id || idx}>
+                            <div className="flex items-stretch gap-2">
                               {/* タイムライン */}
                               <div className="flex flex-col items-center w-3 flex-shrink-0">
                                 <div className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5" style={{ background: isLast && scheduleEntries.length > 1 ? '#cbd5e1' : '#3b6fd4' }}></div>
@@ -1006,7 +1008,7 @@ export default function MyTripDetailPage() {
                             </div>
                             {/* 通常表示でのスポット間移動帯 */}
                             {!isLast && (
-                              <div className="flex items-center gap-2 py-1.5 px-1 -mx-0">
+                              <div className="flex items-center gap-2 py-1.5 px-1">
                                 <div className="flex flex-col items-center w-3 flex-shrink-0">
                                   <div className="w-px bg-background-200 h-full min-h-3"></div>
                                 </div>
@@ -1025,6 +1027,7 @@ export default function MyTripDetailPage() {
                                 </div>
                               </div>
                             )}
+                            </React.Fragment>
                           );
                         })}
 
