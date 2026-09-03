@@ -301,26 +301,7 @@ export default function MyTripDetailPage() {
               </div>
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(10,18,40,0.55) 0%, rgba(10,18,40,0.0) 30%, rgba(10,18,40,0.0) 45%, rgba(10,18,40,0.88) 100%)' }}></div>
 
-              {/* 編集モード時：写真変更ボタン */}
-              {editMode && (
-                <div style={{ position: 'absolute', top: '12px', right: '12px' }}>
-                  <input
-                    ref={coverInputRef}
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    className="hidden"
-                    onChange={(e) => { const file = e.target.files?.[0]; if (file) handleCoverUpload(file); e.target.value = ''; }}
-                  />
-                  <button
-                    onClick={() => coverInputRef.current?.click()}
-                    disabled={coverUploading}
-                    className="inline-flex items-center gap-1.5 bg-black/50 hover:bg-black/70 text-white text-xs font-semibold px-3 py-1.5 rounded-lg backdrop-blur-sm transition-colors cursor-pointer disabled:opacity-60"
-                  >
-                    <i className={coverUploading ? 'ri-loader-4-line animate-spin' : 'ri-camera-line'}></i>
-                    {coverUploading ? 'Uploading...' : 'Change photo'}
-                  </button>
-                </div>
-              )}
+              {/* 編集モード時：写真変更ボタン — ヒーロー内右上は押しにくいため削除、下に移動 */}
               <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '0 20px 20px', maxWidth: '768px', margin: '0 auto' }}>
                 <div className="flex flex-wrap gap-1.5 mb-2">
                   <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${statusBadge.color}`}>{statusBadge.label}</span>
@@ -359,6 +340,26 @@ export default function MyTripDetailPage() {
                     <i className={editMode ? 'ri-check-line' : 'ri-edit-line'}></i>
                     {editMode ? 'Done editing' : 'Edit'}
                   </button>
+                )}
+                {/* 写真変更ボタン（編集モード時のみ） */}
+                {editMode && (
+                  <>
+                    <input
+                      ref={coverInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="hidden"
+                      onChange={(e) => { const file = e.target.files?.[0]; if (file) handleCoverUpload(file); e.target.value = ''; }}
+                    />
+                    <button
+                      onClick={() => coverInputRef.current?.click()}
+                      disabled={coverUploading}
+                      className="inline-flex items-center gap-1.5 bg-white border border-background-200 hover:bg-background-50 disabled:opacity-60 text-foreground-700 font-semibold text-sm px-4 py-2 rounded-xl transition-colors cursor-pointer"
+                    >
+                      <i className={coverUploading ? 'ri-loader-4-line animate-spin' : 'ri-camera-line'}></i>
+                      {coverUploading ? 'Uploading...' : 'Change cover photo'}
+                    </button>
+                  </>
                 )}
                 <Link
                   to={`/trips/${trip.id}`}
