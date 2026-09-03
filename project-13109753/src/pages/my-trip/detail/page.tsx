@@ -87,6 +87,8 @@ export default function MyTripDetailPage() {
   const [loading, setLoading] = useState(true);
   const [busyItemId, setBusyItemId] = useState<string | null>(null);
   const [editMode, setEditMode] = useState(false);
+  const [travelMode, setTravelMode] = useState(false);
+  const [currentTravelDay, setCurrentTravelDay] = useState(1);
   const [addingToDay, setAddingToDay] = useState<number | null>(null);
   const [newSpotTitle, setNewSpotTitle] = useState('');
   const [assigningItemId, setAssigningItemId] = useState<string | null>(null);
@@ -129,6 +131,30 @@ export default function MyTripDetailPage() {
     fetchData();
     return () => { cancelled = true; };
   }, [id, user, navigate]);
+
+  // 訪問済みをマーク
+  const handleMarkVisited = async (itemId: string) => {
+    if (!trip) return;
+    setBusyItemId(itemId);
+    const data = await callTripAction(trip.id, 'markVisited', { itemId });
+    if (data?.trip) setTrip(data.trip);
+    setBusyItemId(null);
+  };
+
+  // Travel Modeを開始（statusをtravelingに変更）
+  const handleStartTravel = async () => {
+    if (!trip) return;
+    try {
+      const res = await fetch(
+        `/api/trips?id=${encodeURIComponent(trip.id)}&action=reflect`,
+        { method: 'PATCH', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'traveling' }) }
+      );
+      const data = await res.json();
+      if (data?.trip) setTrip(data.trip);
+      setTravelMode(true);
+      setCurrentTravelDay(1);
+    } catch { /* silent */ }
+  };
 
   // Mealを削除
   const handleRemoveMeal = async (mealId: string) => {
@@ -395,7 +421,28 @@ export default function MyTripDetailPage() {
 
               {/* アクション */}
               <div className="flex gap-2 mb-5 flex-wrap">
-                {isEditable(trip.status) && (
+                {/* Start Travel（planningの場合のみ） */}
+                {trip.status === 'planning' && (
+                  <button
+                    onClick={handleStartTravel}
+                    className="inline-flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white font-semibold text-sm px-4 py-2 rounded-xl transition-colors cursor-pointer"
+                  >
+                    <i className="ri-map-pin-line"></i>Start Travel
+                  </button>
+                )}
+                {/* Travel Mode切り替え（travelingの場合） */}
+                {trip.status === 'traveling' && (
+                  <button
+                    onClick={() => setTravelMode(!travelMode)}
+                    className={`inline-flex items-center gap-1.5 font-semibold text-sm px-4 py-2 rounded-xl transition-colors cursor-pointer ${
+                      travelMode ? 'bg-foreground-900 text-white hover:bg-foreground-700' : 'bg-green-600 hover:bg-green-700 text-white'
+                    }`}
+                  >
+                    <i className={travelMode ? 'ri-close-line' : 'ri-navigation-line'}></i>
+                    {travelMode ? 'Exit Travel Mode' : 'Travel Mode'}
+                  </button>
+                )}
+                {isEditable(trip.status) && !travelMode && (
                   <button
                     onClick={() => {
                       setEditMode(!editMode);
@@ -441,7 +488,151 @@ export default function MyTripDetailPage() {
                 </Link>
               </div>
 
-              {/* Saved for Trip（日程未割り当てのitems） */}
+              {/* ── TRAVEL MODE ── */}
+              {travelMode && (() => {
+                const days = [...(trip.days || [])].sort((a, b) => a.day - b.day);
+                const visitedIds = new Set((trip.actualVisitLog || []).map((l) => l.itemId));
+                const dayItems = (trip.items || [])
+                  .filter((it) => it.planLevel !== 'saved' && (it.day || 1) === currentTravelDay && !it.mealSlot)
+                  .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+                const currentDay = days.find((d) => d.day === currentTravelDay);
+                const stay = (trip.stays || []).find((s) => currentTravelDay >= s.checkInDay && currentTravelDay <= s.checkOutDay);
+
+                return (
+                  <div className="mb-6">
+                    {/* Day selector */}
+                    <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
+                      {days.map((d) => (
+                        <button
+                          key={d.day}
+                          onClick={() => setCurrentTravelDay(d.day)}
+                          className={`flex-shrink-0 px-4 py-2 rounded-xl text-sm font-semibold transition-colors cursor-pointer ${
+                            currentTravelDay === d.day
+                              ? 'bg-foreground-900 text-white'
+                              : 'bg-white border border-background-200 text-foreground-600 hover:border-primary-300'
+                          }`}
+                        >
+                          Day {d.day}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* 今日の行程 */}
+                    <div className="bg-white border border-background-200 rounded-2xl overflow-hidden">
+                      <div className="bg-foreground-900 px-4 py-3">
+                        <p className="text-xs font-bold tracking-wider text-primary-300">DAY {currentTravelDay}</p>
+                        {currentDay && <p className="text-xs text-foreground-500 mt-0.5">{getDayRoute(currentDay as TripDay)}</p>}
+                      </div>
+
+                      <div className="divide-y divide-background-100">
+                        {dayItems.length === 0 && (
+                          <p className="text-xs text-foreground-300 italic px-4 py-4 text-center">No spots for this day yet</p>
+                        )}
+                        {dayItems.map((item) => {
+                          const visited = visitedIds.has(item.id);
+                          const isBusy = busyItemId === item.id;
+                          const dest = item.spotId ? spotData.get(item.spotId) : undefined;
+                          const mapsUrl = dest
+                            ? `https://www.google.com/maps/search/${encodeURIComponent(item.title)}`
+                            : `https://www.google.com/maps/search/${encodeURIComponent(item.title)}`;
+
+                          return (
+                            <div key={item.id} className={`flex items-center gap-3 px-4 py-3 transition-colors ${visited ? 'bg-green-50' : ''}`}>
+                              {/* チェックボタン */}
+                              <button
+                                onClick={() => !visited && handleMarkVisited(item.id)}
+                                disabled={visited || isBusy}
+                                className={`w-8 h-8 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors cursor-pointer ${
+                                  visited
+                                    ? 'bg-green-500 border-green-500'
+                                    : 'border-background-300 hover:border-green-400 hover:bg-green-50'
+                                } disabled:cursor-default`}
+                              >
+                                {visited && <i className="ri-check-line text-white text-sm"></i>}
+                                {isBusy && <i className="ri-loader-4-line animate-spin text-foreground-400 text-sm"></i>}
+                              </button>
+
+                              {/* コンテンツ */}
+                              <div className="flex-1 min-w-0">
+                                <p className={`text-sm font-semibold ${visited ? 'text-foreground-400 line-through' : 'text-foreground-900'}`}>
+                                  {item.title}
+                                </p>
+                                {item.time && <p className="text-xs text-foreground-400 mt-0.5">{item.time}</p>}
+                                {item.description && !visited && (
+                                  <p className="text-xs text-foreground-500 mt-0.5 line-clamp-2">{item.description}</p>
+                                )}
+                              </div>
+
+                              {/* Google Maps */}
+                              <a
+                                href={mapsUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-9 h-9 flex items-center justify-center bg-background-50 border border-background-200 rounded-xl text-foreground-500 hover:bg-primary-50 hover:border-primary-300 hover:text-primary-600 transition-colors flex-shrink-0"
+                                aria-label="Open in Google Maps"
+                              >
+                                <i className="ri-map-pin-line text-sm"></i>
+                              </a>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Stay */}
+                      {stay && (
+                        <div className="border-t border-background-200 px-4 py-3 flex items-center gap-3 bg-background-50">
+                          <i className="ri-hotel-line text-foreground-400"></i>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs text-foreground-400">Tonight's stay</p>
+                            <p className="text-sm font-semibold text-foreground-900 truncate">{stay.hotelName}</p>
+                          </div>
+                          {renderBookingControl((stay as any).status, stay.id)}
+                        </div>
+                      )}
+
+                      {/* Meals */}
+                      {currentDay && (currentDay.meals?.breakfast || currentDay.meals?.lunch || currentDay.meals?.dinner) && (
+                        <div className="border-t border-background-200 px-4 py-3 bg-background-50">
+                          <p className="text-xs font-bold tracking-widest uppercase text-foreground-400 mb-2 flex items-center gap-1.5">
+                            <i className="ri-restaurant-line"></i>Meals
+                          </p>
+                          <div className="space-y-1.5">
+                            {currentDay.meals.breakfast && (
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-bold text-orange-700 w-4">B</span>
+                                <span className="text-sm text-foreground-700 flex-1">{currentDay.meals.breakfast.suggestion}</span>
+                                {renderBookingControl((currentDay.meals.breakfast as any).status, currentDay.meals.breakfast.id)}
+                              </div>
+                            )}
+                            {currentDay.meals.lunch && (
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-bold text-orange-700 w-4">L</span>
+                                <span className="text-sm text-foreground-700 flex-1">{currentDay.meals.lunch.suggestion}</span>
+                                {renderBookingControl((currentDay.meals.lunch as any).status, currentDay.meals.lunch.id)}
+                              </div>
+                            )}
+                            {currentDay.meals.dinner && (
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-bold text-orange-700 w-4">D</span>
+                                <span className="text-sm text-foreground-700 flex-1">{currentDay.meals.dinner.suggestion}</span>
+                                {renderBookingControl((currentDay.meals.dinner as any).status, currentDay.meals.dinner.id)}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* 進捗 */}
+                    <div className="mt-3 text-center text-xs text-foreground-400">
+                      {visitedIds.size} of {(trip.items || []).filter((it) => it.planLevel !== 'saved').length} spots visited
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* 通常表示（Travel Mode OFF時のみ） */}
+              {!travelMode && (<>
               {(() => {
                 const savedItems = (trip.items || []).filter((it) => it.planLevel === 'saved');
                 if (savedItems.length === 0) return null;
@@ -770,6 +961,9 @@ export default function MyTripDetailPage() {
                   );
                 })}
               </div>
+
+              {/* /通常表示 */}
+              )}
 
               <div className="mt-6">
                 <Link to="/my-trip" className="inline-flex items-center gap-2 text-primary-500 hover:text-primary-600 font-semibold text-sm transition-colors">
