@@ -110,7 +110,10 @@ export default function CreatorPublicProfilePage() {
     <main className="min-h-screen bg-background-50">
       <Navbar />
 
-      <div className="max-w-2xl mx-auto px-4 md:px-6 pt-24 pb-16">
+      {/* Navbar背景（透過Navbarが白背景で見えなくなる問題への対処） */}
+      <div className="h-20 bg-foreground-900"></div>
+
+      <div className="max-w-2xl mx-auto px-4 md:px-6 pt-6 pb-16">
 
         {/* プロフィールカード */}
         <div className="bg-white border border-background-200 rounded-2xl p-6 mb-5">
