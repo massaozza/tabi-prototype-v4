@@ -1236,6 +1236,34 @@ export default async function handler(req: Request): Promise<Response> {
     }
   }
 
+  // ── PATCH: Mealを削除 ──
+  if (req.method === 'PATCH' && url.searchParams.get('action') === 'removeMeal') {
+    const id = url.searchParams.get('id') || '';
+    if (!id) return jsonResponse({ error: 'id is required' }, 400);
+    let body: { mealId?: string };
+    try { body = await req.json(); } catch { return jsonResponse({ error: 'Invalid JSON body' }, 400); }
+    const mealId = body.mealId || '';
+    if (!mealId) return jsonResponse({ error: 'mealId is required' }, 400);
+    try {
+      const trip = await kv.get<Trip>(recordKey(id));
+      if (!trip) return jsonResponse({ error: 'Trip not found' }, 404);
+      if (trip.uid !== uid) return jsonResponse({ error: 'You can only update your own trips' }, 403);
+      let found = false;
+      trip.days = trip.days.map((d) => {
+        const meals = { ...d.meals };
+        (['breakfast', 'lunch', 'dinner'] as const).forEach((key) => {
+          if (meals[key]?.id === mealId) { found = true; delete meals[key]; }
+        });
+        return { ...d, meals };
+      });
+      if (!found) return jsonResponse({ error: 'Meal not found' }, 404);
+      await kv.set(recordKey(id), trip);
+      return jsonResponse({ success: true, trip }, 200);
+    } catch (err) {
+      return jsonResponse({ error: 'Failed to remove meal', detail: String(err) }, 500);
+    }
+  }
+
   // ── DELETE: 削除（本人のみ） ──
   if (req.method === 'DELETE') {
     const id = url.searchParams.get('id') || '';
