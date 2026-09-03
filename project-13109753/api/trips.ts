@@ -166,11 +166,13 @@ export interface Trip {
   // tags       … 旅行スタイルタグ（Solo / Couple / Family / Culture / Food ...）
   // budgetMin/Max … 予算目安（円/人）
   // authorName … Creator表示名
+  // coverImageUrl … Tripのカバー写真（R2のURL）
   highlights?: string[];
   tags?: string[];
   budgetMin?: number;
   budgetMax?: number;
   authorName?: string;
+  coverImageUrl?: string;
 
   isPublic: boolean;
   copiedFromTripId?: string;
@@ -626,6 +628,26 @@ export default async function handler(req: Request): Promise<Response> {
   }
 
   // ── PATCH: status・振り返り・旅行者属性を更新 ──
+  // ── PATCH: カバー写真URLを更新 ──
+  if (req.method === 'PATCH' && url.searchParams.get('action') === 'setCoverImage') {
+    const id = url.searchParams.get('id') || '';
+    if (!id) return jsonResponse({ error: 'id is required' }, 400);
+    let body: { coverImageUrl?: string };
+    try { body = await req.json(); } catch { return jsonResponse({ error: 'Invalid JSON body' }, 400); }
+    const coverImageUrl = body.coverImageUrl?.trim() || undefined;
+    try {
+      const trip = await kv.get<Trip>(recordKey(id));
+      if (!trip) return jsonResponse({ error: 'Trip not found' }, 404);
+      if (trip.uid !== uid) return jsonResponse({ error: 'You can only update your own trips' }, 403);
+      const updated = applyDefaults({ ...trip, coverImageUrl });
+      await kv.set(recordKey(id), updated);
+      return jsonResponse({ success: true, trip: updated }, 200);
+    } catch (err) {
+      return jsonResponse({ error: 'Failed to update cover image', detail: String(err) }, 500);
+    }
+  }
+
+  // ── PATCH: 振り返りを更新 ──
   if (req.method === 'PATCH' && url.searchParams.get('action') === 'reflect') {
     const id = url.searchParams.get('id') || '';
     if (!id) {
