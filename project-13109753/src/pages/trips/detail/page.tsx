@@ -151,8 +151,8 @@ export default function PublicTripDetailPage() {
         const dayCount = trip.days.length;
         return (
           <article>
-            {/* Hero */}
-            <div className="relative" style={{ height: '300px' }}>
+            {/* Hero - フル幅・Navbarを透過でオーバーレイさせる */}
+            <div className="relative" style={{ height: '340px' }}>
               <div className="absolute inset-0 grid gap-0.5" style={{ gridTemplateColumns: '2fr 1fr', gridTemplateRows: '1fr 1fr' }}>
                 {headerImages[0] ? (
                   <img src={headerImages[0]} alt={trip.title} className="w-full h-full object-cover" style={{ gridRow: '1 / 3' }} />
@@ -177,7 +177,7 @@ export default function PublicTripDetailPage() {
                 )}
               </div>
               <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(20,28,50,0.92) 0%, rgba(20,28,50,0.3) 55%, transparent 100%)' }}></div>
-              <div className="absolute bottom-0 left-0 right-0 px-5 pb-5">
+              <div className="absolute bottom-0 left-0 right-0 px-5 pb-6 md:max-w-2xl md:mx-auto md:left-0 md:right-0">
                 <p className="text-xs font-semibold tracking-widest uppercase text-white/50 mb-1.5">
                   {trip.tripType === 'recommended' ? 'Recommended trip' : 'Actual trip'}{trip.travelStyle && ` · ${trip.travelStyle}`}
                 </p>
