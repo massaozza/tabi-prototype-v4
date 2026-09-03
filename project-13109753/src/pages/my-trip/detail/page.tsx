@@ -498,25 +498,35 @@ export default function MyTripDetailPage() {
                 const currentDay = days.find((d) => d.day === currentTravelDay);
                 const stay = (trip.stays || []).find((s) => currentTravelDay >= s.checkInDay && currentTravelDay <= s.checkOutDay);
 
-                // days[].activitiesから移動手段を抽出してtitleで索引化
-                // アイテムとアイテムの間に対応する移動手段を挟む
-                const transports = (currentDay?.activities || []).filter((a) => a.type === 'transport');
+                // days[].activitiesから移動手段を時刻順で取得
+                // itemsと時刻を比較して、スポット間に差し込む
+                const transports = (currentDay?.activities || [])
+                  .filter((a) => a.type === 'transport');
 
-                // itemsの順番に沿って「スポット→移動手段→スポット」を構築
-                // daysのactivities（非transport）とitemsのtitleを対応させて
-                // 移動手段を適切な位置に差し込む
-                const nonTransportActivities = (currentDay?.activities || []).filter((a) => a.type !== 'transport');
-                const getTransportAfter = (idx: number): TripActivity | undefined => {
-                  // days.activitiesの非transport項目とitemsを対応させ、
-                  // その直後にtransportがあればそれを返す
-                  const actIdx = nonTransportActivities.findIndex((a) => a.title === dayItems[idx]?.title);
-                  if (actIdx === -1) return undefined;
-                  // activities配列上でこの非transport項目の直後にtransportがあるか探す
+                // item[idx]とitem[idx+1]の間に挟む移動手段を返す
+                // 時刻がある場合は時刻順、ない場合はactivities配列の順で判定
+                const getTransportBetween = (idx: number): TripActivity | undefined => {
+                  if (transports.length === 0) return undefined;
+                  const current = dayItems[idx];
+                  const next = dayItems[idx + 1];
+                  if (!next) return undefined;
+                  // 時刻ベースで判定
+                  if (current?.time && next?.time) {
+                    return transports.find((t) => {
+                      if (!t.time) return false;
+                      return t.time > current.time! && t.time < next.time!;
+                    });
+                  }
+                  // 時刻がない場合は、activities配列上の位置関係で判定
                   const activities = currentDay?.activities || [];
-                  const realIdx = activities.findIndex((a) => a.title === nonTransportActivities[actIdx].title);
-                  if (realIdx === -1) return undefined;
-                  const next = activities[realIdx + 1];
-                  return next?.type === 'transport' ? next : undefined;
+                  const currentActIdx = activities.findIndex((a) => a.title === current?.title);
+                  const nextActIdx = activities.findIndex((a) => a.title === next?.title);
+                  if (currentActIdx === -1 || nextActIdx === -1) return undefined;
+                  // currentとnextの間にtransportがあるか
+                  for (let i = currentActIdx + 1; i < nextActIdx; i++) {
+                    if (activities[i]?.type === 'transport') return activities[i];
+                  }
+                  return undefined;
                 };
 
                 return (
@@ -552,9 +562,24 @@ export default function MyTripDetailPage() {
                         {dayItems.map((item, idx) => {
                           const visited = visitedIds.has(item.id);
                           const isBusy = busyItemId === item.id;
-                          const dest = item.spotId ? spotData.get(item.spotId) : undefined;
                           const mapsUrl = `https://www.google.com/maps/search/${encodeURIComponent(item.title)}`;
-                          const transportAfter = getTransportAfter(idx);
+                          const transportAfter = getTransportBetween(idx);
+                          // itemsにtransportカテゴリがある場合は移動手段として表示
+                          const isTransportItem = item.itemType === 'transport';
+
+                          // transportカテゴリのitemは移動手段帯として表示
+                          if (isTransportItem) {
+                            return (
+                              <div key={item.id} className="flex items-center gap-2.5 px-4 py-2.5 bg-background-50 border-t border-b border-background-100">
+                                <i className="ri-train-line text-foreground-400 text-sm flex-shrink-0"></i>
+                                <div className="min-w-0">
+                                  <p className="text-xs font-medium text-foreground-600 truncate">{item.title}</p>
+                                  {item.time && <p className="text-xs text-foreground-400">{item.time}</p>}
+                                  {item.description && <p className="text-xs text-foreground-400 truncate">{item.description}</p>}
+                                </div>
+                              </div>
+                            );
+                          }
 
                           return (
                             <div key={item.id}>
