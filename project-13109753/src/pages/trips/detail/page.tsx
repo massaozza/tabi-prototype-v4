@@ -4,9 +4,11 @@ import Navbar from '@/components/feature/Navbar';
 import Footer from '@/components/feature/Footer';
 import { useAuth } from '@/context/AuthContext';
 
-// TABI47：Trip詳細ページ。旅行代理店のパンフレットをWebで体験するような
-// リッチなビジュアル表現を目指す。Spot写真・日程タイムライン・予算・
-// ハイライト・Copy to My Tripを一枚のページに凝縮する。
+// TABI47：Trip詳細ページ。
+// Artifactモックアップのデザインを踏襲：
+// 写真グリッド（左大＋右上下2枚）→ 著者バッジ（写真内オーバーレイ）
+// → タグ行（日数・エリア・スタイル・予算）→ タイトル→ 概要
+// → 日程タイムライン（Day Nヘッダー＋ドット縦線スタイル）→ CTA
 
 interface TripMeal {
   id: string;
@@ -67,12 +69,24 @@ interface PublicTrip {
 function formatBudget(min?: number, max?: number): string | null {
   if (!min && !max) return null;
   const fmt = (n: number) =>
-    n >= 10000 ? `¥${(n / 10000).toFixed(n % 10000 === 0 ? 0 : 1)}万` : `¥${n.toLocaleString()}`;
-  if (min && max) return `${fmt(min)} – ${fmt(max)} / person`;
-  if (min) return `From ${fmt(min)} / person`;
-  if (max) return `Under ${fmt(max)} / person`;
-  return null;
+    n >= 10000
+      ? `¥${(n / 10000).toFixed(n % 10000 === 0 ? 0 : 1)}万`
+      : `¥${n.toLocaleString()}`;
+  if (min && max) return `${fmt(min)}–${fmt(max)}`;
+  if (min) return `From ${fmt(min)}`;
+  return `Under ${fmt(max!)}`;
 }
+
+// Readdy.aiのURLはtabi47.comドメインでRefererブロックされるため除外
+function isUsableImage(url: string): boolean {
+  return !!url && !url.includes('readdy.ai');
+}
+
+const PLACEHOLDER_COLORS = [
+  { bg: 'bg-green-800', icon: 'ri-map-pin-2-line' },
+  { bg: 'bg-stone-600', icon: 'ri-landscape-line' },
+  { bg: 'bg-blue-800', icon: 'ri-train-line' },
+];
 
 export default function PublicTripDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -133,9 +147,10 @@ export default function PublicTripDetailPage() {
     setSaving(true);
     setActionError('');
     try {
-      const res = await fetch(`/api/trips?action=save&tripId=${encodeURIComponent(trip.id)}`, {
-        method: 'POST', credentials: 'include',
-      });
+      const res = await fetch(
+        `/api/trips?action=save&tripId=${encodeURIComponent(trip.id)}`,
+        { method: 'POST', credentials: 'include' }
+      );
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.error || 'Failed to save');
       setSaved(true);
@@ -165,15 +180,15 @@ export default function PublicTripDetailPage() {
     }
   };
 
-  // ヘッダービジュアル用の写真を最大3枚収集（SpotIDから引く）
+  // SpotIDからR2画像を最大3枚取得（Readdy.aiを除外）
   const getHeaderImages = (trip: PublicTrip): string[] => {
     const result: string[] = [];
     for (const day of trip.days) {
       for (const act of day.activities || []) {
         if (act.type === 'transport') continue;
-        if (act.spotId && spotImages.has(act.spotId)) {
-          const img = spotImages.get(act.spotId)!;
-          if (!result.includes(img)) result.push(img);
+        if (act.spotId) {
+          const img = spotImages.get(act.spotId);
+          if (img && isUsableImage(img) && !result.includes(img)) result.push(img);
         }
         if (result.length >= 3) return result;
       }
@@ -181,20 +196,35 @@ export default function PublicTripDetailPage() {
     return result;
   };
 
+  // Day間の移動エリアを「A → B」形式で表示
+  const getDayLocation = (day: TripDay): string => {
+    const spots = (day.activities || [])
+      .filter((a) => a.type !== 'transport')
+      .map((a) => a.title);
+    if (spots.length === 0) return '';
+    if (spots.length === 1) return spots[0];
+    return `${spots[0]} → ${spots[spots.length - 1]}`;
+  };
+
   return (
     <main className="min-h-screen bg-background-50">
       <Navbar />
 
       {loading ? (
-        <div className="pt-28 pb-16 px-6 md:px-10 max-w-3xl mx-auto space-y-4">
-          <div className="h-64 bg-background-200 rounded-xl animate-pulse"></div>
-          <div className="h-8 w-3/4 bg-background-200 rounded animate-pulse"></div>
-          <div className="h-40 bg-background-200 rounded-xl animate-pulse"></div>
+        <div className="pt-28 pb-16 px-4 max-w-lg mx-auto space-y-4">
+          <div className="h-64 bg-background-200 rounded-2xl animate-pulse"></div>
+          <div className="h-6 w-3/4 bg-background-200 rounded animate-pulse"></div>
+          <div className="h-40 bg-background-200 rounded-2xl animate-pulse"></div>
         </div>
       ) : !trip ? (
         <div className="pt-28 pb-16 px-6 text-center">
-          <h1 className="font-heading font-bold text-2xl text-foreground-900 mb-4">Trip not found</h1>
-          <Link to="/trips" className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-6 py-3 rounded-lg">
+          <h1 className="font-heading font-bold text-2xl text-foreground-900 mb-4">
+            Trip not found
+          </h1>
+          <Link
+            to="/trips"
+            className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-6 py-3 rounded-lg"
+          >
             <i className="ri-arrow-left-line"></i>Back to Trips
           </Link>
         </div>
@@ -204,88 +234,124 @@ export default function PublicTripDetailPage() {
         const dayCount = trip.days.length;
 
         return (
-          <article>
-            {/* ── ヘッダービジュアル ── */}
-            <div className="w-full" style={{ height: '320px', display: 'grid', gridTemplateColumns: headerImages.length >= 2 ? '2fr 1fr' : '1fr', gridTemplateRows: headerImages.length >= 3 ? '1fr 1fr' : '1fr', gap: '2px' }}>
-              {headerImages.length > 0 ? (
-                <>
-                  <img
-                    src={headerImages[0]}
-                    alt={trip.title}
-                    className="w-full h-full object-cover"
-                    style={{ gridRow: headerImages.length >= 2 ? '1 / 3' : '1' }}
-                  />
-                  {headerImages[1] && (
-                    <img src={headerImages[1]} alt="" className="w-full h-full object-cover" />
-                  )}
-                  {headerImages[2] && (
-                    <img src={headerImages[2]} alt="" className="w-full h-full object-cover" />
-                  )}
-                </>
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-primary-800 to-primary-950 flex items-center justify-center">
-                  <i className="ri-map-pin-2-line text-white/30 text-6xl"></i>
-                </div>
-              )}
-            </div>
+          <article className="pt-20 md:pt-24 pb-16">
+            <div className="max-w-2xl mx-auto px-4 md:px-6">
 
-            {/* ── メタ情報・CTA ── */}
-            <div className="max-w-3xl mx-auto px-6 md:px-10 py-8">
               {/* パンくず */}
-              <nav className="flex items-center gap-2 text-foreground-400 text-xs mb-5 flex-wrap">
+              <nav className="flex items-center gap-1.5 text-foreground-400 text-xs mb-5 flex-wrap">
                 <Link to="/" className="hover:text-foreground-700 transition-colors">Home</Link>
                 <span>/</span>
                 <Link to="/trips" className="hover:text-foreground-700 transition-colors">Trips</Link>
                 <span>/</span>
-                <span className="text-foreground-700 line-clamp-1">{trip.title}</span>
+                <span className="text-foreground-600 line-clamp-1">{trip.title}</span>
               </nav>
 
-              {/* タグ行 */}
-              <div className="flex flex-wrap gap-2 mb-4">
-                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${trip.tripType === 'recommended' ? 'bg-accent-50 text-accent-700 border border-accent-200' : 'bg-primary-50 text-primary-700 border border-primary-200'}`}>
-                  {trip.tripType === 'recommended' ? 'Recommended Trip' : 'Actual Trip'}
-                </span>
-                <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-background-100 text-foreground-700">
-                  <i className="ri-calendar-line"></i>{dayCount} {dayCount === 1 ? 'day' : 'days'}
-                </span>
+              {/* ── 写真グリッド（モックアップ準拠） ── */}
+              <div
+                className="rounded-2xl overflow-hidden mb-4 relative"
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '2fr 1fr',
+                  gridTemplateRows: '160px 90px',
+                  gap: '3px',
+                  height: '253px',
+                }}
+              >
+                {/* メイン写真（左・縦長） */}
+                {headerImages[0] ? (
+                  <img
+                    src={headerImages[0]}
+                    alt={trip.title}
+                    className="w-full h-full object-cover"
+                    style={{ gridRow: '1 / 3' }}
+                  />
+                ) : (
+                  <div
+                    className={`w-full h-full ${PLACEHOLDER_COLORS[0].bg} flex flex-col items-center justify-center gap-2`}
+                    style={{ gridRow: '1 / 3' }}
+                  >
+                    <i className={`${PLACEHOLDER_COLORS[0].icon} text-white/40 text-4xl`}></i>
+                    {trip.days[0]?.activities?.find((a) => a.type !== 'transport')?.title && (
+                      <span className="text-white/70 text-xs font-medium px-3 text-center">
+                        {trip.days[0].activities.find((a) => a.type !== 'transport')!.title}
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                {/* サブ写真1（右上） */}
+                {headerImages[1] ? (
+                  <img src={headerImages[1]} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <div className={`w-full h-full ${PLACEHOLDER_COLORS[1].bg} flex items-center justify-center`}>
+                    <i className={`${PLACEHOLDER_COLORS[1].icon} text-white/40 text-2xl`}></i>
+                  </div>
+                )}
+
+                {/* サブ写真2（右下） */}
+                {headerImages[2] ? (
+                  <img src={headerImages[2]} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <div className={`w-full h-full ${PLACEHOLDER_COLORS[2].bg} flex items-center justify-center`}>
+                    <i className={`${PLACEHOLDER_COLORS[2].icon} text-white/40 text-xl`}></i>
+                  </div>
+                )}
+
+                {/* 著者バッジ（写真左下にオーバーレイ） */}
+                {trip.authorName && (
+                  <div
+                    className="absolute bottom-3 left-3 bg-foreground-900/75 backdrop-blur-sm text-white text-xs font-medium px-3 py-1.5 rounded-full flex items-center gap-1.5"
+                  >
+                    <i className="ri-user-line text-xs"></i>
+                    {trip.authorName}
+                  </div>
+                )}
+              </div>
+
+              {/* ── タグ行（モックアップ準拠） ── */}
+              <div className="flex flex-wrap gap-2 mb-3">
+                {dayCount > 0 && (
+                  <span className="bg-primary-100 text-primary-700 text-xs font-semibold px-3 py-1 rounded-full">
+                    {dayCount} {dayCount === 1 ? 'day' : 'days'}
+                  </span>
+                )}
                 {trip.travelStyle && (
-                  <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-background-100 text-foreground-600 border border-background-200">
+                  <span className="bg-background-100 text-foreground-600 text-xs font-medium px-3 py-1 rounded-full border border-background-200">
                     {trip.travelStyle}
                   </span>
                 )}
-                {(trip.tags || []).map((tag) => (
-                  <span key={tag} className="text-xs font-medium px-2.5 py-1 rounded-full bg-background-100 text-foreground-600 border border-background-200">
+                {(trip.tags || []).slice(0, 2).map((tag) => (
+                  <span
+                    key={tag}
+                    className="bg-background-100 text-foreground-600 text-xs font-medium px-3 py-1 rounded-full border border-background-200"
+                  >
                     {tag}
                   </span>
                 ))}
                 {budgetText && (
-                  <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                  <span className="bg-amber-50 text-amber-700 text-xs font-semibold px-3 py-1 rounded-full border border-amber-200">
                     {budgetText}
                   </span>
                 )}
               </div>
 
-              {/* タイトル */}
-              <h1 className="font-heading font-bold text-2xl md:text-4xl text-foreground-900 leading-tight mb-3">
+              {/* ── タイトル・概要 ── */}
+              <h1 className="font-heading font-bold text-2xl md:text-3xl text-foreground-900 leading-tight mb-2">
                 {trip.title}
               </h1>
 
-              {/* 概要 */}
               {trip.summary && (
-                <p className="text-foreground-600 text-base leading-relaxed mb-4">{trip.summary}</p>
-              )}
-
-              {/* Author */}
-              {trip.authorName && (
-                <p className="text-foreground-500 text-sm mb-6">
-                  by <span className="text-foreground-800 font-medium">{trip.authorName}</span>
+                <p className="text-foreground-500 text-sm leading-relaxed mb-5">
+                  {trip.summary}
                 </p>
               )}
 
               {/* ハイライト */}
               {(trip.highlights || []).length > 0 && (
-                <div className="bg-primary-50 border border-primary-100 rounded-xl p-4 mb-6">
-                  <p className="text-xs font-semibold text-primary-700 uppercase tracking-wider mb-2">Highlights</p>
+                <div className="bg-primary-50 border border-primary-100 rounded-xl p-4 mb-5">
+                  <p className="text-xs font-semibold text-primary-700 uppercase tracking-wider mb-2">
+                    Highlights
+                  </p>
                   <ul className="space-y-1.5">
                     {trip.highlights!.map((h, i) => (
                       <li key={i} className="flex items-start gap-2 text-sm text-foreground-800">
@@ -297,13 +363,13 @@ export default function PublicTripDetailPage() {
                 </div>
               )}
 
-              {/* CTA */}
+              {/* Save / Copy CTA */}
               {actionError && <p className="text-red-500 text-xs mb-3">{actionError}</p>}
-              <div className="flex items-center gap-3 mb-10">
+              <div className="flex gap-3 mb-8">
                 <button
                   onClick={handleSave}
                   disabled={saving || saved}
-                  className="inline-flex items-center gap-2 bg-background-100 hover:bg-background-200 disabled:opacity-60 text-foreground-800 font-semibold text-sm px-5 py-3 rounded-xl transition-colors cursor-pointer whitespace-nowrap"
+                  className="inline-flex items-center gap-2 bg-background-100 hover:bg-background-200 disabled:opacity-60 text-foreground-800 font-semibold text-sm px-5 py-2.5 rounded-xl transition-colors cursor-pointer whitespace-nowrap border border-background-200"
                 >
                   <i className={saved ? 'ri-bookmark-fill' : 'ri-bookmark-line'}></i>
                   {saved ? 'Saved' : saving ? 'Saving...' : 'Save'}
@@ -311,72 +377,101 @@ export default function PublicTripDetailPage() {
                 <button
                   onClick={handleCopy}
                   disabled={copying}
-                  className="flex-1 md:flex-none inline-flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 disabled:opacity-60 text-white font-semibold text-sm px-6 py-3 rounded-xl transition-colors cursor-pointer whitespace-nowrap"
+                  className="flex-1 inline-flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 disabled:opacity-60 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-colors cursor-pointer"
                 >
-                  <i className="ri-add-line"></i>
+                  <i className="ri-file-copy-line"></i>
                   {copying ? 'Copying...' : 'Copy to My Trip'}
                 </button>
               </div>
 
-              {/* ── Day by Day ── */}
-              <section className="space-y-6 mb-10">
-                <h2 className="font-heading font-bold text-xl text-foreground-900">Itinerary</h2>
+              {/* ── 日程タイムライン（モックアップ準拠） ── */}
+              <div className="space-y-5">
                 {[...trip.days].sort((a, b) => a.day - b.day).map((day) => {
-                  const stay = trip.stays.find((s) => day.day >= s.checkInDay && day.day <= s.checkOutDay);
                   const nonTransport = (day.activities || []).filter((a) => a.type !== 'transport');
                   const transport = (day.activities || []).filter((a) => a.type === 'transport');
+                  const stay = trip.stays.find(
+                    (s) => day.day >= s.checkInDay && day.day <= s.checkOutDay
+                  );
+                  const dayLocation = getDayLocation(day);
 
                   return (
-                    <div key={day.day} className="border border-background-200 rounded-2xl overflow-hidden bg-white">
-                      {/* Day ヘッダー */}
-                      <div className="bg-foreground-900 px-5 py-3 flex items-center justify-between">
-                        <span className="font-heading font-bold text-white text-sm">Day {day.day}</span>
+                    <div key={day.day}>
+                      {/* Day ヘッダー行（モックアップのピル＋エリア表示） */}
+                      <div className="flex items-center gap-3 mb-3">
+                        <span className="bg-background-100 border border-background-200 text-foreground-700 text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap">
+                          Day {day.day}
+                        </span>
+                        {dayLocation && (
+                          <span className="text-foreground-400 text-xs">{dayLocation}</span>
+                        )}
                         {stay && (
-                          <span className="text-white/60 text-xs flex items-center gap-1">
-                            <i className="ri-hotel-line"></i>{stay.hotelName}
+                          <span className="ml-auto text-foreground-400 text-xs flex items-center gap-1 whitespace-nowrap">
+                            <i className="ri-hotel-line"></i>
+                            {stay.hotelName}
                           </span>
                         )}
                       </div>
 
-                      {/* 移動手段 */}
+                      {/* 移動手段（薄いグレーで小さく） */}
                       {transport.map((t, idx) => (
-                        <div key={idx} className="px-5 py-2.5 bg-background-50 border-b border-background-100 flex items-center gap-2 text-xs text-foreground-500">
-                          <i className="ri-train-line text-foreground-400"></i>
-                          <span className="font-medium">{t.title}</span>
-                          {t.description && <span className="text-foreground-400">— {t.description}</span>}
+                        <div
+                          key={idx}
+                          className="flex items-center gap-2 text-xs text-foreground-400 mb-2 pl-1"
+                        >
+                          <i className="ri-train-line flex-shrink-0"></i>
+                          <span>{t.title}</span>
+                          {t.description && (
+                            <span className="text-foreground-300">— {t.description}</span>
+                          )}
                         </div>
                       ))}
 
-                      {/* アクティビティ（タイムライン） */}
-                      <div className="px-5 py-4">
+                      {/* アクティビティ タイムライン */}
+                      <div>
                         {nonTransport.map((act, idx) => {
-                          const imgUrl = act.spotId ? spotImages.get(act.spotId) : undefined;
                           const isLast = idx === nonTransport.length - 1;
+                          const imgUrl = act.spotId ? spotImages.get(act.spotId) : undefined;
+                          const showImg = imgUrl && isUsableImage(imgUrl);
+
                           return (
-                            <div key={idx} className="flex gap-4">
-                              {/* タイムライン縦線 */}
-                              <div className="flex flex-col items-center flex-shrink-0 w-4">
-                                <div className={`w-3 h-3 rounded-full border-2 flex-shrink-0 mt-1 ${idx === 0 ? 'bg-primary-500 border-primary-500' : 'bg-white border-background-300'}`}></div>
-                                {!isLast && <div className="w-px bg-background-200 flex-1 min-h-8 mt-1"></div>}
+                            <div key={idx} className="flex items-start gap-3">
+                              {/* タイムライン（ドット＋縦線） */}
+                              <div className="flex flex-col items-center w-3 flex-shrink-0">
+                                <div
+                                  className={`w-3 h-3 rounded-full flex-shrink-0 mt-1 ${
+                                    idx === 0 ? 'bg-primary-500' : 'bg-background-300 border border-background-300'
+                                  }`}
+                                ></div>
+                                {!isLast && (
+                                  <div className="w-px bg-background-200 flex-1 min-h-6 mt-0.5"></div>
+                                )}
                               </div>
+
                               {/* コンテンツ */}
-                              <div className={`flex-1 min-w-0 ${isLast ? 'pb-2' : 'pb-5'}`}>
+                              <div className={`flex-1 min-w-0 ${isLast ? 'pb-0' : 'pb-4'}`}>
                                 <div className="flex items-start gap-3">
                                   <div className="flex-1 min-w-0">
-                                    {act.time && (
-                                      <span className="text-xs text-foreground-400 font-medium block mb-0.5">{act.time}</span>
-                                    )}
-                                    <h4 className="font-semibold text-sm text-foreground-900 leading-snug">{act.title}</h4>
+                                    <div className="flex items-baseline gap-1.5 flex-wrap">
+                                      {act.time && (
+                                        <span className="text-xs text-foreground-400 whitespace-nowrap">
+                                          {act.time}
+                                        </span>
+                                      )}
+                                      <span className="text-sm font-semibold text-foreground-900">
+                                        {act.title}
+                                      </span>
+                                    </div>
                                     {act.description && (
-                                      <p className="text-xs text-foreground-500 mt-1 leading-relaxed">{act.description}</p>
+                                      <p className="text-xs text-foreground-500 mt-0.5 leading-relaxed">
+                                        {act.description}
+                                      </p>
                                     )}
                                   </div>
-                                  {/* Spot写真（小さなサムネイル） */}
-                                  {imgUrl && (
+                                  {showImg && (
                                     <img
-                                      src={imgUrl}
+                                      src={imgUrl!}
                                       alt={act.title}
-                                      className="w-16 h-16 md:w-20 md:h-20 rounded-lg object-cover flex-shrink-0"
+                                      className="w-14 h-14 rounded-lg object-cover flex-shrink-0"
                                     />
                                   )}
                                 </div>
@@ -388,51 +483,80 @@ export default function PublicTripDetailPage() {
 
                       {/* 食事 */}
                       {(day.meals.breakfast || day.meals.lunch || day.meals.dinner) && (
-                        <div className="border-t border-background-100 px-5 py-3 flex flex-wrap gap-3 text-xs text-foreground-500">
-                          {day.meals.breakfast && <span><span className="font-semibold text-foreground-700">B</span> {day.meals.breakfast.suggestion}</span>}
-                          {day.meals.lunch && <span><span className="font-semibold text-foreground-700">L</span> {day.meals.lunch.suggestion}</span>}
-                          {day.meals.dinner && <span><span className="font-semibold text-foreground-700">D</span> {day.meals.dinner.suggestion}</span>}
+                        <div className="flex flex-wrap gap-3 text-xs text-foreground-400 mt-2 pl-6">
+                          {day.meals.breakfast && (
+                            <span>
+                              <span className="font-semibold text-foreground-600">B</span>{' '}
+                              {day.meals.breakfast.suggestion}
+                            </span>
+                          )}
+                          {day.meals.lunch && (
+                            <span>
+                              <span className="font-semibold text-foreground-600">L</span>{' '}
+                              {day.meals.lunch.suggestion}
+                            </span>
+                          )}
+                          {day.meals.dinner && (
+                            <span>
+                              <span className="font-semibold text-foreground-600">D</span>{' '}
+                              {day.meals.dinner.suggestion}
+                            </span>
+                          )}
                         </div>
                       )}
                     </div>
                   );
                 })}
-              </section>
+              </div>
 
               {/* ── Traveler's Reflection ── */}
               {(trip.reflectionWhatWorked || trip.reflectionWhatToChange) && (
-                <section className="bg-background-100 rounded-xl p-6 mb-10">
-                  <h4 className="font-heading font-semibold text-sm text-foreground-900 mb-3">Traveler's Reflection</h4>
+                <div className="bg-background-100 rounded-xl p-5 mt-8">
+                  <p className="text-xs font-semibold text-foreground-700 uppercase tracking-wider mb-3">
+                    Traveler's Reflection
+                  </p>
                   {trip.reflectionWhatWorked && (
-                    <p className="text-foreground-700 text-sm mb-2">
-                      <span className="font-semibold">What worked well: </span>{trip.reflectionWhatWorked}
+                    <p className="text-sm text-foreground-700 mb-2">
+                      <span className="font-semibold">What worked well: </span>
+                      {trip.reflectionWhatWorked}
                     </p>
                   )}
                   {trip.reflectionWhatToChange && (
-                    <p className="text-foreground-700 text-sm">
-                      <span className="font-semibold">What they'd change: </span>{trip.reflectionWhatToChange}
+                    <p className="text-sm text-foreground-700">
+                      <span className="font-semibold">What they'd change: </span>
+                      {trip.reflectionWhatToChange}
                     </p>
                   )}
-                </section>
+                </div>
               )}
 
-              {/* Bottom CTA */}
-              <div className="bg-primary-50 border border-primary-100 rounded-2xl p-6 text-center mb-10">
-                <p className="font-heading font-bold text-lg text-foreground-900 mb-1">Like this trip?</p>
-                <p className="text-foreground-500 text-sm mb-4">Copy it to My Trip and customize it however you like.</p>
+              {/* ── ボトム CTA ── */}
+              <div className="mt-8 border border-background-200 rounded-2xl p-5 bg-white text-center">
+                <p className="font-heading font-bold text-base text-foreground-900 mb-1">
+                  Like this trip?
+                </p>
+                <p className="text-foreground-500 text-sm mb-4">
+                  Copy it to My Trip and customize it however you like.
+                </p>
                 <button
                   onClick={handleCopy}
                   disabled={copying}
-                  className="inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 disabled:opacity-60 text-white font-semibold text-sm px-8 py-3 rounded-xl transition-colors cursor-pointer"
+                  className="w-full inline-flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 disabled:opacity-60 text-white font-semibold text-sm py-3 rounded-xl transition-colors cursor-pointer"
                 >
                   <i className="ri-add-line"></i>
                   {copying ? 'Copying...' : 'Copy to My Trip'}
                 </button>
+                <p className="text-xs text-foreground-400 mt-2">Then customize it however you like</p>
               </div>
 
-              <Link to="/trips" className="inline-flex items-center gap-2 text-primary-500 hover:text-primary-600 font-semibold text-sm transition-colors">
-                <i className="ri-arrow-left-line"></i>Back to Trips
-              </Link>
+              <div className="mt-8">
+                <Link
+                  to="/trips"
+                  className="inline-flex items-center gap-2 text-primary-500 hover:text-primary-600 font-semibold text-sm transition-colors"
+                >
+                  <i className="ri-arrow-left-line"></i>Back to Trips
+                </Link>
+              </div>
             </div>
           </article>
         );
