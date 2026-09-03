@@ -114,6 +114,12 @@ export default function PublicTripDetailPage() {
     } catch { setActionError('Could not copy this trip.'); setCopying(false); }
   };
 
+  const SAMPLE_IMAGES = [
+    'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=900&q=80',
+    'https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=600&q=80',
+    'https://images.unsplash.com/photo-1480796927426-f609979314bd?w=600&q=80',
+  ];
+
   const getHeaderImages = (trip: PublicTrip): string[] => {
     const result: string[] = [];
     for (const day of trip.days) {
@@ -125,6 +131,10 @@ export default function PublicTripDetailPage() {
         }
         if (result.length >= 3) return result;
       }
+    }
+    // R2写真がない場合はUnsplashのサンプル画像でフォールバック
+    while (result.length < 3) {
+      result.push(SAMPLE_IMAGES[result.length]);
     }
     return result;
   };
@@ -154,27 +164,9 @@ export default function PublicTripDetailPage() {
             {/* Hero - フル幅・Navbarを透過でオーバーレイさせる */}
             <div className="relative" style={{ height: '340px' }}>
               <div className="absolute inset-0 grid gap-0.5" style={{ gridTemplateColumns: '2fr 1fr', gridTemplateRows: '1fr 1fr' }}>
-                {headerImages[0] ? (
-                  <img src={headerImages[0]} alt={trip.title} className="w-full h-full object-cover" style={{ gridRow: '1 / 3' }} />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center" style={{ gridRow: '1 / 3', background: '#0f1a2e' }}>
-                    <i className="ri-map-pin-2-line text-white/10 text-6xl"></i>
-                  </div>
-                )}
-                {headerImages[1] ? (
-                  <img src={headerImages[1]} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center" style={{ background: '#162030' }}>
-                    <i className="ri-landscape-line text-white/10 text-3xl"></i>
-                  </div>
-                )}
-                {headerImages[2] ? (
-                  <img src={headerImages[2]} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center" style={{ background: '#0d1520' }}>
-                    <i className="ri-restaurant-line text-white/10 text-2xl"></i>
-                  </div>
-                )}
+                <img src={headerImages[0]} alt={trip.title} className="w-full h-full object-cover" style={{ gridRow: '1 / 3' }} />
+                <img src={headerImages[1]} alt="" className="w-full h-full object-cover" />
+                <img src={headerImages[2]} alt="" className="w-full h-full object-cover" />
               </div>
               <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(20,28,50,0.92) 0%, rgba(20,28,50,0.3) 55%, transparent 100%)' }}></div>
               <div className="absolute bottom-0 left-0 right-0 px-5 pb-6 max-w-3xl mx-auto">
