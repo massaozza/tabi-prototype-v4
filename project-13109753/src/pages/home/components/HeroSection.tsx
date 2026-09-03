@@ -5,11 +5,12 @@ export default function HeroSection() {
 
   return (
     <section className="relative w-full h-[600px] md:h-[700px] flex items-center overflow-hidden">
+      {/* 背景画像 — Unsplash（日本の風景、R2移行前のフォールバック） */}
       <img
-        src="https://readdy.ai/api/search-image?query=Stunning%20Japanese%20landscape%20with%20Mount%20Fuji%20in%20the%20distance%20visible%20across%20a%20calm%20ocean%20bay%2C%20traditional%20wooden%20temple%20roof%20silhouette%20in%20foreground%2C%20golden%20hour%20warm%20sunlight%20washing%20over%20the%20scene%2C%20cherry%20blossom%20branches%20framing%20the%20edges%2C%20soft%20atmospheric%20haze%2C%20moody%20and%20inviting%20travel%20photography%20aesthetic&width=1600&height=900&seq=hero-japan-01&orientation=landscape"
-        alt="Discover Japan beyond the guidebooks — TABI"
-        title="TABI — Discover Japan Beyond the Guidebooks"
-        className="absolute inset-0 w-full h-full object-cover object-top"
+        src="https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=1600&q=80"
+        alt="Discover Japan beyond the guidebooks — TABI47"
+        title="TABI47 — Discover Japan Beyond the Guidebooks"
+        className="absolute inset-0 w-full h-full object-cover object-center"
       />
       <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/35 to-black/55"></div>
 
@@ -17,15 +18,10 @@ export default function HeroSection() {
         <div className="max-w-3xl mx-auto text-center">
           <div className="flex items-center justify-center gap-3 mb-6">
             <div className="flex -space-x-2">
-              <div className="w-9 h-9 rounded-full border-2 border-white/60 overflow-hidden">
-                <img src="https://readdy.ai/api/search-image?query=Friendly%20traveler%20portrait%20young%20Asian%20woman%20smiling%2C%20clean%20white%20background%2C%20professional%20headshot%20style%2C%20natural%20lighting&width=72&height=72&seq=avatar-01&orientation=squarish" alt="" className="w-full h-full object-cover" />
-              </div>
-              <div className="w-9 h-9 rounded-full border-2 border-white/60 overflow-hidden">
-                <img src="https://readdy.ai/api/search-image?query=Friendly%20male%20traveler%20portrait%20European%20man%20smiling%2C%20clean%20white%20background%2C%20professional%20headshot%20style%2C%20natural%20lighting&width=72&height=72&seq=avatar-02&orientation=squarish" alt="" className="w-full h-full object-cover" />
-              </div>
-              <div className="w-9 h-9 rounded-full border-2 border-white/60 overflow-hidden">
-                <img src="https://readdy.ai/api/search-image?query=Friendly%20female%20traveler%20portrait%20young%20woman%20with%20glasses%20smiling%2C%20clean%20white%20background%2C%20professional%20headshot%20style%2C%20natural%20lighting&width=72&height=72&seq=avatar-03&orientation=squarish" alt="" className="w-full h-full object-cover" />
-              </div>
+              {/* アバター — イニシャルフォールバック（Readdy.ai画像は本番で表示されないため） */}
+              <div className="w-9 h-9 rounded-full border-2 border-white/60 bg-primary-700 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">S</div>
+              <div className="w-9 h-9 rounded-full border-2 border-white/60 bg-primary-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">M</div>
+              <div className="w-9 h-9 rounded-full border-2 border-white/60 bg-primary-800 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">A</div>
             </div>
             <span className="text-white/90 text-sm">Trusted by travelers and locals across Japan</span>
           </div>
