@@ -96,8 +96,7 @@ export default function MyTripDetailPage() {
   const [coverUploading, setCoverUploading] = useState(false);
   const coverInputRef = useRef<HTMLInputElement>(null);
   const [editingTimeValue, setEditingTimeValue] = useState('');
-  const [editingStayDay, setEditingStayDay] = useState<number | null>(null);
-  const [editingStayValue, setEditingStayValue] = useState('');
+  const [editingTransitIdx, setEditingTransitIdx] = useState<string | null>(null);
   const addInputRef = useRef<HTMLInputElement>(null);
 
   // 編集可能なステータス
@@ -119,6 +118,15 @@ export default function MyTripDetailPage() {
           const found = tripJson.trips.find((t: Trip) => t.id === id) ?? null;
           if (!found) { navigate('/my-trip'); return; }
           setTrip(found);
+
+          // transport itemsが含まれていない古いTripを自動で再構築
+          const hasTransport = (found.items || []).some((it: any) => it.itemType === 'transport');
+          const hasActivities = (found.days || []).some((d: any) => (d.activities || []).some((a: any) => a.type === 'transport'));
+          if (!hasTransport && hasActivities) {
+            fetch(`/api/trips?id=${encodeURIComponent(found.id)}&action=rebuildItemsFromDays`, {
+              method: 'PATCH', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}),
+            }).then((r) => r.json()).then((data) => { if (data?.trip && !cancelled) setTrip(data.trip); }).catch(() => {});
+          }
         }
         if (Array.isArray(destJson?.data)) {
           const map = new Map<string, Destination>();
@@ -154,6 +162,60 @@ export default function MyTripDetailPage() {
       setTravelMode(true);
       setCurrentTravelDay(1);
     } catch { /* silent */ }
+  };
+
+  // 移動手段をitemsに追加（既存のtransport itemを更新、なければ新規追加）
+  const TRANSIT_OPTIONS = [
+    { mode: 'walk', label: 'Walk', icon: 'ri-walk-line' },
+    { mode: 'train', label: 'Train / Subway', icon: 'ri-train-line' },
+    { mode: 'bus', label: 'Bus', icon: 'ri-bus-line' },
+    { mode: 'taxi', label: 'Taxi', icon: 'ri-taxi-line' },
+    { mode: 'car', label: 'Car', icon: 'ri-car-line' },
+    { mode: 'other', label: 'Other', icon: 'ri-navigation-line' },
+  ];
+
+  const TRANSIT_LABELS: Record<string, string> = {
+    walk: 'Walk to next stop',
+    train: 'Take train / subway',
+    bus: 'Take bus',
+    taxi: 'Take taxi',
+    car: 'Drive',
+    other: 'Move to next stop',
+  };
+
+  const handleSetTransit = async (fromItemId: string, mode: string, dayNum: number, order: number) => {
+    if (!trip) return;
+    const title = TRANSIT_LABELS[mode] || 'Move to next stop';
+    // 既存のtransportアイテムを確認（from itemの直後のtransport）
+    const dayItems = (trip.items || [])
+      .filter((it) => (it.day || 1) === dayNum && it.planLevel !== 'saved')
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+    const fromIdx = dayItems.findIndex((it) => it.id === fromItemId);
+    const nextItem = fromIdx >= 0 ? dayItems[fromIdx + 1] : null;
+    const existingTransport = nextItem?.itemType === 'transport' ? nextItem : null;
+
+    if (existingTransport) {
+      // 既存のtransport itemを更新
+      const data = await callTripAction(trip.id, 'updateItem', {
+        itemId: existingTransport.id,
+        title,
+        description: mode,
+      });
+      if (data?.trip) setTrip(data.trip);
+    } else {
+      // 新規transportアイテムをfromItemの直後に挿入
+      const data = await callTripAction(trip.id, 'addItem', {
+        title,
+        description: mode,
+        itemType: 'transport',
+        planLevel: 'day_assigned',
+        day: dayNum,
+        order: order + 0.5, // from itemの直後
+        status: 'planned',
+      });
+      if (data?.trip) setTrip(data.trip);
+    }
+    setEditingTransitIdx(null);
   };
 
   // Mealを削除
@@ -563,9 +625,21 @@ export default function MyTripDetailPage() {
                           const visited = visitedIds.has(item.id);
                           const isBusy = busyItemId === item.id;
                           const mapsUrl = `https://www.google.com/maps/search/${encodeURIComponent(item.title)}`;
-                          const transportAfter = getTransportBetween(idx);
-                          // itemsにtransportカテゴリがある場合は移動手段として表示
                           const isTransportItem = item.itemType === 'transport';
+                          const nextItem = dayItems[idx + 1];
+                          // transport itemが明示されていない場合、スポット→スポット間に自動で移動帯を表示
+                          // ただしtransport itemの前後には挟まない
+                          const showAutoTransit =
+                            !isTransportItem &&
+                            nextItem &&
+                            nextItem.itemType !== 'transport' &&
+                            !transports.some((t) => {
+                              const activities = currentDay?.activities || [];
+                              const ci = activities.findIndex((a) => a.title === item.title);
+                              const ni = activities.findIndex((a) => a.title === nextItem.title);
+                              return ci !== -1 && ni !== -1 && t === activities[ci + 1];
+                            });
+                          const transportBetween = getTransportBetween(idx);
 
                           // transportカテゴリのitemは移動手段帯として表示
                           if (isTransportItem) {
@@ -621,16 +695,47 @@ export default function MyTripDetailPage() {
                               </a>
                             </div>
 
-                            {/* 移動手段（スポット間） */}
-                            {transportAfter && (
-                              <div className="flex items-center gap-2.5 px-4 py-2 bg-background-50 border-t border-b border-background-100">
-                                <i className="ri-train-line text-foreground-400 text-sm flex-shrink-0"></i>
-                                <div className="min-w-0">
-                                  <p className="text-xs font-medium text-foreground-600 truncate">{transportAfter.title}</p>
-                                  {transportAfter.description && (
-                                    <p className="text-xs text-foreground-400 truncate">{transportAfter.description}</p>
-                                  )}
-                                </div>
+                            {/* 移動手段（スポット間） — 明示データがあればそれを、なければ自動で表示 */}
+                            {(transportBetween || showAutoTransit) && (
+                              <div>
+                                {/* 移動帯本体（タップで選択UI展開） */}
+                                <button
+                                  onClick={() => setEditingTransitIdx(editingTransitIdx === item.id ? null : item.id)}
+                                  className="w-full flex items-center gap-2.5 px-4 py-2 bg-background-50 border-t border-b border-background-100 hover:bg-background-100 transition-colors cursor-pointer text-left"
+                                >
+                                  <i className={`text-foreground-400 text-sm flex-shrink-0 ${
+                                    transportBetween?.description === 'walk' || transportBetween?.title?.includes('歩') ? 'ri-walk-line' :
+                                    transportBetween?.description === 'train' || transportBetween?.title?.includes('電') || transportBetween?.title?.includes('電車') || transportBetween?.title?.includes('Train') ? 'ri-train-line' :
+                                    transportBetween?.description === 'bus' || transportBetween?.title?.includes('バス') ? 'ri-bus-line' :
+                                    transportBetween?.description === 'taxi' || transportBetween?.title?.includes('タクシー') ? 'ri-taxi-line' :
+                                    transportBetween?.description === 'car' || transportBetween?.title?.includes('車') ? 'ri-car-line' :
+                                    'ri-arrow-down-line'
+                                  }`}></i>
+                                  <span className="text-xs font-medium text-foreground-600 flex-1 truncate">
+                                    {transportBetween?.title || 'Move to next stop'}
+                                  </span>
+                                  <i className="ri-pencil-line text-foreground-300 text-xs flex-shrink-0"></i>
+                                </button>
+
+                                {/* 移動手段選択UI */}
+                                {editingTransitIdx === item.id && (
+                                  <div className="bg-white border-b border-background-200 px-4 py-3">
+                                    <p className="text-xs font-bold text-foreground-500 uppercase tracking-wider mb-2">Choose transport</p>
+                                    <div className="grid grid-cols-3 gap-2">
+                                      {TRANSIT_OPTIONS.map((opt) => (
+                                        <button
+                                          key={opt.mode}
+                                          onClick={() => handleSetTransit(item.id, opt.mode, currentTravelDay, item.order ?? idx)}
+                                          className="flex flex-col items-center gap-1 py-2.5 px-2 bg-background-50 border border-background-200 rounded-xl hover:border-primary-400 hover:bg-primary-50 hover:text-primary-700 transition-colors cursor-pointer"
+                                        >
+                                          <i className={`${opt.icon} text-lg text-foreground-500`}></i>
+                                          <span className="text-xs font-medium text-foreground-600 text-center leading-tight">{opt.label}</span>
+                                        </button>
+                                      ))}
+                                    </div>
+                                    <button onClick={() => setEditingTransitIdx(null)} className="mt-2 text-xs text-foreground-400 hover:text-foreground-600 cursor-pointer w-full text-center py-1">Cancel</button>
+                                  </div>
+                                )}
                               </div>
                             )}
                           </div>
