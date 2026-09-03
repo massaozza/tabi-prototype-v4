@@ -161,6 +161,17 @@ export interface Trip {
   reflectionWhatWorked?: string;
   reflectionWhatToChange?: string;
 
+  // TABI47：パンフレット風カード表示に必要なCreatorが設定するメタ情報。
+  // highlights … カードに表示するハイライト（英語、最大3点）
+  // tags       … 旅行スタイルタグ（Solo / Couple / Family / Culture / Food ...）
+  // budgetMin/Max … 予算目安（円/人）
+  // authorName … Creator表示名
+  highlights?: string[];
+  tags?: string[];
+  budgetMin?: number;
+  budgetMax?: number;
+  authorName?: string;
+
   isPublic: boolean;
   copiedFromTripId?: string;
   copyCount: number;
@@ -548,6 +559,11 @@ export default async function handler(req: Request): Promise<Response> {
       isFirstVisit?: boolean;
       budgetLevel?: string;
       tripType?: 'recommended' | 'actual';
+      highlights?: string[];
+      tags?: string[];
+      budgetMin?: number;
+      budgetMax?: number;
+      authorName?: string;
     };
     try {
       body = await req.json();
@@ -582,6 +598,15 @@ export default async function handler(req: Request): Promise<Response> {
       isFirstVisit: typeof body.isFirstVisit === 'boolean' ? body.isFirstVisit : undefined,
       budgetLevel: body.budgetLevel?.trim() || undefined,
       totalDays: days.length,
+      highlights: Array.isArray(body.highlights)
+        ? body.highlights.map((h) => String(h).trim()).filter(Boolean).slice(0, 3)
+        : undefined,
+      tags: Array.isArray(body.tags)
+        ? body.tags.map((t) => String(t).trim()).filter(Boolean)
+        : undefined,
+      budgetMin: typeof body.budgetMin === 'number' ? body.budgetMin : undefined,
+      budgetMax: typeof body.budgetMax === 'number' ? body.budgetMax : undefined,
+      authorName: body.authorName?.trim() || undefined,
       isPublic: false,
       copyCount: 0,
       saveCount: 0,
