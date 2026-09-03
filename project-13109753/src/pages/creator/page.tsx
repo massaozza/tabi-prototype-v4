@@ -69,7 +69,7 @@ export default function CreatorPublicProfilePage() {
 
   return (
     <main className="min-h-screen bg-background-50">
-      <Navbar variant="dark" />
+      <Navbar />
 
       {/* ── ダークネイビーヒーロー ── */}
       <div style={{ background: '#1e2540', paddingTop: '110px', paddingBottom: '32px' }}>
