@@ -963,7 +963,7 @@ export default function MyTripDetailPage() {
               </div>
 
               {/* /通常表示 */}
-              )}
+              </>)}
 
               <div className="mt-6">
                 <Link to="/my-trip" className="inline-flex items-center gap-2 text-primary-500 hover:text-primary-600 font-semibold text-sm transition-colors">
