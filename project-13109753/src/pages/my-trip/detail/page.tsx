@@ -89,6 +89,7 @@ export default function MyTripDetailPage() {
   const [editMode, setEditMode] = useState(false);
   const [addingToDay, setAddingToDay] = useState<number | null>(null);
   const [newSpotTitle, setNewSpotTitle] = useState('');
+  const [assigningItemId, setAssigningItemId] = useState<string | null>(null);
   const [editingTimeItemId, setEditingTimeItemId] = useState<string | null>(null);
   const [editingTimeValue, setEditingTimeValue] = useState('');
   const [editingStayDay, setEditingStayDay] = useState<number | null>(null);
@@ -170,6 +171,19 @@ export default function MyTripDetailPage() {
     if (data?.trip) setTrip(data.trip);
     setNewSpotTitle('');
     setAddingToDay(null);
+  };
+
+  // Saved for TripのitemをDayに割り当てる
+  const handleAssignToDay = async (item: TripItem, dayNum: number) => {
+    if (!trip) return;
+    setBusyItemId(item.id);
+    const data = await callTripAction(trip.id, 'updateItem', {
+      itemId: item.id,
+      planLevel: 'day_assigned',
+      day: dayNum,
+    });
+    if (data?.trip) setTrip(data.trip);
+    setBusyItemId(null);
   };
 
   // 時刻を更新
@@ -317,29 +331,62 @@ export default function MyTripDetailPage() {
                     <div className="divide-y divide-background-100">
                       {savedItems.map((item) => {
                         const catStyle = getCatStyle(item.itemType);
+                        const dayCount = (trip.days || []).length;
+                        const isAssigning = assigningItemId === item.id;
+                        const isBusy = busyItemId === item.id;
                         return (
-                          <div key={item.id} className="flex items-center gap-3 px-4 py-3">
-                            {item.imageUrl ? (
-                              <img src={item.imageUrl} alt={item.title} className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
-                            ) : (
-                              <div className="w-10 h-10 rounded-lg bg-background-100 flex items-center justify-center flex-shrink-0">
-                                <i className="ri-map-pin-line text-foreground-400 text-sm"></i>
+                          <div key={item.id} className="px-4 py-3">
+                            <div className="flex items-center gap-3">
+                              {item.imageUrl ? (
+                                <img src={item.imageUrl} alt={item.title} className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
+                              ) : (
+                                <div className="w-10 h-10 rounded-lg bg-background-100 flex items-center justify-center flex-shrink-0">
+                                  <i className="ri-map-pin-line text-foreground-400 text-sm"></i>
+                                </div>
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-semibold text-foreground-900 truncate">{item.title}</p>
+                                {catStyle && (
+                                  <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-full inline-block mt-0.5 ${catStyle.bg} ${catStyle.text}`}>{catStyle.label}</span>
+                                )}
                               </div>
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-semibold text-foreground-900 truncate">{item.title}</p>
-                              {catStyle && (
-                                <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-full inline-block mt-0.5 ${catStyle.bg} ${catStyle.text}`}>{catStyle.label}</span>
+                              {/* Assign / 削除ボタン */}
+                              <button
+                                onClick={() => setAssigningItemId(isAssigning ? null : item.id)}
+                                disabled={isBusy}
+                                className="text-xs font-semibold text-primary-600 bg-primary-50 hover:bg-primary-100 border border-primary-200 px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer flex-shrink-0 flex items-center gap-1"
+                              >
+                                <i className="ri-calendar-line text-xs"></i>
+                                Add to day
+                              </button>
+                              {editMode && (
+                                <button
+                                  onClick={() => handleRemoveItem(item)}
+                                  disabled={isBusy}
+                                  className="w-7 h-7 flex items-center justify-center bg-background-50 border border-background-200 rounded-lg text-foreground-300 hover:bg-red-50 hover:border-red-200 hover:text-red-500 disabled:opacity-20 transition-colors cursor-pointer flex-shrink-0"
+                                >
+                                  <i className="ri-delete-bin-line text-sm"></i>
+                                </button>
                               )}
                             </div>
-                            {editMode && (
-                              <button
-                                onClick={() => handleRemoveItem(item)}
-                                disabled={busyItemId === item.id}
-                                className="w-7 h-7 flex items-center justify-center bg-background-50 border border-background-200 rounded-lg text-foreground-300 hover:bg-red-50 hover:border-red-200 hover:text-red-500 disabled:opacity-20 transition-colors cursor-pointer flex-shrink-0"
-                              >
-                                <i className="ri-delete-bin-line text-sm"></i>
-                              </button>
+                            {/* Day選択ドロップダウン */}
+                            {isAssigning && (
+                              <div className="flex items-center gap-2 mt-2 pl-13">
+                                <span className="text-xs text-foreground-500">Assign to:</span>
+                                <div className="flex flex-wrap gap-1.5">
+                                  {Array.from({ length: dayCount }, (_, i) => i + 1).map((d) => (
+                                    <button
+                                      key={d}
+                                      onClick={() => { handleAssignToDay(item, d); setAssigningItemId(null); }}
+                                      disabled={isBusy}
+                                      className="text-xs font-semibold px-2.5 py-1 bg-white border border-background-200 hover:border-primary-400 hover:bg-primary-50 hover:text-primary-700 rounded-lg transition-colors cursor-pointer"
+                                    >
+                                      Day {d}
+                                    </button>
+                                  ))}
+                                </div>
+                                <button onClick={() => setAssigningItemId(null)} className="text-xs text-foreground-400 hover:text-foreground-600 cursor-pointer ml-1">Cancel</button>
+                              </div>
                             )}
                           </div>
                         );
