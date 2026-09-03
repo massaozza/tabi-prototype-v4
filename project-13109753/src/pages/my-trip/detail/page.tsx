@@ -498,6 +498,27 @@ export default function MyTripDetailPage() {
                 const currentDay = days.find((d) => d.day === currentTravelDay);
                 const stay = (trip.stays || []).find((s) => currentTravelDay >= s.checkInDay && currentTravelDay <= s.checkOutDay);
 
+                // days[].activitiesから移動手段を抽出してtitleで索引化
+                // アイテムとアイテムの間に対応する移動手段を挟む
+                const transports = (currentDay?.activities || []).filter((a) => a.type === 'transport');
+
+                // itemsの順番に沿って「スポット→移動手段→スポット」を構築
+                // daysのactivities（非transport）とitemsのtitleを対応させて
+                // 移動手段を適切な位置に差し込む
+                const nonTransportActivities = (currentDay?.activities || []).filter((a) => a.type !== 'transport');
+                const getTransportAfter = (idx: number): TripActivity | undefined => {
+                  // days.activitiesの非transport項目とitemsを対応させ、
+                  // その直後にtransportがあればそれを返す
+                  const actIdx = nonTransportActivities.findIndex((a) => a.title === dayItems[idx]?.title);
+                  if (actIdx === -1) return undefined;
+                  // activities配列上でこの非transport項目の直後にtransportがあるか探す
+                  const activities = currentDay?.activities || [];
+                  const realIdx = activities.findIndex((a) => a.title === nonTransportActivities[actIdx].title);
+                  if (realIdx === -1) return undefined;
+                  const next = activities[realIdx + 1];
+                  return next?.type === 'transport' ? next : undefined;
+                };
+
                 return (
                   <div className="mb-6">
                     {/* Day selector */}
@@ -528,16 +549,16 @@ export default function MyTripDetailPage() {
                         {dayItems.length === 0 && (
                           <p className="text-xs text-foreground-300 italic px-4 py-4 text-center">No spots for this day yet</p>
                         )}
-                        {dayItems.map((item) => {
+                        {dayItems.map((item, idx) => {
                           const visited = visitedIds.has(item.id);
                           const isBusy = busyItemId === item.id;
                           const dest = item.spotId ? spotData.get(item.spotId) : undefined;
-                          const mapsUrl = dest
-                            ? `https://www.google.com/maps/search/${encodeURIComponent(item.title)}`
-                            : `https://www.google.com/maps/search/${encodeURIComponent(item.title)}`;
+                          const mapsUrl = `https://www.google.com/maps/search/${encodeURIComponent(item.title)}`;
+                          const transportAfter = getTransportAfter(idx);
 
                           return (
-                            <div key={item.id} className={`flex items-center gap-3 px-4 py-3 transition-colors ${visited ? 'bg-green-50' : ''}`}>
+                            <div key={item.id}>
+                              <div className={`flex items-center gap-3 px-4 py-3 transition-colors ${visited ? 'bg-green-50' : ''}`}>
                               {/* チェックボタン */}
                               <button
                                 onClick={() => !visited && handleMarkVisited(item.id)}
@@ -574,6 +595,20 @@ export default function MyTripDetailPage() {
                                 <i className="ri-map-pin-line text-sm"></i>
                               </a>
                             </div>
+
+                            {/* 移動手段（スポット間） */}
+                            {transportAfter && (
+                              <div className="flex items-center gap-2.5 px-4 py-2 bg-background-50 border-t border-b border-background-100">
+                                <i className="ri-train-line text-foreground-400 text-sm flex-shrink-0"></i>
+                                <div className="min-w-0">
+                                  <p className="text-xs font-medium text-foreground-600 truncate">{transportAfter.title}</p>
+                                  {transportAfter.description && (
+                                    <p className="text-xs text-foreground-400 truncate">{transportAfter.description}</p>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </div>
                           );
                         })}
                       </div>
