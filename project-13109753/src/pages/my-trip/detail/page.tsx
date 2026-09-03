@@ -130,6 +130,19 @@ export default function MyTripDetailPage() {
     return () => { cancelled = true; };
   }, [id, user, navigate]);
 
+  // Mealを削除
+  const handleRemoveMeal = async (mealId: string) => {
+    if (!trip) return;
+    try {
+      const res = await fetch(
+        `/api/trips?id=${encodeURIComponent(trip.id)}&action=removeMeal`,
+        { method: 'PATCH', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mealId }) }
+      );
+      const data = await res.json();
+      if (data?.trip) setTrip(data.trip);
+    } catch { /* silent */ }
+  };
+
   // 予約状況をBookedにマーク
   const [pendingBookingId, setPendingBookingId] = useState<string | null>(null);
   const [bookingErrors, setBookingErrors] = useState<Record<string, string>>({});
@@ -673,6 +686,9 @@ export default function MyTripDetailPage() {
                                 <span className="text-xs font-bold text-orange-700 w-4 flex-shrink-0">B</span>
                                 <span className="text-sm font-semibold text-foreground-900 flex-1 min-w-0">{day.meals.breakfast.suggestion}</span>
                                 {renderBookingControl((day.meals.breakfast as any).status, day.meals.breakfast.id)}
+                                {editMode && (
+                                  <button onClick={() => handleRemoveMeal(day.meals.breakfast!.id)} className="w-7 h-7 flex items-center justify-center bg-background-50 border border-background-200 rounded-lg text-foreground-300 hover:bg-red-50 hover:border-red-200 hover:text-red-500 transition-colors cursor-pointer flex-shrink-0"><i className="ri-delete-bin-line text-sm"></i></button>
+                                )}
                                 {bookingErrors[day.meals.breakfast.id] && <p className="text-red-500 text-xs w-full pl-6">{bookingErrors[day.meals.breakfast.id]}</p>}
                               </div>
                             )}
@@ -681,6 +697,9 @@ export default function MyTripDetailPage() {
                                 <span className="text-xs font-bold text-orange-700 w-4 flex-shrink-0">L</span>
                                 <span className="text-sm font-semibold text-foreground-900 flex-1 min-w-0">{day.meals.lunch.suggestion}</span>
                                 {renderBookingControl((day.meals.lunch as any).status, day.meals.lunch.id)}
+                                {editMode && (
+                                  <button onClick={() => handleRemoveMeal(day.meals.lunch!.id)} className="w-7 h-7 flex items-center justify-center bg-background-50 border border-background-200 rounded-lg text-foreground-300 hover:bg-red-50 hover:border-red-200 hover:text-red-500 transition-colors cursor-pointer flex-shrink-0"><i className="ri-delete-bin-line text-sm"></i></button>
+                                )}
                                 {bookingErrors[day.meals.lunch.id] && <p className="text-red-500 text-xs w-full pl-6">{bookingErrors[day.meals.lunch.id]}</p>}
                               </div>
                             )}
@@ -689,6 +708,9 @@ export default function MyTripDetailPage() {
                                 <span className="text-xs font-bold text-orange-700 w-4 flex-shrink-0">D</span>
                                 <span className="text-sm font-semibold text-foreground-900 flex-1 min-w-0">{day.meals.dinner.suggestion}</span>
                                 {renderBookingControl((day.meals.dinner as any).status, day.meals.dinner.id)}
+                                {editMode && (
+                                  <button onClick={() => handleRemoveMeal(day.meals.dinner!.id)} className="w-7 h-7 flex items-center justify-center bg-background-50 border border-background-200 rounded-lg text-foreground-300 hover:bg-red-50 hover:border-red-200 hover:text-red-500 transition-colors cursor-pointer flex-shrink-0"><i className="ri-delete-bin-line text-sm"></i></button>
+                                )}
                                 {bookingErrors[day.meals.dinner.id] && <p className="text-red-500 text-xs w-full pl-6">{bookingErrors[day.meals.dinner.id]}</p>}
                               </div>
                             )}
