@@ -91,6 +91,8 @@ export default function MyTripDetailPage() {
   const [newSpotTitle, setNewSpotTitle] = useState('');
   const [assigningItemId, setAssigningItemId] = useState<string | null>(null);
   const [editingTimeItemId, setEditingTimeItemId] = useState<string | null>(null);
+  const [coverUploading, setCoverUploading] = useState(false);
+  const coverInputRef = useRef<HTMLInputElement>(null);
   const [editingTimeValue, setEditingTimeValue] = useState('');
   const [editingStayDay, setEditingStayDay] = useState<number | null>(null);
   const [editingStayValue, setEditingStayValue] = useState('');
@@ -127,6 +129,30 @@ export default function MyTripDetailPage() {
     fetchData();
     return () => { cancelled = true; };
   }, [id, user, navigate]);
+
+  // カバー写真をR2にアップロードしてTripに保存
+  const handleCoverUpload = async (file: File) => {
+    if (!trip) return;
+    setCoverUploading(true);
+    try {
+      const urlRes = await fetch('/api/upload-url', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contentType: file.type, fileSize: file.size }),
+      });
+      const { uploadUrl, publicUrl } = await urlRes.json();
+      if (!uploadUrl) throw new Error('Failed to get upload URL');
+      await fetch(uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
+      const res = await fetch(
+        `/api/trips?id=${encodeURIComponent(trip.id)}&action=setCoverImage`,
+        { method: 'PATCH', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ coverImageUrl: publicUrl }) }
+      );
+      const data = await res.json();
+      if (data?.trip) setTrip(data.trip);
+    } catch { /* silent */ }
+    finally { setCoverUploading(false); }
+  };
 
   // itemを削除
   const handleRemoveItem = async (item: TripItem) => {
@@ -224,7 +250,11 @@ export default function MyTripDetailPage() {
   };
 
   const getHeaderImages = (trip: Trip): string[] => {
+    // coverImageUrlがあれば最初に使う
     const result: string[] = [];
+    if (trip.coverImageUrl && isUsableImage(trip.coverImageUrl)) {
+      result.push(trip.coverImageUrl);
+    }
     for (const day of trip.days || []) {
       for (const act of day.activities || []) {
         if (act.type === 'transport') continue;
@@ -270,6 +300,27 @@ export default function MyTripDetailPage() {
                 <img src={headerImages[2]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
               </div>
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(10,18,40,0.55) 0%, rgba(10,18,40,0.0) 30%, rgba(10,18,40,0.0) 45%, rgba(10,18,40,0.88) 100%)' }}></div>
+
+              {/* 編集モード時：写真変更ボタン */}
+              {editMode && (
+                <div style={{ position: 'absolute', top: '12px', right: '12px' }}>
+                  <input
+                    ref={coverInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="hidden"
+                    onChange={(e) => { const file = e.target.files?.[0]; if (file) handleCoverUpload(file); e.target.value = ''; }}
+                  />
+                  <button
+                    onClick={() => coverInputRef.current?.click()}
+                    disabled={coverUploading}
+                    className="inline-flex items-center gap-1.5 bg-black/50 hover:bg-black/70 text-white text-xs font-semibold px-3 py-1.5 rounded-lg backdrop-blur-sm transition-colors cursor-pointer disabled:opacity-60"
+                  >
+                    <i className={coverUploading ? 'ri-loader-4-line animate-spin' : 'ri-camera-line'}></i>
+                    {coverUploading ? 'Uploading...' : 'Change photo'}
+                  </button>
+                </div>
+              )}
               <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '0 20px 20px', maxWidth: '768px', margin: '0 auto' }}>
                 <div className="flex flex-wrap gap-1.5 mb-2">
                   <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${statusBadge.color}`}>{statusBadge.label}</span>
