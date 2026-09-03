@@ -15,6 +15,7 @@ import NewExperiencePage from "../pages/experiences/new/page";
 import ExperienceDetailPage from "../pages/experiences/detail/page";
 import ExperiencesPage from "../pages/experiences/page";
 import MyTripPage from "../pages/my-trip/page";
+import MyTripDetailPage from "../pages/my-trip/detail/page";
 import PublicTripsPage from "../pages/trips/page";
 import PublicTripDetailPage from "../pages/trips/detail/page";
 import { AdminAuthProvider } from "../pages/admin/components/AdminAuth";
@@ -142,6 +143,10 @@ const routes: RouteObject[] = [
   {
     path: "/my-trip",
     element: <MyTripPage />,
+  },
+  {
+    path: "/my-trip/:id",
+    element: <MyTripDetailPage />,
   },
   {
     path: "/creator/:userId",
