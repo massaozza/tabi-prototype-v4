@@ -28,6 +28,13 @@ interface DayDraft {
   spots: SpotEntry[];
 }
 
+const STYLE_TAGS = [
+  'Solo', 'Couple', 'Family', 'Friends',
+  'Culture', 'Food', 'Nature', 'Shopping',
+  'Budget', 'Mid-range', 'Luxury',
+  'Active', 'Relaxed',
+];
+
 function emptySpot(): SpotEntry {
   return { name: '', spotId: undefined, note: '' };
 }
@@ -46,6 +53,11 @@ export default function NewRecommendedTripPage() {
   const [title, setTitle] = useState('');
   const [summary, setSummary] = useState('');
   const [days, setDays] = useState<DayDraft[]>([emptyDay()]);
+  const [highlights, setHighlights] = useState<string[]>(['', '', '']);
+  const [tags, setTags] = useState<string[]>([]);
+  const [budgetMin, setBudgetMin] = useState('');
+  const [budgetMax, setBudgetMax] = useState('');
+  const [authorName, setAuthorName] = useState('');
   const [spotOptions, setSpotOptions] = useState<SpotOption[]>(fallbackDestinations);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -145,6 +157,11 @@ export default function NewRecommendedTripPage() {
           days: builtDays,
           stays: [],
           tripType: 'recommended',
+          highlights: highlights.map((h) => h.trim()).filter(Boolean),
+          tags,
+          budgetMin: budgetMin ? parseInt(budgetMin, 10) : undefined,
+          budgetMax: budgetMax ? parseInt(budgetMax, 10) : undefined,
+          authorName: authorName.trim() || undefined,
         }),
       });
       const data = await res.json();
@@ -219,6 +236,101 @@ export default function NewRecommendedTripPage() {
                   rows={2}
                   placeholder="この旅程がどんな人におすすめか、簡単に書いてください"
                   className={`${inputClass} resize-none`}
+                />
+              </div>
+
+              {/* ハイライト（英語・最大3点） */}
+              <div>
+                <label className="block font-heading font-semibold text-sm text-foreground-700 mb-1">
+                  ハイライト（英語・最大3点）
+                </label>
+                <p className="text-xs text-foreground-400 mb-2">
+                  カードに表示する見どころを英語で。例：Sunrise hike at Fushimi Inari
+                </p>
+                <div className="space-y-2">
+                  {highlights.map((h, i) => (
+                    <input
+                      key={i}
+                      type="text"
+                      value={h}
+                      onChange={(e) =>
+                        setHighlights((prev) => prev.map((v, idx) => (idx === i ? e.target.value : v)))
+                      }
+                      placeholder={`ハイライト ${i + 1}`}
+                      className={inputClass}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* 旅行スタイルタグ */}
+              <div>
+                <label className="block font-heading font-semibold text-sm text-foreground-700 mb-2">
+                  旅行スタイル（複数選択可）
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {STYLE_TAGS.map((tag) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() =>
+                        setTags((prev) =>
+                          prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+                        )
+                      }
+                      className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition-colors cursor-pointer ${
+                        tags.includes(tag)
+                          ? 'bg-primary-600 text-white border-primary-600'
+                          : 'bg-background-50 text-foreground-600 border-background-200 hover:border-primary-300'
+                      }`}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 予算目安 */}
+              <div>
+                <label className="block font-heading font-semibold text-sm text-foreground-700 mb-1">
+                  予算目安（1人あたり・円）
+                </label>
+                <p className="text-xs text-foreground-400 mb-2">例：最低8000円〜最高15000円/日</p>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="number"
+                    value={budgetMin}
+                    onChange={(e) => setBudgetMin(e.target.value)}
+                    placeholder="最低額（例：8000）"
+                    className={inputClass}
+                    min={0}
+                  />
+                  <span className="text-foreground-400 flex-shrink-0">〜</span>
+                  <input
+                    type="number"
+                    value={budgetMax}
+                    onChange={(e) => setBudgetMax(e.target.value)}
+                    placeholder="最高額（例：15000）"
+                    className={inputClass}
+                    min={0}
+                  />
+                </div>
+              </div>
+
+              {/* Creator表示名 */}
+              <div>
+                <label className="block font-heading font-semibold text-sm text-foreground-700 mb-1">
+                  表示名（英語）
+                </label>
+                <p className="text-xs text-foreground-400 mb-2">
+                  カードに表示されます。例：Keiko · Kyoto local
+                </p>
+                <input
+                  type="text"
+                  value={authorName}
+                  onChange={(e) => setAuthorName(e.target.value)}
+                  placeholder="例：Keiko · Kyoto local"
+                  className={inputClass}
                 />
               </div>
 
