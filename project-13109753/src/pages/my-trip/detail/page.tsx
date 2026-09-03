@@ -130,6 +130,65 @@ export default function MyTripDetailPage() {
     return () => { cancelled = true; };
   }, [id, user, navigate]);
 
+  // 予約状況をBookedにマーク
+  const [pendingBookingId, setPendingBookingId] = useState<string | null>(null);
+  const [bookingErrors, setBookingErrors] = useState<Record<string, string>>({});
+
+  const handleMarkBooked = async (targetId: string) => {
+    if (!trip) return;
+    setPendingBookingId(targetId);
+    setBookingErrors((prev) => { const next = { ...prev }; delete next[targetId]; return next; });
+    try {
+      const res = await fetch(`/api/trips?id=${encodeURIComponent(trip.id)}`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetId, status: 'booked' }),
+      });
+      if (!res.ok) throw new Error('Failed to update');
+      // ローカル状態を更新（stays・mealsのstatusをbookedに）
+      setTrip((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          stays: prev.stays.map((s) => s.id === targetId ? { ...s, status: 'booked' as const } : s),
+          days: prev.days.map((d) => ({
+            ...d,
+            meals: {
+              breakfast: d.meals?.breakfast?.id === targetId ? { ...d.meals.breakfast, status: 'booked' as const } : d.meals?.breakfast,
+              lunch: d.meals?.lunch?.id === targetId ? { ...d.meals.lunch, status: 'booked' as const } : d.meals?.lunch,
+              dinner: d.meals?.dinner?.id === targetId ? { ...d.meals.dinner, status: 'booked' as const } : d.meals?.dinner,
+            },
+          })),
+        };
+      });
+    } catch {
+      setBookingErrors((prev) => ({ ...prev, [targetId]: 'Could not mark as booked.' }));
+    } finally {
+      setPendingBookingId(null);
+    }
+  };
+
+  const renderBookingControl = (status: string | undefined, targetId: string) => {
+    if (status === 'booked') {
+      return (
+        <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 rounded-full px-2.5 py-1 whitespace-nowrap flex-shrink-0">
+          <i className="ri-check-line"></i>Booked
+        </span>
+      );
+    }
+    const isPending = pendingBookingId === targetId;
+    return (
+      <button
+        onClick={() => handleMarkBooked(targetId)}
+        disabled={isPending}
+        className="text-xs font-semibold border border-background-200 text-foreground-600 hover:bg-background-100 px-2.5 py-1 rounded-lg transition-colors cursor-pointer disabled:opacity-60 whitespace-nowrap flex-shrink-0"
+      >
+        {isPending ? 'Saving...' : 'Mark booked'}
+      </button>
+    );
+  };
+
   // カバー写真をR2にアップロードしてTripに保存
   const handleCoverUpload = async (file: File) => {
     if (!trip) return;
@@ -610,24 +669,27 @@ export default function MyTripDetailPage() {
                           </p>
                           <div className="space-y-2">
                             {day.meals.breakfast && (
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 flex-wrap">
                                 <span className="text-xs font-bold text-orange-700 w-4 flex-shrink-0">B</span>
-                                <span className="text-sm font-semibold text-foreground-900 flex-1">{day.meals.breakfast.suggestion}</span>
-                                <button className="w-7 h-7 flex items-center justify-center bg-background-50 border border-background-200 rounded-lg text-foreground-300 hover:bg-red-50 hover:border-red-200 hover:text-red-500 transition-colors cursor-pointer"><i className="ri-delete-bin-line text-sm"></i></button>
+                                <span className="text-sm font-semibold text-foreground-900 flex-1 min-w-0">{day.meals.breakfast.suggestion}</span>
+                                {renderBookingControl((day.meals.breakfast as any).status, day.meals.breakfast.id)}
+                                {bookingErrors[day.meals.breakfast.id] && <p className="text-red-500 text-xs w-full pl-6">{bookingErrors[day.meals.breakfast.id]}</p>}
                               </div>
                             )}
                             {day.meals.lunch && (
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 flex-wrap">
                                 <span className="text-xs font-bold text-orange-700 w-4 flex-shrink-0">L</span>
-                                <span className="text-sm font-semibold text-foreground-900 flex-1">{day.meals.lunch.suggestion}</span>
-                                <button className="w-7 h-7 flex items-center justify-center bg-background-50 border border-background-200 rounded-lg text-foreground-300 hover:bg-red-50 hover:border-red-200 hover:text-red-500 transition-colors cursor-pointer"><i className="ri-delete-bin-line text-sm"></i></button>
+                                <span className="text-sm font-semibold text-foreground-900 flex-1 min-w-0">{day.meals.lunch.suggestion}</span>
+                                {renderBookingControl((day.meals.lunch as any).status, day.meals.lunch.id)}
+                                {bookingErrors[day.meals.lunch.id] && <p className="text-red-500 text-xs w-full pl-6">{bookingErrors[day.meals.lunch.id]}</p>}
                               </div>
                             )}
                             {day.meals.dinner && (
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 flex-wrap">
                                 <span className="text-xs font-bold text-orange-700 w-4 flex-shrink-0">D</span>
-                                <span className="text-sm font-semibold text-foreground-900 flex-1">{day.meals.dinner.suggestion}</span>
-                                <button className="w-7 h-7 flex items-center justify-center bg-background-50 border border-background-200 rounded-lg text-foreground-300 hover:bg-red-50 hover:border-red-200 hover:text-red-500 transition-colors cursor-pointer"><i className="ri-delete-bin-line text-sm"></i></button>
+                                <span className="text-sm font-semibold text-foreground-900 flex-1 min-w-0">{day.meals.dinner.suggestion}</span>
+                                {renderBookingControl((day.meals.dinner as any).status, day.meals.dinner.id)}
+                                {bookingErrors[day.meals.dinner.id] && <p className="text-red-500 text-xs w-full pl-6">{bookingErrors[day.meals.dinner.id]}</p>}
                               </div>
                             )}
                           </div>
@@ -663,17 +725,21 @@ export default function MyTripDetailPage() {
                                 <p className="text-sm font-semibold text-foreground-900 truncate">{stay.hotelName}</p>
                                 {isSameStay && <p className="text-xs text-foreground-400">Same hotel — no check-in today</p>}
                               </div>
-                              <span className="text-xs font-semibold text-primary-600 bg-primary-50 px-2.5 py-1 rounded-full flex-shrink-0">
-                                {getStayNightLabel(stay, day.day)}
-                              </span>
-                              <button
-                                onClick={() => { setEditingStayDay(day.day); setEditingStayValue(stay.hotelName); }}
-                                className={`w-7 h-7 flex items-center justify-center bg-background-50 border border-background-200 rounded-lg text-foreground-400 hover:bg-background-100 transition-colors cursor-pointer flex-shrink-0 ${editMode ? '' : 'hidden'}`}
-                                aria-label="Edit hotel"
-                              >
-                                <i className="ri-pencil-line text-sm"></i>
-                              </button>
-                            </div>
+                              <div className="flex items-center gap-2 flex-shrink-0">
+                                <span className="text-xs font-semibold text-primary-600 bg-primary-50 px-2.5 py-1 rounded-full">
+                                  {getStayNightLabel(stay, day.day)}
+                                </span>
+                                {renderBookingControl((stay as any).status, stay.id)}
+                                {editMode && (
+                                  <button
+                                    onClick={() => { setEditingStayDay(day.day); setEditingStayValue(stay.hotelName); }}
+                                    className="w-7 h-7 flex items-center justify-center bg-background-50 border border-background-200 rounded-lg text-foreground-400 hover:bg-background-100 transition-colors cursor-pointer"
+                                    aria-label="Edit hotel"
+                                  >
+                                    <i className="ri-pencil-line text-sm"></i>
+                                  </button>
+                                )}
+                              </div>
                           )}
                         </div>
                       )}
