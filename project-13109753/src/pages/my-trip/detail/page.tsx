@@ -733,9 +733,35 @@ export default function MyTripDetailPage() {
                   const scheduleItems = allDayItems.filter((it) => it.itemType !== 'transport');
                   const transportItems = allDayItems.filter((it) => it.itemType === 'transport');
                   const migrated = !!trip.daysActivitiesMigrated;
-                  const scheduleEntries = migrated
+
+                  // Mealsをスケジュールに統合（食事場所→移動手段漏れを防ぐ）
+                  const mealEntries: any[] = [];
+                  if (day.meals?.breakfast) mealEntries.push({
+                    id: `meal-b-${day.day}`, title: day.meals.breakfast.suggestion,
+                    mealType: 'breakfast', mealLabel: 'Breakfast', mealId: day.meals.breakfast.id,
+                    mealStatus: (day.meals.breakfast as any).status, isMeal: true, time: '08:00',
+                  });
+                  if (day.meals?.lunch) mealEntries.push({
+                    id: `meal-l-${day.day}`, title: day.meals.lunch.suggestion,
+                    mealType: 'lunch', mealLabel: 'Lunch', mealId: day.meals.lunch.id,
+                    mealStatus: (day.meals.lunch as any).status, isMeal: true, time: '12:00',
+                  });
+                  if (day.meals?.dinner) mealEntries.push({
+                    id: `meal-d-${day.day}`, title: day.meals.dinner.suggestion,
+                    mealType: 'dinner', mealLabel: 'Dinner', mealId: day.meals.dinner.id,
+                    mealStatus: (day.meals.dinner as any).status, isMeal: true, time: '19:00',
+                  });
+
+                  const baseEntries = migrated
                     ? scheduleItems
                     : [...nonTransport.map((a: TripActivity, i: number) => ({ id: `legacy-${i}`, title: a.title, time: a.time, description: a.description, category: a.category, isLegacy: true })), ...scheduleItems];
+
+                  // Mealsをtime順で混在させる
+                  const scheduleEntries = [...baseEntries, ...mealEntries].sort((a, b) => {
+                    const ta = a.time || '99:99';
+                    const tb = b.time || '99:99';
+                    return ta.localeCompare(tb);
+                  });
 
                   return (
                     <div key={day.day} className="bg-white border border-background-200 rounded-2xl overflow-hidden">
@@ -756,10 +782,9 @@ export default function MyTripDetailPage() {
                           const isLast = idx === scheduleEntries.length - 1;
                           const dest = entry.spotId ? spotData.get(entry.spotId) : undefined;
                           const imgUrl = dest?.image && isUsableImage(dest.image) ? dest.image : undefined;
-                          const catStyle = getCatStyle(dest?.category || entry.category || entry.itemType);
+                          const catStyle = entry.isMeal ? null : getCatStyle(dest?.category || entry.category || entry.itemType);
                           const isBusy = busyItemId === entry.id;
-                          const isItem = !entry.isLegacy && entry.planLevel !== undefined;
-                          // このエントリ直後のtransport item
+                          const isItem = !entry.isLegacy && !entry.isMeal && entry.planLevel !== undefined;
                           const currentOrder = entry.order ?? idx;
                           const nextEntry = scheduleEntries[idx + 1];
                           const nextOrder = nextEntry?.order ?? (idx + 1);
@@ -767,6 +792,67 @@ export default function MyTripDetailPage() {
                             const to = t.order ?? 0;
                             return to > currentOrder && to < nextOrder;
                           }) : undefined;
+
+                          // Mealエントリの表示
+                          if (entry.isMeal) {
+                            const mealIcon = entry.mealType === 'breakfast' ? 'ri-sun-line' : entry.mealType === 'lunch' ? 'ri-restaurant-line' : 'ri-moon-line';
+                            const mealColor = 'text-orange-700';
+                            return (
+                              <div key={entry.id}>
+                                <div className="flex items-stretch gap-2">
+                                  <div className="flex flex-col items-center w-3 flex-shrink-0">
+                                    <div className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5 bg-orange-400"></div>
+                                    {!isLast && <div className="w-px bg-background-200 flex-1 mt-1"></div>}
+                                  </div>
+                                  <div className={`flex-1 min-w-0 flex items-center gap-2 ${isLast ? 'pb-0' : 'pb-3'}`}>
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-xs text-foreground-400 mb-0.5">{entry.time} · {entry.mealLabel}</p>
+                                      <div className="flex items-center gap-1.5">
+                                        <i className={`${mealIcon} ${mealColor} text-sm flex-shrink-0`}></i>
+                                        <p className="text-sm font-semibold text-foreground-900 truncate">{entry.title}</p>
+                                      </div>
+                                    </div>
+                                    {renderBookingControl(entry.mealStatus, entry.mealId)}
+                                    {editMode && (
+                                      <button onClick={() => handleRemoveMeal(entry.mealId)}
+                                        className="w-7 h-7 flex items-center justify-center bg-background-50 border border-background-200 rounded-lg text-foreground-300 hover:bg-red-50 hover:text-red-500 cursor-pointer flex-shrink-0">
+                                        <i className="ri-delete-bin-line text-sm"></i>
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+                                {/* 移動帯 */}
+                                {!isLast && (
+                                  <div className="ml-5 mb-2">
+                                    <button
+                                      onClick={() => setEditingTransitIdx(editingTransitIdx === `normal-${entry.id}` ? null : `normal-${entry.id}`)}
+                                      className="w-full flex items-center gap-2 bg-background-50 border border-background-100 rounded-lg px-3 py-1.5 hover:bg-background-100 cursor-pointer text-left"
+                                    >
+                                      <i className={`${transitIcon(nextTransport?.description, nextTransport?.title)} text-xs text-foreground-400 flex-shrink-0`}></i>
+                                      <span className="text-xs text-foreground-400 truncate flex-1">{nextTransport?.title || 'Move to next stop'}</span>
+                                      <i className="ri-pencil-line text-foreground-300 text-xs flex-shrink-0"></i>
+                                    </button>
+                                    {editingTransitIdx === `normal-${entry.id}` && (
+                                      <div className="bg-white border border-background-200 rounded-xl p-3 mt-1.5">
+                                        <p className="text-xs font-bold text-foreground-500 uppercase tracking-wider mb-2">Choose transport</p>
+                                        <div className="grid grid-cols-3 gap-2">
+                                          {TRANSIT_OPTIONS.map((opt) => (
+                                            <button key={opt.mode}
+                                              onClick={() => { setEditingTransitIdx(null); }}
+                                              className="flex flex-col items-center gap-1 py-2 px-2 bg-background-50 border border-background-200 rounded-xl hover:border-primary-400 hover:bg-primary-50 cursor-pointer">
+                                              <i className={`${opt.icon} text-base text-foreground-500`}></i>
+                                              <span className="text-xs font-medium text-foreground-600 text-center leading-tight">{opt.label}</span>
+                                            </button>
+                                          ))}
+                                        </div>
+                                        <button onClick={() => setEditingTransitIdx(null)} className="mt-2 text-xs text-foreground-400 cursor-pointer w-full text-center py-1">Cancel</button>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          }
 
                           return (
                             <div key={entry.id || idx}>
@@ -822,15 +908,35 @@ export default function MyTripDetailPage() {
                                   </div>
                                 )}
                               </div>
-                              {/* スポット間移動帯 */}
+                              {/* スポット間移動帯（タップで選択可能） */}
                               {!isLast && (
-                                <div className="flex items-center gap-2 ml-5 mb-2">
-                                  <div className="flex items-center gap-2 flex-1 bg-background-50 border border-background-100 rounded-lg px-3 py-1.5">
+                                <div className="ml-5 mb-2">
+                                  <button
+                                    onClick={() => setEditingTransitIdx(editingTransitIdx === `normal-${entry.id || idx}` ? null : `normal-${entry.id || idx}`)}
+                                    className="w-full flex items-center gap-2 bg-background-50 border border-background-100 rounded-lg px-3 py-1.5 hover:bg-background-100 cursor-pointer text-left"
+                                  >
                                     <i className={`${transitIcon(nextTransport?.description, nextTransport?.title)} text-xs text-foreground-400 flex-shrink-0`}></i>
                                     <span className="text-xs text-foreground-400 truncate flex-1">
                                       {nextTransport?.title || 'Move to next stop'}
                                     </span>
-                                  </div>
+                                    <i className="ri-pencil-line text-foreground-300 text-xs flex-shrink-0"></i>
+                                  </button>
+                                  {editingTransitIdx === `normal-${entry.id || idx}` && (
+                                    <div className="bg-white border border-background-200 rounded-xl p-3 mt-1.5 shadow-sm">
+                                      <p className="text-xs font-bold text-foreground-500 uppercase tracking-wider mb-2">Choose transport</p>
+                                      <div className="grid grid-cols-3 gap-2">
+                                        {TRANSIT_OPTIONS.map((opt) => (
+                                          <button key={opt.mode}
+                                            onClick={() => isItem && handleSetTransit(entry.id, opt.mode, day.day, currentOrder)}
+                                            className="flex flex-col items-center gap-1 py-2 px-2 bg-background-50 border border-background-200 rounded-xl hover:border-primary-400 hover:bg-primary-50 cursor-pointer">
+                                            <i className={`${opt.icon} text-base text-foreground-500`}></i>
+                                            <span className="text-xs font-medium text-foreground-600 text-center leading-tight">{opt.label}</span>
+                                          </button>
+                                        ))}
+                                      </div>
+                                      <button onClick={() => setEditingTransitIdx(null)} className="mt-2 text-xs text-foreground-400 cursor-pointer w-full text-center py-1">Cancel</button>
+                                    </div>
+                                  )}
                                 </div>
                               )}
                             </div>
@@ -857,40 +963,7 @@ export default function MyTripDetailPage() {
                         ))}
                       </div>
 
-                      {/* Meals */}
-                      {(day.meals?.breakfast || day.meals?.lunch || day.meals?.dinner) && (
-                        <div className="px-4 py-3 border-b border-background-100">
-                          <p className="text-xs font-bold tracking-widest uppercase text-foreground-400 mb-3 flex items-center gap-1.5">
-                            <i className="ri-restaurant-line"></i>Meals
-                          </p>
-                          <div className="space-y-2.5">
-                            {day.meals.breakfast && (
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <span className="text-xs font-bold text-orange-700 w-4 flex-shrink-0">B</span>
-                                <span className="text-sm font-semibold text-foreground-900 flex-1 min-w-0">{day.meals.breakfast.suggestion}</span>
-                                {renderBookingControl(day.meals.breakfast.status, day.meals.breakfast.id)}
-                                {editMode && <button onClick={() => handleRemoveMeal(day.meals.breakfast!.id)} className="w-7 h-7 flex items-center justify-center bg-background-50 border border-background-200 rounded-lg text-foreground-300 hover:bg-red-50 hover:text-red-500 cursor-pointer flex-shrink-0"><i className="ri-delete-bin-line text-sm"></i></button>}
-                              </div>
-                            )}
-                            {day.meals.lunch && (
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <span className="text-xs font-bold text-orange-700 w-4 flex-shrink-0">L</span>
-                                <span className="text-sm font-semibold text-foreground-900 flex-1 min-w-0">{day.meals.lunch.suggestion}</span>
-                                {renderBookingControl(day.meals.lunch.status, day.meals.lunch.id)}
-                                {editMode && <button onClick={() => handleRemoveMeal(day.meals.lunch!.id)} className="w-7 h-7 flex items-center justify-center bg-background-50 border border-background-200 rounded-lg text-foreground-300 hover:bg-red-50 hover:text-red-500 cursor-pointer flex-shrink-0"><i className="ri-delete-bin-line text-sm"></i></button>}
-                              </div>
-                            )}
-                            {day.meals.dinner && (
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <span className="text-xs font-bold text-orange-700 w-4 flex-shrink-0">D</span>
-                                <span className="text-sm font-semibold text-foreground-900 flex-1 min-w-0">{day.meals.dinner.suggestion}</span>
-                                {renderBookingControl(day.meals.dinner.status, day.meals.dinner.id)}
-                                {editMode && <button onClick={() => handleRemoveMeal(day.meals.dinner!.id)} className="w-7 h-7 flex items-center justify-center bg-background-50 border border-background-200 rounded-lg text-foreground-300 hover:bg-red-50 hover:text-red-500 cursor-pointer flex-shrink-0"><i className="ri-delete-bin-line text-sm"></i></button>}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
+                      {/* Meals — スケジュールに統合済みのため非表示 */}
 
                       {/* Stay */}
                       {stay && (
