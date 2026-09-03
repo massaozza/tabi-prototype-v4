@@ -3,19 +3,23 @@ import { navLinks } from '@/mocks/homeData';
 import LogoMark from '@/components/feature/LogoMark';
 import { useAuth } from '@/context/AuthContext';
 
-export default function Navbar() {
+export default function Navbar({ variant }: { variant?: 'default' | 'dark' } = {}) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const { user, loading, logout } = useAuth();
 
+  // variant='dark' のときは常にダークネイビー背景で表示（透過なし）
+  const isDark = variant === 'dark';
+
   useEffect(() => {
+    if (isDark) return; // darkモードはscroll不要
     const handleScroll = () => {
       setScrolled(window.scrollY > 60);
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [isDark]);
 
   const handleLogout = async () => {
     setUserMenuOpen(false);
@@ -25,13 +29,15 @@ export default function Navbar() {
   return (
     <header
       className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
-        scrolled
+        isDark
+          ? 'bg-foreground-900'
+          : scrolled
           ? 'bg-background-50 shadow-sm'
           : 'bg-transparent'
       }`}
     >
       <div className={`hidden md:flex items-center justify-between px-6 md:px-10 py-2 text-xs gap-4 transition-colors duration-300 ${
-        scrolled ? 'text-foreground-600 border-b border-background-200' : 'text-white/80'
+        isDark || !scrolled ? 'text-white/80' : 'text-foreground-600 border-b border-background-200'
       }`}>
         <a href="/creators" className="hover:opacity-70 transition-opacity whitespace-nowrap">
           日本の方はこちら →
@@ -49,7 +55,7 @@ export default function Navbar() {
         <a href="/" className="flex items-center gap-3">
           <LogoMark />
           <h1 className={`font-heading font-bold text-xl md:text-2xl tracking-[0.08em] leading-none transition-colors duration-300 ${
-            scrolled ? 'text-foreground-900' : 'text-white'
+            (isDark || !scrolled) ? 'text-white' : 'text-foreground-900'
           }`}>
             TABI47
           </h1>
@@ -63,14 +69,14 @@ export default function Navbar() {
                 type="button"
                 onClick={() => window.dispatchEvent(new CustomEvent('tabi:open-chat'))}
                 className={`text-sm font-semibold whitespace-nowrap transition-colors duration-300 hover:opacity-70 cursor-pointer ${
-                  scrolled ? 'text-foreground-800' : 'text-white'
+                  (isDark || !scrolled) ? 'text-white' : 'text-foreground-800'
                 }`}
               >
                 {link.label}
               </button>
             ) : (
               <a key={link.label} href={link.href} className={`text-sm font-semibold whitespace-nowrap transition-colors duration-300 hover:opacity-70 ${
-                  scrolled ? 'text-foreground-800' : 'text-white'
+                  (isDark || !scrolled) ? 'text-white' : 'text-foreground-800'
                 }`}>
                 {link.label}
               </a>
@@ -83,7 +89,7 @@ export default function Navbar() {
                 <button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
                   className={`flex items-center gap-1.5 text-sm font-semibold whitespace-nowrap transition-colors duration-300 hover:opacity-70 ${
-                    scrolled ? 'text-foreground-800' : 'text-white'
+                    (isDark || !scrolled) ? 'text-white' : 'text-foreground-800'
                   }`}
                 >
                   {user.displayName}
@@ -117,7 +123,7 @@ export default function Navbar() {
             ) : (
               <>
                 <a href="/login" className={`text-sm font-semibold whitespace-nowrap transition-colors duration-300 hover:opacity-70 ${
-                    scrolled ? 'text-foreground-800' : 'text-white'
+                    (isDark || !scrolled) ? 'text-white' : 'text-foreground-800'
                   }`}>
                   Log in
                 </a>
@@ -131,7 +137,7 @@ export default function Navbar() {
 
         <button
           className={`md:hidden w-8 h-8 flex items-center justify-center transition-colors duration-300 ${
-            scrolled ? 'text-foreground-900' : 'text-white'
+            (isDark || !scrolled) ? 'text-white' : 'text-foreground-900'
           }`}
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label="Toggle menu"
