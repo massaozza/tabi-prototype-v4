@@ -33,6 +33,10 @@ interface ExperienceRecord {
   uid: string;
   area: string;
   category: string;
+  placeName: string;
+  whatWasGood: string;
+  wouldRecommend: boolean;
+  photos: string[];
   createdAt: string;
 }
 
@@ -125,6 +129,17 @@ export default async function handler(req: Request): Promise<Response> {
           totalHelpful,
           totalCitations,
         },
+        // 公開プロフィールページ向けにExperience一覧も返す
+        experiences: experiences.map((e) => ({
+          id: e.id,
+          placeName: e.placeName,
+          area: e.area,
+          category: e.category,
+          whatWasGood: e.whatWasGood,
+          wouldRecommend: e.wouldRecommend,
+          photos: e.photos || [],
+          createdAt: e.createdAt,
+        })),
       }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
