@@ -62,6 +62,24 @@ interface ScheduleEntry {
   time?: string;
   title: string;
   description?: string;
+  category?: string;
+}
+
+// カテゴリ → 表示スタイルのマッピング（Trip詳細ページと共通）
+const CATEGORY_STYLE: Record<string, { bg: string; text: string; label: string }> = {
+  'Culture & History': { bg: 'bg-blue-50', text: 'text-blue-700', label: 'Culture' },
+  'Nature & Scenery': { bg: 'bg-green-50', text: 'text-green-700', label: 'Nature' },
+  'Food': { bg: 'bg-orange-50', text: 'text-orange-700', label: 'Food' },
+  'City & Food Culture': { bg: 'bg-orange-50', text: 'text-orange-700', label: 'Food' },
+  'Activities': { bg: 'bg-purple-50', text: 'text-purple-700', label: 'Activity' },
+  'Hot Springs & Nature': { bg: 'bg-green-50', text: 'text-green-700', label: 'Onsen' },
+  'Shopping & Fashion': { bg: 'bg-pink-50', text: 'text-pink-700', label: 'Shopping' },
+  'Beach & Lifestyle': { bg: 'bg-cyan-50', text: 'text-cyan-700', label: 'Beach' },
+};
+
+function getCatStyle(cat?: string) {
+  if (!cat) return null;
+  return CATEGORY_STYLE[cat] || null;
 }
 
 function findStayForDay(stays: TripStay[], dayNum: number): TripStay | undefined {
@@ -392,6 +410,7 @@ export default function TripCard({
                         time: item.time,
                         title: item.title,
                         description: item.description,
+                        category: item.itemType,
                       }))
                     : [
                         ...nonTransport.map((activity, idx) => ({
@@ -405,6 +424,7 @@ export default function TripCard({
                           time: item.time,
                           title: item.title,
                           description: item.description,
+                          category: item.itemType,
                         })),
                       ].sort((a, b) => timeSortKey(a.time).localeCompare(timeSortKey(b.time)));
                   const orderedItemIdsForDay = scheduleEntries
@@ -480,11 +500,12 @@ export default function TripCard({
                             ))}
                           </div>
                         )}
-                        <ul className="space-y-2">
+                        <ul className="space-y-0">
                           {scheduleEntries.map((entry, entryIdx) => {
                             const reorderable = migrated && !!entry.itemId;
                             const isFirst = entryIdx === 0;
                             const isLast = entryIdx === scheduleEntries.length - 1;
+                            const catStyle = getCatStyle(entry.category);
 
                             const moveEntry = (direction: -1 | 1) => {
                               if (!reorderable) return;
@@ -502,30 +523,15 @@ export default function TripCard({
                             };
 
                             return (
-                              <li key={entry.key} className="text-sm flex items-start gap-2">
-                                {reorderable && (
-                                  <div className="flex flex-col flex-shrink-0 gap-1 -ml-1.5">
-                                    <button
-                                      type="button"
-                                      onClick={() => moveEntry(-1)}
-                                      disabled={isFirst}
-                                      aria-label="Move up"
-                                      className="w-9 h-9 flex items-center justify-center text-foreground-500 hover:bg-background-100 active:bg-background-200 rounded-md disabled:opacity-20 disabled:hover:bg-transparent cursor-pointer"
-                                    >
-                                      <i className="ri-arrow-up-s-line text-lg"></i>
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => moveEntry(1)}
-                                      disabled={isLast}
-                                      aria-label="Move down"
-                                      className="w-9 h-9 flex items-center justify-center text-foreground-500 hover:bg-background-100 active:bg-background-200 rounded-md disabled:opacity-20 disabled:hover:bg-transparent cursor-pointer"
-                                    >
-                                      <i className="ri-arrow-down-s-line text-lg"></i>
-                                    </button>
-                                  </div>
-                                )}
-                                <div className="flex-1 min-w-0 pt-1.5">
+                              <li key={entry.key} className="flex items-start gap-2">
+                                {/* タイムライン（ドット＋縦線） */}
+                                <div className="flex flex-col items-center w-3 flex-shrink-0 mt-1.5">
+                                  <div className={`w-2 h-2 rounded-full flex-shrink-0 ${isLast && scheduleEntries.length > 1 ? 'bg-background-300 border border-background-300' : 'bg-primary-500'}`}></div>
+                                  {!isLast && <div className="w-px bg-background-200 flex-1 min-h-4 mt-0.5 mb-0.5"></div>}
+                                </div>
+
+                                {/* コンテンツ */}
+                                <div className={`flex-1 min-w-0 ${isLast ? 'pb-0' : 'pb-3'}`}>
                                   {entry.time ? (
                                     <span className="text-foreground-400 text-xs mr-1.5 whitespace-nowrap">
                                       {entry.time}
@@ -535,15 +541,44 @@ export default function TripCard({
                                       Want to go
                                     </span>
                                   )}
-                                  <span className="text-foreground-800 font-medium">
+                                  <span className="text-foreground-800 font-semibold text-sm">
                                     {entry.title}
                                   </span>
+                                  {catStyle && (
+                                    <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-full inline-block mt-0.5 mb-0.5 ml-0 block w-fit ${catStyle.bg} ${catStyle.text}`}>
+                                      {catStyle.label}
+                                    </span>
+                                  )}
                                   {entry.description && (
                                     <span className="block text-foreground-500 text-xs leading-relaxed mt-0.5">
                                       {entry.description}
                                     </span>
                                   )}
                                 </div>
+
+                                {/* ↑↓ボタン（編集機能は維持） */}
+                                {reorderable && (
+                                  <div className="flex flex-col flex-shrink-0 gap-0.5">
+                                    <button
+                                      type="button"
+                                      onClick={() => moveEntry(-1)}
+                                      disabled={isFirst}
+                                      aria-label="Move up"
+                                      className="w-8 h-8 flex items-center justify-center text-foreground-400 hover:bg-background-100 active:bg-background-200 rounded-md disabled:opacity-20 cursor-pointer"
+                                    >
+                                      <i className="ri-arrow-up-s-line text-base"></i>
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => moveEntry(1)}
+                                      disabled={isLast}
+                                      aria-label="Move down"
+                                      className="w-8 h-8 flex items-center justify-center text-foreground-400 hover:bg-background-100 active:bg-background-200 rounded-md disabled:opacity-20 cursor-pointer"
+                                    >
+                                      <i className="ri-arrow-down-s-line text-base"></i>
+                                    </button>
+                                  </div>
+                                )}
                               </li>
                             );
                           })}
@@ -551,42 +586,35 @@ export default function TripCard({
                       </td>
 
                       <td className="py-3 pl-2">
-                        <div className="flex flex-col gap-2">
+                        <div className="flex flex-col gap-2.5">
                           {mealSlots.map(({ label, short, meal, items: mealItems }) => (
                             <div key={label} className="text-xs" title={label}>
                               {meal ? (
                                 <div>
-                                  <span className="text-foreground-400 font-semibold mr-1">
-                                    {short}
-                                  </span>
-                                  <span className="text-foreground-700">{meal.suggestion}</span>
-                                  <div className="mt-1">
-                                    {renderBookingControl(meal.status, meal.id)}
+                                  <div className="flex items-start gap-1.5">
+                                    <span className="font-bold text-orange-700 flex-shrink-0">{short}</span>
+                                    <div>
+                                      <span className="text-foreground-700 font-semibold">{meal.suggestion}</span>
+                                      <div className="mt-1">
+                                        {renderBookingControl(meal.status, meal.id)}
+                                      </div>
+                                      {renderBookingError(meal.id)}
+                                    </div>
                                   </div>
-                                  {renderBookingError(meal.id)}
                                 </div>
                               ) : mealItems.length === 0 ? (
                                 <span className="text-foreground-300">
-                                  <span className="font-semibold mr-1">{short}</span>—
+                                  <span className="font-bold text-orange-200 mr-1">{short}</span>—
                                 </span>
                               ) : null}
-                              {/* Trip Plannerでこの食事に割り当てられたレストラン */}
                               {mealItems.map((item) => (
-                                <div key={item.id} className={meal ? 'mt-1.5' : ''}>
-                                  {!meal && (
-                                    <span className="text-foreground-400 font-semibold mr-1">
-                                      {short}
-                                    </span>
-                                  )}
-                                  <span className="text-foreground-700">{item.title}</span>
-                                  {item.time && (
-                                    <span className="text-foreground-400 ml-1">{item.time}</span>
-                                  )}
-                                  {item.description && (
-                                    <span className="block text-foreground-500 leading-relaxed mt-0.5">
-                                      {item.description}
-                                    </span>
-                                  )}
+                                <div key={item.id} className={`flex items-start gap-1.5 ${meal ? 'mt-1.5' : ''}`}>
+                                  {!meal && <span className="font-bold text-orange-700 flex-shrink-0">{short}</span>}
+                                  <div>
+                                    <span className="text-foreground-700 font-semibold">{item.title}</span>
+                                    {item.time && <span className="text-foreground-400 ml-1">{item.time}</span>}
+                                    {item.description && <span className="block text-foreground-500 leading-relaxed mt-0.5">{item.description}</span>}
+                                  </div>
                                 </div>
                               ))}
                             </div>
