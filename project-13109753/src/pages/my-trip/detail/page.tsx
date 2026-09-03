@@ -86,6 +86,7 @@ export default function MyTripDetailPage() {
   const [spotData, setSpotData] = useState<Map<string, Destination>>(new Map());
   const [loading, setLoading] = useState(true);
   const [busyItemId, setBusyItemId] = useState<string | null>(null);
+  const [editMode, setEditMode] = useState(false);
   const [addingToDay, setAddingToDay] = useState<number | null>(null);
   const [newSpotTitle, setNewSpotTitle] = useState('');
   const [editingTimeItemId, setEditingTimeItemId] = useState<string | null>(null);
@@ -93,6 +94,9 @@ export default function MyTripDetailPage() {
   const [editingStayDay, setEditingStayDay] = useState<number | null>(null);
   const [editingStayValue, setEditingStayValue] = useState('');
   const addInputRef = useRef<HTMLInputElement>(null);
+
+  // 編集可能なステータス
+  const isEditable = (status?: string) => status === 'planning' || status === 'traveling';
 
   useEffect(() => {
     if (!user) { navigate('/login'); return; }
@@ -273,6 +277,24 @@ export default function MyTripDetailPage() {
 
               {/* アクション */}
               <div className="flex gap-2 mb-5 flex-wrap">
+                {isEditable(trip.status) && (
+                  <button
+                    onClick={() => {
+                      setEditMode(!editMode);
+                      setAddingToDay(null);
+                      setEditingTimeItemId(null);
+                      setEditingStayDay(null);
+                    }}
+                    className={`inline-flex items-center gap-1.5 font-semibold text-sm px-4 py-2 rounded-xl transition-colors cursor-pointer ${
+                      editMode
+                        ? 'bg-foreground-900 text-white hover:bg-foreground-700'
+                        : 'bg-primary-600 text-white hover:bg-primary-700'
+                    }`}
+                  >
+                    <i className={editMode ? 'ri-check-line' : 'ri-edit-line'}></i>
+                    {editMode ? 'Done editing' : 'Edit'}
+                  </button>
+                )}
                 <Link
                   to={`/trips/${trip.id}`}
                   className="inline-flex items-center gap-1.5 bg-white border border-background-200 hover:bg-background-50 text-foreground-700 font-semibold text-sm px-4 py-2 rounded-xl transition-colors"
@@ -280,6 +302,52 @@ export default function MyTripDetailPage() {
                   <i className="ri-eye-line"></i>Preview
                 </Link>
               </div>
+
+              {/* Saved for Trip（日程未割り当てのitems） */}
+              {(() => {
+                const savedItems = (trip.items || []).filter((it) => it.planLevel === 'saved');
+                if (savedItems.length === 0) return null;
+                return (
+                  <div className="mb-5 bg-white border border-background-200 rounded-2xl overflow-hidden">
+                    <div className="bg-background-100 px-4 py-2.5 border-b border-background-200">
+                      <p className="text-xs font-bold tracking-widest uppercase text-foreground-500">
+                        Saved for Trip — not yet assigned to a day
+                      </p>
+                    </div>
+                    <div className="divide-y divide-background-100">
+                      {savedItems.map((item) => {
+                        const catStyle = getCatStyle(item.itemType);
+                        return (
+                          <div key={item.id} className="flex items-center gap-3 px-4 py-3">
+                            {item.imageUrl ? (
+                              <img src={item.imageUrl} alt={item.title} className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
+                            ) : (
+                              <div className="w-10 h-10 rounded-lg bg-background-100 flex items-center justify-center flex-shrink-0">
+                                <i className="ri-map-pin-line text-foreground-400 text-sm"></i>
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-semibold text-foreground-900 truncate">{item.title}</p>
+                              {catStyle && (
+                                <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-full inline-block mt-0.5 ${catStyle.bg} ${catStyle.text}`}>{catStyle.label}</span>
+                              )}
+                            </div>
+                            {editMode && (
+                              <button
+                                onClick={() => handleRemoveItem(item)}
+                                disabled={busyItemId === item.id}
+                                className="w-7 h-7 flex items-center justify-center bg-background-50 border border-background-200 rounded-lg text-foreground-300 hover:bg-red-50 hover:border-red-200 hover:text-red-500 disabled:opacity-20 transition-colors cursor-pointer flex-shrink-0"
+                              >
+                                <i className="ri-delete-bin-line text-sm"></i>
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Dayカード */}
               <div className="space-y-4">
@@ -347,16 +415,16 @@ export default function MyTripDetailPage() {
                                     </div>
                                   ) : (
                                     <div
-                                      className={`flex items-center gap-1 mb-0.5 group cursor-pointer w-fit ${isItem ? 'hover:text-primary-600' : ''}`}
-                                      onClick={() => { if (isItem) { setEditingTimeItemId(entry.id); setEditingTimeValue(entry.time || ''); } }}
-                                      title={isItem ? 'Click to set time' : undefined}
+                                      className={`flex items-center gap-1 mb-0.5 group ${isItem && editMode ? 'cursor-pointer hover:text-primary-600' : ''}`}
+                                      onClick={() => { if (isItem && editMode) { setEditingTimeItemId(entry.id); setEditingTimeValue(entry.time || ''); } }}
+                                      title={isItem && editMode ? 'Click to set time' : undefined}
                                     >
                                       {entry.time ? (
                                         <p className="text-xs text-foreground-400">{entry.time}</p>
                                       ) : (
                                         <p className="text-xs text-foreground-300 italic">Want to go</p>
                                       )}
-                                      {isItem && <i className="ri-pencil-line text-xs text-foreground-300 opacity-0 group-hover:opacity-100 transition-opacity"></i>}
+                                      {isItem && editMode && <i className="ri-pencil-line text-xs text-foreground-300 opacity-0 group-hover:opacity-100 transition-opacity"></i>}
                                     </div>
                                   )}
                                   <p className="text-sm font-semibold text-foreground-900">{entry.title}</p>
@@ -368,8 +436,8 @@ export default function MyTripDetailPage() {
                                 {imgUrl && <img src={imgUrl} alt={entry.title} className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />}
                               </div>
 
-                              {/* 編集ボタン（itemsのみ） */}
-                              {isItem && (
+                              {/* 編集ボタン（editMode && itemsのみ） */}
+                              {editMode && isItem && (
                                 <div className="flex flex-col gap-1 flex-shrink-0 pt-1">
                                   <button
                                     onClick={() => handleMoveItem(entry as TripItem, -1)}
@@ -401,8 +469,8 @@ export default function MyTripDetailPage() {
                           );
                         })}
 
-                        {/* Spot追加 */}
-                        {addingToDay === day.day ? (
+                        {/* Spot追加（editModeのみ） */}
+                        {editMode && (addingToDay === day.day ? (
                           <div className="flex gap-2 mt-3">
                             <input
                               ref={addInputRef}
@@ -432,7 +500,7 @@ export default function MyTripDetailPage() {
                             <i className="ri-add-line text-sm"></i>
                             Add a spot
                           </button>
-                        )}
+                        ))}
                       </div>
 
                       {/* Meals */}
@@ -473,7 +541,7 @@ export default function MyTripDetailPage() {
                           <p className="text-xs font-bold tracking-widest uppercase text-foreground-400 mb-3 flex items-center gap-1.5">
                             <i className="ri-hotel-line"></i>Stay
                           </p>
-                          {editingStayDay === day.day ? (
+                          {editingStayDay === day.day && editMode ? (
                             <div className="flex gap-2">
                               <input
                                 type="text"
@@ -501,7 +569,7 @@ export default function MyTripDetailPage() {
                               </span>
                               <button
                                 onClick={() => { setEditingStayDay(day.day); setEditingStayValue(stay.hotelName); }}
-                                className="w-7 h-7 flex items-center justify-center bg-background-50 border border-background-200 rounded-lg text-foreground-400 hover:bg-background-100 transition-colors cursor-pointer flex-shrink-0"
+                                className={`w-7 h-7 flex items-center justify-center bg-background-50 border border-background-200 rounded-lg text-foreground-400 hover:bg-background-100 transition-colors cursor-pointer flex-shrink-0 ${editMode ? '' : 'hidden'}`}
                                 aria-label="Edit hotel"
                               >
                                 <i className="ri-pencil-line text-sm"></i>
