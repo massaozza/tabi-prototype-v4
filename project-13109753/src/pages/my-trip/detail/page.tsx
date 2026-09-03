@@ -740,6 +740,7 @@ export default function MyTripDetailPage() {
                                   </button>
                                 )}
                               </div>
+                            </div>
                           )}
                         </div>
                       )}
