@@ -72,7 +72,7 @@ export default function CreatorPublicProfilePage() {
       <Navbar variant="dark" />
 
       {/* ── ダークネイビーヒーロー ── */}
-      <div style={{ background: '#1e2540', paddingTop: '80px', paddingBottom: '32px' }}>
+      <div style={{ background: '#1e2540', paddingTop: '110px', paddingBottom: '32px' }}>
         <div className="max-w-2xl mx-auto px-4 md:px-6">
 
           {/* アバター＋名前 */}
