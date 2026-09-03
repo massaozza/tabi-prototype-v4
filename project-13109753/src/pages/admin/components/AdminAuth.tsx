@@ -24,7 +24,7 @@ export function AdminAuthProvider({ children }: AdminAuthProviderProps) {
   const [checked, setChecked] = useState(false);
 
   useEffect(() => {
-    const stored = localStorage.getItem('jgq_admin_auth');
+    const stored = localStorage.getItem('tabi47_admin_auth');
     if (stored) {
       try {
         const data = JSON.parse(stored);
@@ -33,17 +33,17 @@ export function AdminAuthProvider({ children }: AdminAuthProviderProps) {
         if (data.timestamp && now - data.timestamp < eightHours) {
           setIsAuthenticated(true);
         } else {
-          localStorage.removeItem('jgq_admin_auth');
+          localStorage.removeItem('tabi47_admin_auth');
         }
       } catch {
-        localStorage.removeItem('jgq_admin_auth');
+        localStorage.removeItem('tabi47_admin_auth');
       }
     }
     setChecked(true);
   }, []);
 
   const logout = useCallback(() => {
-    localStorage.removeItem('jgq_admin_auth');
+    localStorage.removeItem('tabi47_admin_auth');
     setIsAuthenticated(false);
   }, []);
 
@@ -80,9 +80,9 @@ function AdminLoginScreen({ onLogin }: { onLogin: () => void }) {
     setLoading(true);
 
     setTimeout(() => {
-      const storedPassword = localStorage.getItem('jgq_admin_password') || DEFAULT_ADMIN_PASSWORD;
+      const storedPassword = localStorage.getItem('tabi47_admin_password') || DEFAULT_ADMIN_PASSWORD;
       if (password === storedPassword) {
-        localStorage.setItem('jgq_admin_auth', JSON.stringify({ timestamp: Date.now() }));
+        localStorage.setItem('tabi47_admin_auth', JSON.stringify({ timestamp: Date.now() }));
         onLogin();
       } else {
         setError('Incorrect password. Please try again.');
@@ -97,9 +97,9 @@ function AdminLoginScreen({ onLogin }: { onLogin: () => void }) {
         <div className="bg-background-50 rounded-xl border border-background-200 p-8">
           <div className="text-center mb-8">
             <h1 className="font-heading font-bold text-2xl text-foreground-900">
-              JQG <span className="text-primary-500">CMS</span>
+              TABI47 <span className="text-primary-500">Admin</span>
             </h1>
-            <p className="text-sm text-foreground-500 mt-2">Japan Quest Guide Admin</p>
+            <p className="text-sm text-foreground-500 mt-2">TABI47 Admin Console</p>
           </div>
 
           <form onSubmit={handleSubmit}>
