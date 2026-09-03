@@ -161,15 +161,24 @@ export default function PublicTripDetailPage() {
         const dayCount = trip.days.length;
         return (
           <article>
-            {/* Hero - フル幅・Navbarを透過でオーバーレイさせる */}
-            <div className="relative" style={{ height: '340px' }}>
-              <div className="absolute inset-0 grid gap-0.5" style={{ gridTemplateColumns: '2fr 1fr', gridTemplateRows: '1fr 1fr' }}>
-                <img src={headerImages[0]} alt={trip.title} className="w-full h-full object-cover" style={{ gridRow: '1 / 3' }} />
-                <img src={headerImages[1]} alt="" className="w-full h-full object-cover" />
-                <img src={headerImages[2]} alt="" className="w-full h-full object-cover" />
+            {/* Hero */}
+            <div style={{ position: 'relative', height: '460px', overflow: 'hidden' }}>
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 0, left: 0, right: 0, bottom: 0,
+                  display: 'grid',
+                  gridTemplateColumns: '2fr 1fr',
+                  gridTemplateRows: '230px 230px',
+                  gap: '3px',
+                }}
+              >
+                <img src={headerImages[0]} alt={trip.title} style={{ gridRow: '1 / 3', width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                <img src={headerImages[1]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                <img src={headerImages[2]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
               </div>
-              <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(20,28,50,0.92) 0%, rgba(20,28,50,0.3) 55%, transparent 100%)' }}></div>
-              <div className="absolute bottom-0 left-0 right-0 px-5 pb-6 max-w-3xl mx-auto">
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(10,18,40,0.65) 0%, rgba(10,18,40,0.0) 28%, rgba(10,18,40,0.0) 42%, rgba(10,18,40,0.90) 100%)' }}></div>
+              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '0 20px 28px', maxWidth: '768px', margin: '0 auto' }}>
                 <p className="text-xs font-semibold tracking-widest uppercase text-white/50 mb-1.5">
                   {trip.tripType === 'recommended' ? 'Recommended trip' : 'Actual trip'}{trip.travelStyle && ` · ${trip.travelStyle}`}
                 </p>
@@ -264,10 +273,9 @@ export default function PublicTripDetailPage() {
                             return (
                               <div key={idx}>
                                 {hasTransitBefore && (
-                                  <div className="flex items-center gap-2 text-xs text-foreground-400 py-2 -mx-4 px-8 bg-background-50 border-y border-background-100 mb-2">
+                                  <div className="flex items-center gap-2 text-xs text-foreground-400 py-2 -mx-4 px-8 bg-background-50 border-y border-background-100 mb-2 overflow-hidden">
                                     <i className="ri-train-line flex-shrink-0"></i>
-                                    <span>{prevAct!.title}</span>
-                                    {prevAct!.description && <span className="text-foreground-300 truncate">— {prevAct!.description}</span>}
+                                    <span className="truncate">{prevAct!.title}</span>
                                   </div>
                                 )}
                                 <div className="flex items-start gap-3">
