@@ -157,27 +157,27 @@ export default function PublicTripDetailPage() {
                 {headerImages[0] ? (
                   <img src={headerImages[0]} alt={trip.title} className="w-full h-full object-cover" style={{ gridRow: '1 / 3' }} />
                 ) : (
-                  <div className="w-full h-full bg-primary-800 flex items-center justify-center" style={{ gridRow: '1 / 3' }}>
-                    <i className="ri-map-pin-2-line text-white/20 text-5xl"></i>
+                  <div className="w-full h-full flex items-center justify-center" style={{ gridRow: '1 / 3', background: '#0f1a2e' }}>
+                    <i className="ri-map-pin-2-line text-white/10 text-6xl"></i>
                   </div>
                 )}
                 {headerImages[1] ? (
                   <img src={headerImages[1]} alt="" className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full bg-primary-700 flex items-center justify-center">
-                    <i className="ri-landscape-line text-white/20 text-3xl"></i>
+                  <div className="w-full h-full flex items-center justify-center" style={{ background: '#162030' }}>
+                    <i className="ri-landscape-line text-white/10 text-3xl"></i>
                   </div>
                 )}
                 {headerImages[2] ? (
                   <img src={headerImages[2]} alt="" className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full bg-primary-900 flex items-center justify-center">
-                    <i className="ri-restaurant-line text-white/20 text-2xl"></i>
+                  <div className="w-full h-full flex items-center justify-center" style={{ background: '#0d1520' }}>
+                    <i className="ri-restaurant-line text-white/10 text-2xl"></i>
                   </div>
                 )}
               </div>
               <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(20,28,50,0.92) 0%, rgba(20,28,50,0.3) 55%, transparent 100%)' }}></div>
-              <div className="absolute bottom-0 left-0 right-0 px-5 pb-6 md:max-w-2xl md:mx-auto md:left-0 md:right-0">
+              <div className="absolute bottom-0 left-0 right-0 px-5 pb-6 max-w-3xl mx-auto">
                 <p className="text-xs font-semibold tracking-widest uppercase text-white/50 mb-1.5">
                   {trip.tripType === 'recommended' ? 'Recommended trip' : 'Actual trip'}{trip.travelStyle && ` · ${trip.travelStyle}`}
                 </p>
@@ -201,7 +201,7 @@ export default function PublicTripDetailPage() {
             </div>
 
             {/* Content */}
-            <div className="max-w-2xl mx-auto px-4 md:px-6 py-5">
+            <div className="max-w-3xl mx-auto px-4 md:px-8 py-5">
               <nav className="flex items-center gap-1.5 text-foreground-400 text-xs mb-5 flex-wrap">
                 <Link to="/" className="hover:text-foreground-700 transition-colors">Home</Link>
                 <span>/</span>
