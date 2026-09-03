@@ -238,10 +238,11 @@ function buildItemsFromDays(days: TripDay[]): TripItem[] {
   for (const day of days || []) {
     let order = 0;
     for (const activity of day.activities || []) {
-      if (activity.type === 'transport') continue; // 移動手段はitem化しない
       items.push({
         id: crypto.randomUUID(),
-        itemType: 'sightseeing',
+        // TABI47：transport（移動手段）もitemsに含める。
+        // Travel Modeで駅・バス停間の移動手段を表示するために必要。
+        itemType: activity.type === 'transport' ? 'transport' : 'sightseeing',
         title: activity.title,
         spotId: activity.spotId,
         description: activity.description,
@@ -974,6 +975,31 @@ export default async function handler(req: Request): Promise<Response> {
   //           スキップする）。SCHEDULE列でのドラッグ並び替え等、items基盤の
   //           機能を、Copyより前の古いTripにも使えるようにするための移行。
   //           daysの元データ自体は削除・変更しない（互換性維持）。 ──
+  // ── PATCH: transportを含めてitemsを再構築（既存Trip対応） ──
+  // daysActivitiesMigratedがtrueでも強制的に再実行する。
+  // 既存のitemsのうち、planLevel='saved'のものは保持し、
+  // day_assigned/scheduledのものは再構築したものに置き換える。
+  if (req.method === 'PATCH' && url.searchParams.get('action') === 'rebuildItemsFromDays') {
+    const id = url.searchParams.get('id') || '';
+    if (!id) return jsonResponse({ error: 'id is required' }, 400);
+    try {
+      const trip = await kv.get<Trip>(recordKey(id));
+      if (!trip) return jsonResponse({ error: 'Trip not found' }, 404);
+      if (trip.uid !== uid) return jsonResponse({ error: 'You can only edit your own trips' }, 403);
+      const savedItems = (trip.items || []).filter((it) => it.planLevel === 'saved');
+      const rebuiltItems = buildItemsFromDays(trip.days || []);
+      const updated = applyDefaults({
+        ...trip,
+        items: [...savedItems, ...rebuiltItems],
+        daysActivitiesMigrated: true,
+      });
+      await kv.set(recordKey(id), updated);
+      return jsonResponse({ success: true, trip: updated }, 200);
+    } catch (err) {
+      return jsonResponse({ error: 'Failed to rebuild items', detail: String(err) }, 500);
+    }
+  }
+
   if (req.method === 'PATCH' && url.searchParams.get('action') === 'migrateActivitiesToItems') {
     const id = url.searchParams.get('id') || '';
     if (!id) return jsonResponse({ error: 'id is required' }, 400);
