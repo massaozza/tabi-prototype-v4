@@ -66,7 +66,17 @@ interface ScheduleEntry {
 }
 
 // カテゴリ → 表示スタイルのマッピング（Trip詳細ページと共通）
+// itemType（'sightseeing'等）とSPOTのcategory両方に対応する
 const CATEGORY_STYLE: Record<string, { bg: string; text: string; label: string }> = {
+  // itemType値（新しい7分類）
+  'sightseeing': { bg: 'bg-blue-50', text: 'text-blue-700', label: 'Sightseeing' },
+  'restaurant': { bg: 'bg-orange-50', text: 'text-orange-700', label: 'Restaurant' },
+  'shopping': { bg: 'bg-pink-50', text: 'text-pink-700', label: 'Shopping' },
+  'accommodation': { bg: 'bg-primary-50', text: 'text-primary-700', label: 'Stay' },
+  'activity': { bg: 'bg-purple-50', text: 'text-purple-700', label: 'Activity' },
+  'transport': { bg: 'bg-background-100', text: 'text-foreground-500', label: 'Transport' },
+  'other': { bg: 'bg-background-100', text: 'text-foreground-500', label: 'Other' },
+  // SPOTのcategory値（既存データ）
   'Culture & History': { bg: 'bg-blue-50', text: 'text-blue-700', label: 'Culture' },
   'Nature & Scenery': { bg: 'bg-green-50', text: 'text-green-700', label: 'Nature' },
   'Food': { bg: 'bg-orange-50', text: 'text-orange-700', label: 'Food' },
@@ -525,9 +535,11 @@ export default function TripCard({
                             return (
                               <li key={entry.key} className="flex items-start gap-2">
                                 {/* タイムライン（ドット＋縦線） */}
-                                <div className="flex flex-col items-center w-3 flex-shrink-0 mt-1.5">
-                                  <div className={`w-2 h-2 rounded-full flex-shrink-0 ${isLast && scheduleEntries.length > 1 ? 'bg-background-300 border border-background-300' : 'bg-primary-500'}`}></div>
-                                  {!isLast && <div className="w-px bg-background-200 flex-1 min-h-4 mt-0.5 mb-0.5"></div>}
+                                <div className="flex flex-col items-center w-3 flex-shrink-0" style={{ alignSelf: 'stretch' }}>
+                                  <div className="mt-1.5 flex-shrink-0">
+                                    <div className={`w-2 h-2 rounded-full ${isLast && scheduleEntries.length > 1 ? 'bg-background-300' : 'bg-primary-500'}`}></div>
+                                  </div>
+                                  {!isLast && <div className="w-px bg-background-200 flex-1 mt-1"></div>}
                                 </div>
 
                                 {/* コンテンツ */}
