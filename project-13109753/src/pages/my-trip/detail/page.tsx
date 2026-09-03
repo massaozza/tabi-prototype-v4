@@ -888,9 +888,12 @@ export default function MyTripDetailPage() {
 
                   // days[].activitiesとitems[]を統合（migration済みの場合はitemsのみ）
                   const migrated = !!trip.daysActivitiesMigrated;
+                  // 通常表示ではtransportは別途移動帯として表示するためscheduleから除外
+                  const scheduleItems = dayItems.filter((it) => it.itemType !== 'transport');
+                  const transportItems = dayItems.filter((it) => it.itemType === 'transport');
                   const scheduleEntries = migrated
-                    ? dayItems
-                    : [...nonTransport.map((a: TripActivity, i: number) => ({ id: `legacy-${i}`, title: a.title, time: a.time, description: a.description, category: a.category, isLegacy: true })), ...dayItems];
+                    ? scheduleItems
+                    : [...nonTransport.map((a: TripActivity, i: number) => ({ id: `legacy-${i}`, title: a.title, time: a.time, description: a.description, category: a.category, isLegacy: true })), ...scheduleItems];
 
                   return (
                     <div key={day.day} className="bg-white border border-background-200 rounded-2xl overflow-hidden">
@@ -915,6 +918,14 @@ export default function MyTripDetailPage() {
                           const catStyle = getCatStyle(dest?.category || entry.category || (entry as TripItem).itemType);
                           const isBusy = busyItemId === entry.id;
                           const isItem = !entry.isLegacy && (entry as TripItem).planLevel !== undefined;
+                          // このエントリの直後に対応するtransportがあるか
+                          const nextTransport = !isLast ? transportItems.find((t) => {
+                            const tOrder = t.order ?? 0;
+                            const currentOrder = (entry as TripItem).order ?? idx;
+                            const nextEntry = scheduleEntries[idx + 1];
+                            const nextOrder = (nextEntry as TripItem)?.order ?? (idx + 1);
+                            return tOrder > currentOrder && tOrder < nextOrder;
+                          }) : undefined;
 
                           return (
                             <div key={entry.id || idx} className="flex items-stretch gap-2">
@@ -993,6 +1004,27 @@ export default function MyTripDetailPage() {
                                 </div>
                               )}
                             </div>
+                            {/* 通常表示でのスポット間移動帯 */}
+                            {!isLast && (
+                              <div className="flex items-center gap-2 py-1.5 px-1 -mx-0">
+                                <div className="flex flex-col items-center w-3 flex-shrink-0">
+                                  <div className="w-px bg-background-200 h-full min-h-3"></div>
+                                </div>
+                                <div className="flex items-center gap-2 flex-1 bg-background-50 border border-background-100 rounded-lg px-3 py-1.5">
+                                  <i className={`text-xs flex-shrink-0 text-foreground-400 ${
+                                    nextTransport?.description === 'walk' ? 'ri-walk-line' :
+                                    nextTransport?.description === 'train' ? 'ri-train-line' :
+                                    nextTransport?.description === 'bus' ? 'ri-bus-line' :
+                                    nextTransport?.description === 'taxi' ? 'ri-taxi-line' :
+                                    nextTransport?.description === 'car' ? 'ri-car-line' :
+                                    'ri-arrow-down-line'
+                                  }`}></i>
+                                  <span className="text-xs text-foreground-400 truncate flex-1">
+                                    {nextTransport?.title || 'Move to next stop'}
+                                  </span>
+                                </div>
+                              </div>
+                            )}
                           );
                         })}
 
