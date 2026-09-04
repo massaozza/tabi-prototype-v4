@@ -221,7 +221,7 @@ export default function ExperiencesPage() {
                       — {exp.authorName}
                     </span>
                   </div>
-                </Link>
+                </LocalizedLink>
                 );
               })}
             </div>
