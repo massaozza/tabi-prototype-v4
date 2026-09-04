@@ -1,4 +1,4 @@
-import LocalizedLink from '@/components/feature/LocalizedLink';
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import Navbar from '@/components/feature/Navbar';
@@ -7,6 +7,7 @@ import type { Guide } from '../page';
 
 export default function GuideDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const { t } = useTranslation();
   const [guide, setGuide] = useState<Guide | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -78,7 +79,7 @@ export default function GuideDetailPage() {
                 Guide not found
               </h1>
               <p className="text-foreground-500 text-sm mb-6">
-                The guide you are looking for may have been removed.
+                {t("guides_notFoundDesc")}
               </p>
               <Link
                 to="/guides"
