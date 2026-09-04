@@ -1,3 +1,4 @@
+import LocalizedLink from '@/components/feature/LocalizedLink';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '@/components/feature/Navbar';
@@ -153,7 +154,7 @@ export default function ExperiencesPage() {
                   engagementById[exp.id] || {}
                 );
                 return (
-                <Link
+                <LocalizedLink
                   key={exp.id}
                   to={`/experiences/${exp.id}`}
                   className="group flex flex-col bg-background-50 rounded-xl overflow-hidden border border-background-200 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer"
