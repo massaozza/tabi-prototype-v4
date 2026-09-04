@@ -1,3 +1,4 @@
+import { useContentTranslation, getTranslatedField } from '@/hooks/useContentTranslation';
 import LocalizedLink from '@/components/feature/LocalizedLink';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
@@ -48,6 +49,15 @@ export default function RegionPage() {
   }, [slug]);
 
   const region = slug ? getRegionBySlug(slug) : undefined;
+
+  // 地域コンテンツの多言語翻訳
+  const { translatedFields: regionTrans } = useContentTranslation(
+    'region',
+    region?.slug,
+    'en'
+  );
+  const tr = (field: string, original: string) =>
+    getTranslatedField(regionTrans, field, original);
   const regionIndex = region ? PREFECTURE_REGIONS.findIndex((r) => r.slug === region.slug) : -1;
   const prevRegion =
     regionIndex >= 0
@@ -94,7 +104,7 @@ export default function RegionPage() {
             <span className="text-foreground-300">/</span>
             <span className="text-foreground-700 whitespace-nowrap">{t('region_title', 'Regions')}</span>
             <span className="text-foreground-300">/</span>
-            <span className="text-foreground-900 whitespace-nowrap">{region.region}</span>
+            <span className="text-foreground-900 whitespace-nowrap">{tr("region", region.region)}</span>
           </nav>
 
           <div className="flex items-center justify-between gap-4 mb-3">
@@ -117,9 +127,9 @@ export default function RegionPage() {
           </div>
 
           <h1 className="font-heading font-bold text-3xl md:text-5xl text-foreground-900 leading-tight mb-3">
-            {region.region}
+            {tr("region", region.region)}
           </h1>
-          <p className="text-foreground-600 text-base max-w-2xl mb-10">{region.description}</p>
+          <p className="text-foreground-600 text-base max-w-2xl mb-10">{tr("description", region.description)}</p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {region.prefectures.map((pref) => {
