@@ -1,3 +1,4 @@
+import LocalizedLink from '@/components/feature/LocalizedLink';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -81,7 +82,7 @@ export default function TravelerExperiencesSection() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {experiences.map((exp) => (
-              <Link
+              <LocalizedLink
                 key={exp.id}
                 to={`/experiences/${exp.id}`}
                 className="group flex flex-col bg-background-100 rounded-xl overflow-hidden transition-all duration-300 hover:-translate-y-1 cursor-pointer"
