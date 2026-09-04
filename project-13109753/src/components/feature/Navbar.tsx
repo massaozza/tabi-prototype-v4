@@ -3,6 +3,7 @@ import { navLinks } from '@/mocks/homeData';
 import LogoMark from '@/components/feature/LogoMark';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from 'react-i18next';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { SUPPORTED_LANGUAGES } from '@/i18n/index';
 
 export default function Navbar({ variant }: { variant?: 'default' | 'dark' } = {}) {
@@ -13,6 +14,26 @@ export default function Navbar({ variant }: { variant?: 'default' | 'dark' } = {
   const langMenuRef = useRef<HTMLDivElement>(null);
   const { user, loading, logout } = useAuth();
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const SUPPORTED_CODES = SUPPORTED_LANGUAGES.map((l) => l.code);
+
+  // 言語切替：i18nを変えてURLも書き換える
+  const handleLanguageChange = (langCode: string) => {
+    i18n.changeLanguage(langCode);
+    setLangMenuOpen(false);
+    // 現在のURLから言語prefixを検出して入れ替え
+    const pathParts = location.pathname.split('/').filter(Boolean);
+    if (pathParts.length > 0 && SUPPORTED_CODES.includes(pathParts[0] as any)) {
+      // 既存の言語prefixを新しい言語に置換
+      pathParts[0] = langCode;
+      navigate('/' + pathParts.join('/') + (location.search || ''), { replace: false });
+    } else {
+      // 言語prefixがない場合（/login等）は言語TOPへ
+      navigate('/' + langCode, { replace: false });
+    }
+  };
 
   const currentLang = SUPPORTED_LANGUAGES.find((l) => l.code === i18n.language)
     || SUPPORTED_LANGUAGES[0];
@@ -121,7 +142,7 @@ export default function Navbar({ variant }: { variant?: 'default' | 'dark' } = {
                   {SUPPORTED_LANGUAGES.map((lang) => (
                     <button
                       key={lang.code}
-                      onClick={() => { i18n.changeLanguage(lang.code); setLangMenuOpen(false); }}
+                      onClick={() => handleLanguageChange(lang.code)}
                       className={`w-full text-left px-4 py-2 text-sm transition-colors cursor-pointer ${
                         i18n.language === lang.code
                           ? 'text-primary-600 font-semibold bg-primary-50'
