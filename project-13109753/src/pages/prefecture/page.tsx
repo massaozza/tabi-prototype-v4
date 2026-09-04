@@ -204,13 +204,13 @@ export default function PrefecturePage() {
                     <p className="text-foreground-600 text-sm leading-relaxed mb-3 line-clamp-2">
                       {dest.description}
                     </p>
-                    <Link
+                    <LocalizedLink
                       to={`/destinations/${dest.id}`}
                       className="inline-flex items-center gap-1 text-primary-500 font-semibold text-sm hover:gap-2 transition-all duration-200 cursor-pointer whitespace-nowrap"
                     >
                       Discover More
                       <i className="ri-arrow-right-line"></i>
-                    </Link>
+                    </LocalizedLink>
                   </div>
                 </article>
               ))}
