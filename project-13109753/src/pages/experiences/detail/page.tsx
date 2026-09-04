@@ -1,3 +1,4 @@
+import { useContentTranslation, getTranslatedField } from '@/hooks/useContentTranslation';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
