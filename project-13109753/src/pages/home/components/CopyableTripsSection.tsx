@@ -1,9 +1,11 @@
+import { useBatchTranslation, getBatchField } from '@/hooks/useBatchTranslation';
+import { useTranslation } from 'react-i18next';
 import LocalizedLink from '@/components/feature/LocalizedLink';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 
-// TABI47：TOPページ「Trips You Can Copy」セクション。
+// TABI47：TOPページ「{t("copy_tripsYouCanCopy", "Trips You Can Copy")}」セクション。
 // カードはティーザーに徹する。写真・タグ・タイトル・概要・予算・CTAのみ。
 // 詳細（日程タイムライン・ハイライト等）はTripの詳細ページで見せる。
 
@@ -103,7 +105,7 @@ function TripCard({ trip, spotImages }: { trip: PublicTrip; spotImages: Map<stri
           {coverImages[0] ? (
             <img
               src={coverImages[0]}
-              alt={trip.title}
+              alt={tb(trip.id, "title", trip.title)}
               className="w-full h-full object-cover"
               style={{ gridRow: coverImages.length >= 2 ? '1 / 3' : '1' }}
             />
@@ -155,13 +157,13 @@ function TripCard({ trip, spotImages }: { trip: PublicTrip; spotImages: Map<stri
 
         {/* タイトル */}
         <LocalizedLink to={`/trips/${trip.id}`} className="font-heading font-bold text-base text-foreground-900 hover:text-primary-600 transition-colors leading-snug mb-1 block">
-          {trip.title}
+          {tb(trip.id, "title", trip.title)}
         </LocalizedLink>
 
         {/* 概要 */}
         {trip.summary && (
           <p className="text-xs text-foreground-500 leading-relaxed mb-3 line-clamp-2 flex-1">
-            {trip.summary}
+            {tb(trip.id, "summary", trip.summary || "")}
           </p>
         )}
 
@@ -176,12 +178,12 @@ function TripCard({ trip, spotImages }: { trip: PublicTrip; spotImages: Map<stri
             disabled={copying}
             className="w-full bg-primary-600 hover:bg-primary-700 disabled:opacity-60 text-white font-semibold text-sm px-4 py-2.5 rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-2"
           >
-            {copying ? 'Copying...' : <><i className="ri-add-line"></i>Copy to My Trip</>}
+            {copying ? 'Copying...' : <><i className="ri-add-line"></i>{t("copy_copyToMyTrip", "Copy to My Trip")}</>}
           </button>
           {error && <p className="text-xs text-red-600 mt-1.5">{error}</p>}
           <p className="text-xs text-foreground-400 mt-1.5 text-center">
             See full itinerary before copying →{' '}
-            <LocalizedLink to={`/trips/${trip.id}`} className="underline hover:text-foreground-600">View trip</LocalizedLink>
+            <LocalizedLink to={`/trips/${trip.id}`} className="underline hover:text-foreground-600">{t("copy_viewTrip", "View trip")}</LocalizedLink>
           </p>
         </div>
       </div>
@@ -190,7 +192,12 @@ function TripCard({ trip, spotImages }: { trip: PublicTrip; spotImages: Map<stri
 }
 
 export default function CopyableTripsSection() {
+  const { t } = useTranslation();
   const [trips, setTrips] = useState<PublicTrip[]>([]);
+  const tripIds = trips.map((tr) => tr.id);
+  const { translations: tripTrans } = useBatchTranslation('trip', tripIds, 'en');
+  const tb = (id: string, field: string, original: string) =>
+    getBatchField(tripTrans, id, field, original);
   const [spotImages, setSpotImages] = useState<Map<string, string>>(new Map());
   const [loading, setLoading] = useState(true);
 
@@ -234,10 +241,10 @@ export default function CopyableTripsSection() {
         <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between mb-10">
           <div>
             <span className="text-primary-600 font-semibold text-sm tracking-[0.15em] uppercase">
-              Start in one click
+              {t("copy_startOneClick", "Start in one click")}
             </span>
             <h2 className="font-heading font-bold text-3xl md:text-5xl text-foreground-900 leading-tight mt-2">
-              Trips You Can Copy
+              {t("copy_tripsYouCanCopy", "Trips You Can Copy")}
             </h2>
           </div>
           <p className="text-foreground-500 text-base mt-4 lg:mt-0 lg:max-w-sm">
@@ -254,7 +261,7 @@ export default function CopyableTripsSection() {
         ) : showPlaceholder ? (
           <div className="text-center py-16 text-foreground-400">
             <i className="ri-map-2-line text-4xl mb-4 block"></i>
-            <p className="text-base font-medium text-foreground-500 mb-1">Trips coming soon</p>
+            <p className="text-base font-medium text-foreground-500 mb-1">{t("copy_comingSoon", "Trips coming soon")}</p>
             <p className="text-sm">Real itineraries from locals and travelers are on their way.</p>
           </div>
         ) : (
@@ -266,7 +273,7 @@ export default function CopyableTripsSection() {
             </div>
             <div className="text-center mt-10">
               <LocalizedLink to="/explore" className="inline-flex items-center gap-2 text-foreground-700 hover:text-primary-600 font-semibold text-sm transition-colors">
-                Browse all trips <i className="ri-arrow-right-line"></i>
+                {t("copy_browseAll", "Browse all trips")} <i className="ri-arrow-right-line"></i>
               </LocalizedLink>
             </div>
           </>
