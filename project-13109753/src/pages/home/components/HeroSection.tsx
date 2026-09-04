@@ -1,11 +1,14 @@
+import { useTranslation } from 'react-i18next';
+
 export default function HeroSection() {
+  const { t } = useTranslation();
+
   const handleOpenChat = () => {
     window.dispatchEvent(new CustomEvent('tabi:open-chat'));
   };
 
   return (
     <section className="relative w-full h-[600px] md:h-[700px] flex items-center overflow-hidden">
-      {/* 背景画像 — Unsplash（日本の風景、R2移行前のフォールバック） */}
       <img
         src="https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=1600&q=80"
         alt="Discover Japan beyond the guidebooks — TABI47"
@@ -18,7 +21,6 @@ export default function HeroSection() {
         <div className="max-w-3xl mx-auto text-center">
           <div className="flex items-center justify-center gap-3 mb-6">
             <div className="flex -space-x-2">
-              {/* アバター — イニシャルフォールバック（Readdy.ai画像は本番で表示されないため） */}
               <div className="w-9 h-9 rounded-full border-2 border-white/60 bg-primary-700 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">S</div>
               <div className="w-9 h-9 rounded-full border-2 border-white/60 bg-primary-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">M</div>
               <div className="w-9 h-9 rounded-full border-2 border-white/60 bg-primary-800 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">A</div>
@@ -27,11 +29,11 @@ export default function HeroSection() {
           </div>
 
           <h2 className="font-heading font-bold text-4xl md:text-6xl lg:text-7xl text-white leading-tight mb-6">
-            Discover Japan<br className="hidden sm:block" /> your way.
+            {t('hero_title', 'Discover Japan your way.')}
           </h2>
 
           <p className="text-white/85 text-base md:text-lg leading-relaxed max-w-xl mx-auto mb-10">
-            Powered by AI, real travelers, and the people who know Japan best.
+            {t('hero_subtitle', 'Powered by AI, real travelers, and the people who know Japan best.')}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -42,10 +44,10 @@ export default function HeroSection() {
             >
               <span className="flex items-center gap-2 text-base">
                 <i className="ri-sparkling-2-line"></i>
-                Plan with AI
+                {t('nav_planWithAI', 'Plan with AI')}
               </span>
               <span className="text-white/80 text-xs font-normal">
-                Create a Japan trip made for you
+                {t('hero_cta_plan', 'Create a Japan trip made for you')}
               </span>
             </button>
 
@@ -55,10 +57,10 @@ export default function HeroSection() {
             >
               <span className="flex items-center gap-2 text-base">
                 <i className="ri-compass-3-line"></i>
-                Discover Japan
+                {t('hero_cta_explore', 'Discover Japan')}
               </span>
               <span className="text-white/70 text-xs font-normal">
-                Explore real trips and local knowledge
+                {t('hero_subtitle_explore', 'Explore real trips and local knowledge')}
               </span>
             </a>
           </div>
