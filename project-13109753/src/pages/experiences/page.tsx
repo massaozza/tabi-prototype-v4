@@ -1,4 +1,4 @@
-import LocalizedLink from '@/components/feature/LocalizedLink';
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '@/components/feature/Navbar';
@@ -18,6 +18,7 @@ const categoryColors: Record<string, string> = {
 };
 
 export default function ExperiencesPage() {
+  const { t } = useTranslation();
   const [experiences, setExperiences] = useState<Experience[]>([]);
   const [engagementById, setEngagementById] = useState<Record<string, ExperienceEngagementStats>>({});
   const [loading, setLoading] = useState(true);
@@ -82,14 +83,14 @@ export default function ExperiencesPage() {
               Home
             </Link>
             <span className="text-white/30">/</span>
-            <span className="text-white whitespace-nowrap">Experiences</span>
+            <span className="text-white whitespace-nowrap">{t("exp_title")}</span>
           </nav>
 
           <span className="inline-block text-xs font-semibold tracking-widest uppercase text-accent-400 mb-3">
             Traveler Stories
           </span>
           <h1 className="font-heading font-bold text-3xl md:text-5xl text-white leading-tight mb-4">
-            Real Experiences from <span className="text-primary-400">Real Travelers</span>
+            {t("exp_realExp")} <span className="text-primary-400"></span>
           </h1>
           <p className="text-white/60 text-base max-w-xl mx-auto leading-relaxed">
             Unfiltered stories from people who have actually been there — the good moments, the
@@ -135,7 +136,7 @@ export default function ExperiencesPage() {
                 No experiences yet
               </h2>
               <p className="text-foreground-500 text-sm mb-6">
-                Be the first to share your story with fellow travelers.
+                {t("exp_beFirst")}
               </p>
               <Link
                 to="/experiences/new"
@@ -154,7 +155,7 @@ export default function ExperiencesPage() {
                   engagementById[exp.id] || {}
                 );
                 return (
-                <LocalizedLink
+                <Link
                   key={exp.id}
                   to={`/experiences/${exp.id}`}
                   className="group flex flex-col bg-background-50 rounded-xl overflow-hidden border border-background-200 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer"
@@ -221,7 +222,7 @@ export default function ExperiencesPage() {
                       — {exp.authorName}
                     </span>
                   </div>
-                </LocalizedLink>
+                </Link>
                 );
               })}
             </div>
