@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Navbar from '@/components/feature/Navbar';
@@ -61,6 +62,7 @@ const TRIP_TYPE_BADGE: Record<string, { label: string; className: string }> = {
 };
 
 export default function PublicTripDetailPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const navigate = useNavigate();
