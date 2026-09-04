@@ -1,3 +1,5 @@
+import { useBatchTranslation, getBatchField } from '@/hooks/useBatchTranslation';
+import { useTranslation } from 'react-i18next';
 import LocalizedLink from '@/components/feature/LocalizedLink';
 import { localsPlaces as fallbackLocalsPlaces } from '@/mocks/homeData';
 import { useRef, useState, useEffect, useCallback } from 'react';
@@ -25,10 +27,15 @@ interface Guide {
 }
 
 export default function LocalsRecommendSection() {
+  const { t } = useTranslation();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
   const [places, setPlaces] = useState<Place[]>([]);
+  const placeIds = places.map((p) => p.id);
+  const { translations: placeTrans } = useBatchTranslation('spot', placeIds, 'en');
+  const tb = (id: string, field: string, original: string) =>
+    getBatchField(placeTrans, id, field, original);
   const [guides, setGuides] = useState<Guide[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -102,10 +109,10 @@ export default function LocalsRecommendSection() {
         <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-10 gap-4">
           <div>
             <span className="inline-block text-xs font-semibold tracking-widest uppercase text-accent-600 mb-3">
-              Local Favorites
+              {t("locals_favorites", "Local Favorites")}
             </span>
             <h2 className="font-heading font-bold text-3xl md:text-5xl text-foreground-900 leading-tight">
-              Hidden Japan
+              {t("locals_hiddenJapan", "Hidden Japan")}
             </h2>
           </div>
           <p className="text-foreground-500 text-base md:max-w-xs">
@@ -154,17 +161,17 @@ export default function LocalsRecommendSection() {
                     <div className="relative w-full h-56 md:h-64 overflow-hidden">
                       <img
                         src={place.image}
-                        alt={place.title}
-                        title={`${place.title} — TABI local recommendation`}
+                        alt={tb(place.id, "title", place.title)}
+                        title={`${tb(place.id, "title", place.title)} — TABI local recommendation`}
                         className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
                       />
                     </div>
                     <div className="p-5 md:p-6">
                       <h3 className="font-heading font-bold text-lg text-foreground-900 mb-3">
-                        {place.title}
+                        {tb(place.id, "title", place.title)}
                       </h3>
                       <p className="text-foreground-600 text-sm leading-relaxed line-clamp-4">
-                        {place.story}
+                        {tb(place.id, "story", place.story)}
                       </p>
                     </div>
                   </article>

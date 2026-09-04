@@ -1,3 +1,5 @@
+import { useBatchTranslation, getBatchField } from '@/hooks/useBatchTranslation';
+import { useTranslation } from 'react-i18next';
 import LocalizedLink from '@/components/feature/LocalizedLink';
 import { destinations as fallbackDestinations } from '@/mocks/homeData';
 import { useState, useEffect } from 'react';
@@ -50,8 +52,8 @@ function DestinationImage({ dest }: { dest: Destination }) {
   return (
     <img
       src={dest.image}
-      alt={`${dest.title} — ${dest.category}`}
-      title={`${dest.title} travel experience — TABI`}
+      alt={`${tb(dest.id, "title", dest.title)} — ${dest.category}`}
+      title={`${tb(dest.id, "title", dest.title)} travel experience — TABI`}
       onError={() => setFailed(true)}
       className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
     />
@@ -59,7 +61,12 @@ function DestinationImage({ dest }: { dest: Destination }) {
 }
 
 export default function DestinationsSection() {
+  const { t } = useTranslation();
   const [destinations, setDestinations] = useState<Destination[]>([]);
+  const destIds = destinations.map((d) => d.id);
+  const { translations: destTrans } = useBatchTranslation('spot', destIds, 'en');
+  const tb = (id: string, field: string, original: string) =>
+    getBatchField(destTrans, id, field, original);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -96,7 +103,7 @@ export default function DestinationsSection() {
             Destinations
           </span>
           <h2 className="font-heading font-bold text-3xl md:text-5xl text-foreground-900 leading-tight">
-            Trending <span className="text-primary-500">Spots</span>
+            {t("dest_trending", "Trending")} <span className="text-primary-500">{t("dest_spots", "Spots")}</span>
           </h2>
           <p className="text-foreground-500 text-base mt-3 max-w-xl">
             Go beyond the landmarks to discover the authentic rhythms, flavors, and stories of each place
@@ -137,16 +144,16 @@ export default function DestinationsSection() {
                 </div>
                 <div className="p-5 md:p-6">
                   <h3 className="font-heading font-bold text-xl text-foreground-900 mb-2">
-                    {dest.title}
+                    {tb(dest.id, "title", dest.title)}
                   </h3>
                   <p className="text-foreground-600 text-sm leading-relaxed mb-4 line-clamp-3">
-                    {dest.description}
+                    {tb(dest.id, "description", dest.description)}
                   </p>
                   <Link
                     to={`/destinations/${dest.id}`}
                     className="inline-flex items-center gap-1 text-primary-500 font-semibold text-sm hover:gap-2 transition-all duration-200 cursor-pointer whitespace-nowrap"
                   >
-                    Discover More
+                    {t("dest_discoverMore", "Discover More")}
                     <i className="ri-arrow-right-line"></i>
                   </Link>
                 </div>
