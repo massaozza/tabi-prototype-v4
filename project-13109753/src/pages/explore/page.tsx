@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '@/components/feature/Navbar';
@@ -118,7 +119,7 @@ function ExploreMapPanel({ results }: { results: ExploreResult[] }) {
       {spotsWithCoords.length === 0 && (
         <div className="absolute inset-0 flex items-center justify-center bg-background-100/80 pointer-events-none">
           <p className="text-foreground-400 text-sm px-6 text-center">
-            No mappable spots in the current results
+            {t("explore_noMap")}
           </p>
         </div>
       )}
@@ -170,6 +171,7 @@ function ResultCard({ r }: { r: ExploreResult }) {
 }
 
 export default function ExplorePage() {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<'all' | ContentType>('all');
   const [query, setQuery] = useState('');
   const [area, setArea] = useState('');
@@ -229,7 +231,7 @@ export default function ExplorePage() {
               Home
             </Link>
             <span className="text-white/30">/</span>
-            <span className="text-white whitespace-nowrap">Explore</span>
+            <span className="text-white whitespace-nowrap">{t("explore_title")}</span>
           </nav>
 
           <span className="inline-block text-xs font-semibold tracking-widest uppercase text-accent-400 mb-3">
