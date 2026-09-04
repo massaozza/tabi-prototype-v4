@@ -417,7 +417,7 @@ export default function ExperienceDetailPage() {
                               : 'bg-primary-50 text-primary-700'
                           }`}
                         >
-                          {trip.tripType === 'recommended' ? '{t('exp_recommendedTrip', 'Recommended Trip')}' : '{t('exp_actualTrip', 'Actual Trip')}'}
+                          {trip.tripType === 'recommended' ? t('exp_recommendedTrip', 'Recommended Trip') : t('exp_actualTrip', 'Actual Trip')}
                         </span>
                         <span className="font-heading font-semibold text-sm text-foreground-900">
                           {trip.title}
