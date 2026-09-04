@@ -1,4 +1,3 @@
-import { useContentTranslation, getTranslatedField } from '@/hooks/useContentTranslation';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
@@ -117,17 +116,7 @@ function LocationMap({ lat, lng, title }: { lat: number; lng: number; title: str
 
 export default function DestinationPage() {
   const { id } = useParams<{ id: string }>();
-  const { t } = useTranslation();
   const [destination, setDestination] = useState<Destination | null>(null);
-
-  // 多言語翻訳
-  const { translatedFields: spotTrans } = useContentTranslation(
-    'spot',
-    destination?.id,
-    (destination as any)?.originalLanguage || 'en'
-  );
-  const ts = (field: string, original: string) =>
-    getTranslatedField(spotTrans, field, original);
   const [experiences, setExperiences] = useState<Experience[]>([]);
   const [guides, setGuides] = useState<Guide[]>([]);
   const [trips, setTrips] = useState<RelatedTrip[]>([]);
@@ -270,11 +259,11 @@ export default function DestinationPage() {
 
   const TABS: { key: TabKey; label: string; count?: number }[] = destination
     ? [
-        { key: 'overview', label: 'Overview' },
-        { key: 'guides', label: 'Guides', count: guides.length },
-        { key: 'reviews', label: 'Reviews', count: experiences.length },
-        { key: 'trips', label: 'Trips', count: trips.length },
-        { key: 'location', label: 'Location' },
+        { key: 'overview', label: t('dest_overview', 'Overview') },
+        { key: 'guides', label: t('dest_guides', 'Guides'), count: guides.length },
+        { key: 'reviews', label: t('dest_reviews', 'Reviews'), count: experiences.length },
+        { key: 'trips', label: t('dest_trips', 'Trips'), count: trips.length },
+        { key: 'location', label: t('dest_location', 'Location') },
       ]
     : [];
 
@@ -415,10 +404,10 @@ export default function DestinationPage() {
               {activeTab === 'overview' && (
                 <div>
                   <h2 className="font-heading font-bold text-xl md:text-2xl text-foreground-900 mb-4">
-                    About {ts("title", destination.title)}
+                    About {destination.title}
                   </h2>
                   <p className="text-foreground-600 text-base md:text-lg leading-relaxed mb-10">
-                    {ts("description", destination.description)}
+                    {destination.description}
                   </p>
 
                   {similarSpots.length > 0 && (
@@ -463,7 +452,7 @@ export default function DestinationPage() {
                       spotId={destination.id}
                       spotTitle={destination.title}
                       spotImageUrl={destination.image}
-                      spotDescription={ts("description", destination.description)}
+                      spotDescription={destination.description}
                       spotCategory={destination.category}
                       className="inline-flex items-center gap-2 bg-background-100 hover:bg-background-200 text-foreground-800 font-semibold text-sm md:text-base px-6 py-3.5 rounded-lg transition-colors whitespace-nowrap cursor-pointer"
                     />
@@ -478,7 +467,7 @@ export default function DestinationPage() {
                   </h2>
                   {guides.length === 0 ? (
                     <p className="text-foreground-500 text-sm">
-                      {t("dest_noGuides")}
+                      {t('dest_noGuides', 'No guides mention this spot yet.')}
                     </p>
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 md:gap-6">
@@ -514,7 +503,7 @@ export default function DestinationPage() {
                   </h2>
                   {experiences.length === 0 ? (
                     <p className="text-foreground-500 text-sm">
-                      {t("dest_noExp")}
+                      {t('dest_noExp', 'No traveler experiences shared yet.')}
                     </p>
                   ) : (
                     <>
@@ -581,7 +570,7 @@ export default function DestinationPage() {
                   </h2>
                   {trips.length === 0 ? (
                     <p className="text-foreground-500 text-sm">
-                      {t("dest_noTrips")}
+                      {t('dest_noTrips', 'No trips include this spot yet.')}
                     </p>
                   ) : (
                     <div className="space-y-4">
@@ -644,7 +633,7 @@ export default function DestinationPage() {
                     />
                   ) : (
                     <p className="text-foreground-500 text-sm">
-                      {t("dest_noLocation")}
+                      Location information is not available for this spot.
                     </p>
                   )}
                 </div>
