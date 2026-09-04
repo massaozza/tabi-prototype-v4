@@ -115,6 +115,7 @@ function LocationMap({ lat, lng, title }: { lat: number; lng: number; title: str
 }
 
 export default function DestinationPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const [destination, setDestination] = useState<Destination | null>(null);
   const [experiences, setExperiences] = useState<Experience[]>([]);
