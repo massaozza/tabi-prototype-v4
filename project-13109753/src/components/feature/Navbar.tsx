@@ -1,13 +1,32 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { navLinks } from '@/mocks/homeData';
 import LogoMark from '@/components/feature/LogoMark';
 import { useAuth } from '@/context/AuthContext';
+import { useTranslation } from 'react-i18next';
+import { SUPPORTED_LANGUAGES } from '@/i18n/index';
 
 export default function Navbar({ variant }: { variant?: 'default' | 'dark' } = {}) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [langMenuOpen, setLangMenuOpen] = useState(false);
+  const langMenuRef = useRef<HTMLDivElement>(null);
   const { user, loading, logout } = useAuth();
+  const { t, i18n } = useTranslation();
+
+  const currentLang = SUPPORTED_LANGUAGES.find((l) => l.code === i18n.language)
+    || SUPPORTED_LANGUAGES[0];
+
+  // 言語メニュー外クリックで閉じる
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (langMenuRef.current && !langMenuRef.current.contains(e.target as Node)) {
+        setLangMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // variant='dark' のときは常にダークネイビー背景で表示（透過なし）
   const isDark = variant === 'dark';
@@ -84,6 +103,38 @@ export default function Navbar({ variant }: { variant?: 'default' | 'dark' } = {
           )}
 
           <div className="hidden md:flex items-center gap-5">
+            {/* 言語切替ドロップダウン */}
+            <div className="relative" ref={langMenuRef}>
+              <button
+                onClick={() => setLangMenuOpen(!langMenuOpen)}
+                className={`flex items-center gap-1 text-sm font-medium whitespace-nowrap transition-colors duration-300 hover:opacity-70 ${
+                  (isDark || !scrolled) ? 'text-white/80' : 'text-foreground-600'
+                }`}
+                aria-label={t('common.language')}
+              >
+                <i className="ri-global-line text-base"></i>
+                <span>{currentLang.label}</span>
+                <i className={`text-xs transition-transform ${langMenuOpen ? 'ri-arrow-up-s-line' : 'ri-arrow-down-s-line'}`}></i>
+              </button>
+              {langMenuOpen && (
+                <div className="absolute right-0 top-full mt-2 min-w-[180px] bg-white border border-background-200 rounded-xl py-1.5 shadow-lg z-50">
+                  {SUPPORTED_LANGUAGES.map((lang) => (
+                    <button
+                      key={lang.code}
+                      onClick={() => { i18n.changeLanguage(lang.code); setLangMenuOpen(false); }}
+                      className={`w-full text-left px-4 py-2 text-sm transition-colors cursor-pointer ${
+                        i18n.language === lang.code
+                          ? 'text-primary-600 font-semibold bg-primary-50'
+                          : 'text-foreground-700 hover:bg-background-50'
+                      }`}
+                    >
+                      {lang.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
             {loading ? null : user ? (
               <div className="relative">
                 <button
