@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import Navbar from '@/components/feature/Navbar';
@@ -5,6 +6,7 @@ import Footer from '@/components/feature/Footer';
 import type { Guide } from '../page';
 
 export default function GuideDetailPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const [guide, setGuide] = useState<Guide | null>(null);
   const [loading, setLoading] = useState(true);
