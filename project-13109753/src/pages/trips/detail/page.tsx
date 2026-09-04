@@ -1,3 +1,4 @@
+import { useContentTranslation, getTranslatedField } from '@/hooks/useContentTranslation';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
@@ -67,6 +68,15 @@ export default function PublicTripDetailPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [trip, setTrip] = useState<PublicTrip | null>(null);
+
+  // 多言語翻訳
+  const { translatedFields: tripTrans } = useContentTranslation(
+    'trip',
+    trip?.id,
+    (trip as any)?.originalLanguage || 'en'
+  );
+  const tt = (field: string, original: string) =>
+    getTranslatedField(tripTrans, field, original);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -193,7 +203,7 @@ export default function PublicTripDetailPage() {
                   Trips
                 </Link>
                 <span className="text-foreground-300">/</span>
-                <span className="text-foreground-900 line-clamp-1">{trip.title}</span>
+                <span className="text-foreground-900 line-clamp-1">{tt("title", trip.title)}</span>
               </nav>
 
               <div className="flex items-center gap-2 mb-3 flex-wrap">
@@ -211,12 +221,12 @@ export default function PublicTripDetailPage() {
               </div>
 
               <h1 className="font-heading font-bold text-3xl md:text-4xl text-foreground-900 leading-tight mb-3">
-                {trip.title}
+                {tt("title", trip.title)}
               </h1>
 
               {trip.summary && (
                 <p className="text-foreground-600 text-base leading-relaxed mb-6">
-                  {trip.summary}
+                  {tt("summary", trip.summary || "")}
                 </p>
               )}
 
