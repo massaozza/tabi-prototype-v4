@@ -9,6 +9,10 @@ interface AdminExperience {
   wouldRecommend: boolean;
   helpfulCount: number;
   createdAt: string;
+  whatWasGood?: string;
+  bestTimeToVisit?: string;
+  budgetLevel?: string;
+  photos?: string[];
 }
 
 function formatDate(iso: string) {
@@ -24,6 +28,10 @@ export default function AdminExperiencesPage() {
   const [deleteTarget, setDeleteTarget] = useState<AdminExperience | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
+  const [editTarget, setEditTarget] = useState<AdminExperience | null>(null);
+  const [editForm, setEditForm] = useState({ placeName: '', whatWasGood: '', bestTimeToVisit: '', area: '' });
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -61,15 +69,45 @@ export default function AdminExperiencesPage() {
     }
   };
 
+  const openEdit = (exp: AdminExperience) => {
+    setEditTarget(exp);
+    setEditForm({
+      placeName: exp.placeName || '',
+      whatWasGood: exp.whatWasGood || '',
+      bestTimeToVisit: exp.bestTimeToVisit || '',
+      area: exp.area || '',
+    });
+    setSaveError('');
+  };
+
+  const handleSave = async () => {
+    if (!editTarget) return;
+    setSaving(true);
+    setSaveError('');
+    try {
+      const res = await fetch(`/api/admin-experiences?id=${encodeURIComponent(editTarget.id)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editForm),
+      });
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      setExperiences((prev) => prev.map((e) => e.id === editTarget.id ? { ...e, ...editForm } : e));
+      setEditTarget(null);
+    } catch {
+      setSaveError('Failed to save. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-foreground-900 font-heading">Experiences</h1>
-          <p className="text-sm text-foreground-500 mt-1">
-            {loading ? 'Loading…' : `${experiences.length} total experiences`}
-          </p>
-        </div>
+      <div>
+        <h1 className="text-xl font-bold text-foreground-900 font-heading">Experiences</h1>
+        <p className="text-sm text-foreground-500 mt-1">
+          {loading ? 'Loading…' : `${experiences.length} total experiences`}
+        </p>
       </div>
 
       <div className="bg-background-50 rounded-lg border border-background-200 p-3">
@@ -119,10 +157,16 @@ export default function AdminExperiencesPage() {
                     <td className="px-4 py-3 text-xs text-foreground-600">{exp.helpfulCount}</td>
                     <td className="px-4 py-3 text-xs text-foreground-500 whitespace-nowrap">{formatDate(exp.createdAt)}</td>
                     <td className="px-4 py-3 text-right">
-                      <button onClick={() => setDeleteTarget(exp)}
-                        className="text-xs text-red-500 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded cursor-pointer">
-                        Delete
-                      </button>
+                      <div className="flex items-center gap-2 justify-end">
+                        <button onClick={() => openEdit(exp)}
+                          className="text-xs text-primary-600 hover:text-primary-800 hover:bg-primary-50 px-2 py-1 rounded cursor-pointer">
+                          Edit
+                        </button>
+                        <button onClick={() => setDeleteTarget(exp)}
+                          className="text-xs text-red-500 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded cursor-pointer">
+                          Delete
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -137,6 +181,54 @@ export default function AdminExperiencesPage() {
         </div>
       )}
 
+      {/* 編集モーダル */}
+      {editTarget && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
+            <h3 className="font-bold text-foreground-900 mb-4">Edit Experience</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-foreground-700 mb-1">Place Name</label>
+                <input type="text" value={editForm.placeName}
+                  onChange={(e) => setEditForm((f) => ({ ...f, placeName: e.target.value }))}
+                  className="w-full px-3 py-2 text-sm border border-background-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-400" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-foreground-700 mb-1">Area</label>
+                <input type="text" value={editForm.area}
+                  onChange={(e) => setEditForm((f) => ({ ...f, area: e.target.value }))}
+                  className="w-full px-3 py-2 text-sm border border-background-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-400" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-foreground-700 mb-1">What was good</label>
+                <textarea value={editForm.whatWasGood}
+                  onChange={(e) => setEditForm((f) => ({ ...f, whatWasGood: e.target.value }))}
+                  rows={4}
+                  className="w-full px-3 py-2 text-sm border border-background-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-400 resize-y" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-foreground-700 mb-1">Best time to visit</label>
+                <input type="text" value={editForm.bestTimeToVisit}
+                  onChange={(e) => setEditForm((f) => ({ ...f, bestTimeToVisit: e.target.value }))}
+                  className="w-full px-3 py-2 text-sm border border-background-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-400" />
+              </div>
+            </div>
+            {saveError && <p className="text-xs text-red-600 mt-3">{saveError}</p>}
+            <div className="flex gap-3 mt-5">
+              <button onClick={() => setEditTarget(null)}
+                className="flex-1 py-2 text-sm border border-background-300 rounded-lg text-foreground-700 hover:bg-background-100 cursor-pointer">
+                Cancel
+              </button>
+              <button onClick={handleSave} disabled={saving}
+                className="flex-1 py-2 text-sm bg-primary-500 text-white rounded-lg hover:bg-primary-600 disabled:opacity-50 cursor-pointer">
+                {saving ? 'Saving…' : 'Save'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 削除確認モーダル */}
       {deleteTarget && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-6">
