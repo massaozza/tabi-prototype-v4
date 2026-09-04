@@ -76,7 +76,7 @@ function PublicTripCard({ trip }: { trip: PublicTrip }) {
         className="font-heading font-bold text-lg text-foreground-900 mb-2 hover:text-primary-600 transition-colors block"
       >
         {trip.title}
-      </Link>
+      </LocalizedLink>
       <p className="text-foreground-600 text-sm leading-relaxed mb-4 line-clamp-3 flex-1">
         {trip.summary || ''}
       </p>
