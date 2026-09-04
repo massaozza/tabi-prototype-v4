@@ -1,4 +1,3 @@
-import { useContentTranslation, getTranslatedField } from '@/hooks/useContentTranslation';
 import { useEffect, useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/feature/Navbar';
@@ -54,15 +53,6 @@ export default function ExperienceDetailPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [experience, setExperience] = useState<Experience | null>(null);
-
-  // 多言語コンテンツ翻訳
-  const { translatedFields: expTrans } = useContentTranslation(
-    'experience',
-    experience?.id,
-    (experience as any)?.originalLanguage || 'ja'
-  );
-  const tf = (field: string, original: string) =>
-    getTranslatedField(expTrans, field, original);
   const [allExperiences, setAllExperiences] = useState<Experience[]>([]);
   const [loading, setLoading] = useState(true);
   const [helpfulCount, setHelpfulCount] = useState(0);
@@ -93,7 +83,7 @@ export default function ExperienceDetailPage() {
           }
 
           if (found?.spotId) {
-            // Related Spot（このExperienceが紐づいているSPOTの基本情報）
+            // {t('exp_relatedSpot', 'Related Spot')}（このExperienceが紐づいているSPOTの基本情報）
             try {
               const spotRes = await fetch('/api/content?type=destinations');
               if (spotRes.ok) {
@@ -113,6 +103,8 @@ export default function ExperienceDetailPage() {
               if (tripRes.ok) {
                 const tripJson = await tripRes.json();
                 if (!cancelled && Array.isArray(tripJson.trips)) {
+                  // /api/trips?public=1 は既にスコア順で返ってくるため、
+                  // ここでは絞り込みのみ行う
                   const matching = tripJson.trips
                     .filter((t: RelatedTrip) =>
                       t.days.some((d) => d.activities.some((a) => a.spotId === found.spotId))
@@ -225,7 +217,7 @@ export default function ExperienceDetailPage() {
               </p>
               <Link to="/experiences" className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-6 py-3 rounded-lg transition-colors whitespace-nowrap">
                 <i className="ri-arrow-left-line"></i>
-                Back to Experiences
+                {t('exp_backToExp', '{t('exp_backToExp', 'Back to Experiences')}')}
               </Link>
             </div>
           ) : (
@@ -248,8 +240,8 @@ export default function ExperienceDetailPage() {
                     >
                       <img
                         src={url}
-                        alt={`${tf("placeName", experience.placeName)} photo ${idx + 1}`}
-                        title={`${tf("placeName", experience.placeName)} — TABI`}
+                        alt={`${experience.placeName} photo ${idx + 1}`}
+                        title={`${experience.placeName} — TABI`}
                         className="w-full h-full object-cover object-top"
                       />
                     </div>
@@ -294,7 +286,7 @@ export default function ExperienceDetailPage() {
               </div>
 
               <h1 className="font-heading font-bold text-3xl md:text-4xl text-foreground-900 leading-tight mb-3">
-                {tf("placeName", experience.placeName)}
+                {experience.placeName}
               </h1>
 
               <p className="text-foreground-500 text-sm mb-8">
@@ -308,21 +300,21 @@ export default function ExperienceDetailPage() {
                 in {formatMonth(experience.visitedMonth)}
               </p>
 
-              {/* Trip Details */}
+              {/* {t('exp_tripDetails', 'Trip Details')} */}
               <section className="mb-8">
                 <h4 className="font-heading font-semibold text-base text-foreground-900 mb-4">
-                  Trip Details
+                  {t('exp_tripDetails', 'Trip Details')}
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="bg-background-50 border border-background-200 rounded-lg p-4">
-                    <span className="block text-xs text-foreground-400 mb-1">Travel Style</span>
+                    <span className="block text-xs text-foreground-400 mb-1">{t('exp_travelStyle', 'Travel Style')}</span>
                     <span className="font-heading font-semibold text-sm text-foreground-900">
                       {experience.travelStyle}
                     </span>
                   </div>
                   {experience.companions && (
                     <div className="bg-background-50 border border-background-200 rounded-lg p-4">
-                      <span className="block text-xs text-foreground-400 mb-1">Companions</span>
+                      <span className="block text-xs text-foreground-400 mb-1">{t('exp_companions', 'Companions')}</span>
                       <span className="font-heading font-semibold text-sm text-foreground-900">
                         {experience.companions}
                       </span>
@@ -330,7 +322,7 @@ export default function ExperienceDetailPage() {
                   )}
                   {experience.budgetLevel && (
                     <div className="bg-background-50 border border-background-200 rounded-lg p-4">
-                      <span className="block text-xs text-foreground-400 mb-1">Budget Level</span>
+                      <span className="block text-xs text-foreground-400 mb-1">{t('exp_budgetLevel', 'Budget Level')}</span>
                       <span className="font-heading font-semibold text-sm text-foreground-900">
                         {experience.budgetLevel}
                       </span>
@@ -342,10 +334,10 @@ export default function ExperienceDetailPage() {
               {/* What was good */}
               <section className="mb-8">
                 <h4 className="font-heading font-semibold text-base text-foreground-900 mb-3">
-                  What was good?
+                  {t('exp_whatWasGood', 'What was good?')}
                 </h4>
                 <p className="text-foreground-700 text-base leading-relaxed whitespace-pre-wrap">
-                  {tf("whatWasGood", experience.whatWasGood)}
+                  {experience.whatWasGood}
                 </p>
               </section>
 
@@ -354,10 +346,10 @@ export default function ExperienceDetailPage() {
                 <section className="mb-8 bg-amber-50 border border-amber-200 rounded-lg p-5">
                   <h4 className="font-heading font-semibold text-base text-amber-800 mb-3 flex items-center gap-2">
                     <i className="ri-alert-line"></i>
-                    What was hard?
+                    {t('exp_whatWasHard', 'What was hard?')}
                   </h4>
                   <p className="text-amber-900 text-base leading-relaxed whitespace-pre-wrap">
-                    {tf("whatWasHard", experience.whatWasHard || "")}
+                    {experience.whatWasHard}
                   </p>
                 </section>
               )}
@@ -367,19 +359,19 @@ export default function ExperienceDetailPage() {
                 <section className="mb-8 bg-accent-50 border border-accent-200 rounded-lg p-5">
                   <h4 className="font-heading font-semibold text-base text-accent-800 mb-3 flex items-center gap-2">
                     <i className="ri-lightbulb-line"></i>
-                    Tip for travelers
+                    {t('exp_tipForTravelers', 'Tip for travelers')}
                   </h4>
                   <p className="text-accent-900 text-base leading-relaxed whitespace-pre-wrap">
-                    {tf("tip", experience.tip || "")}
+                    {experience.tip}
                   </p>
                 </section>
               )}
 
-              {/* Related Spot */}
+              {/* {t('exp_relatedSpot', 'Related Spot')} */}
               {relatedSpot && (
                 <section className="mb-8">
                   <h4 className="font-heading font-semibold text-base text-foreground-900 mb-3">
-                    Related Spot
+                    {t('exp_relatedSpot', 'Related Spot')}
                   </h4>
                   <Link
                     to={`/destinations/${relatedSpot.id}`}
@@ -425,7 +417,7 @@ export default function ExperienceDetailPage() {
                               : 'bg-primary-50 text-primary-700'
                           }`}
                         >
-                          {trip.tripType === 'recommended' ? 'Recommended Trip' : 'Actual Trip'}
+                          {trip.tripType === 'recommended' ? '{t('exp_recommendedTrip', 'Recommended Trip')}' : '{t('exp_actualTrip', 'Actual Trip')}'}
                         </span>
                         <span className="font-heading font-semibold text-sm text-foreground-900">
                           {trip.title}
@@ -436,7 +428,7 @@ export default function ExperienceDetailPage() {
                 </section>
               )}
 
-              {/* Would recommend / Helpful */}
+              {/* {t('exp_wouldRecommend', 'Would recommend')} / Helpful */}
               <section className="mb-10 flex items-center gap-3 flex-wrap">
                 <span
                   className={`inline-flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-full whitespace-nowrap ${
@@ -448,7 +440,7 @@ export default function ExperienceDetailPage() {
                   {experience.wouldRecommend ? (
                     <>
                       <i className="ri-checkbox-circle-fill"></i>
-                      Would recommend
+                      {t('exp_wouldRecommend', 'Would recommend')}
                     </>
                   ) : (
                     <>
@@ -473,12 +465,12 @@ export default function ExperienceDetailPage() {
                 </button>
               </section>
 
-              {/* Experience Score */}
+              {/* {t('exp_expScore', 'Experience Score')} */}
               <section className="mb-10 bg-background-50 border border-background-200 rounded-lg p-5 md:p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h4 className="font-heading font-semibold text-base text-foreground-900 flex items-center gap-2">
                     <i className="ri-award-line text-primary-500"></i>
-                    Experience Score
+                    {t('exp_expScore', 'Experience Score')}
                   </h4>
                   <span className="font-heading font-bold text-2xl text-foreground-900">
                     {score?.total ?? 0}
@@ -490,38 +482,38 @@ export default function ExperienceDetailPage() {
                 </div>
 
                 <div className="space-y-3">
-                  <ScoreBar label="Detail" value={score?.detail ?? 0} max={score?.maxDetail ?? 1} />
+                  <ScoreBar label={t('exp_scoreDetail', 'Detail')} value={score?.detail ?? 0} max={score?.maxDetail ?? 1} />
                   <ScoreBar
-                    label="Authenticity"
+                    label={t('exp_scoreAuthenticity', 'Authenticity')}
                     value={score?.authenticity ?? 0}
                     max={score?.maxAuthenticity ?? 1}
                   />
                   <ScoreBar
-                    label="Freshness"
+                    label={t('exp_scoreFreshness', 'Freshness')}
                     value={score?.freshness ?? 0}
                     max={score?.maxFreshness ?? 1}
                   />
-                  <ScoreBar label="Rarity" value={score?.rarity ?? 0} max={score?.maxRarity ?? 1} />
+                  <ScoreBar label={t('exp_scoreRarity', 'Rarity')} value={score?.rarity ?? 0} max={score?.maxRarity ?? 1} />
                   <ScoreBar
-                    label="Helpfulness"
+                    label={t('exp_scoreHelpfulness', 'Helpfulness')}
                     value={score?.helpfulness ?? 0}
                     max={score?.maxHelpfulness ?? 1}
                   />
                   <ScoreBar
-                    label="AI Contribution"
+                    label={t('exp_scoreAI', 'AI Contribution')}
                     value={score?.aiContribution ?? 0}
                     max={score?.maxAiContribution ?? 1}
                   />
                 </div>
 
                 <p className="text-xs text-foreground-400 mt-4 pt-4 border-t border-background-100">
-                  Commerce Contribution (booking &amp; affiliate impact) — coming soon.
+                  {t('exp_commerceSoon', 'Commerce Contribution — coming soon.')}
                 </p>
               </section>
 
               <Link to="/experiences" className="inline-flex items-center gap-2 text-primary-500 hover:text-primary-600 font-semibold text-sm transition-colors whitespace-nowrap">
                 <i className="ri-arrow-left-line"></i>
-                Back to Experiences
+                {t('exp_backToExp', '{t('exp_backToExp', 'Back to Experiences')}')}
               </Link>
             </article>
           )}
