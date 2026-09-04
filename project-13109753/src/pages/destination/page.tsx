@@ -1,3 +1,4 @@
+import { useContentTranslation, getTranslatedField } from '@/hooks/useContentTranslation';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
@@ -118,6 +119,15 @@ export default function DestinationPage() {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
   const [destination, setDestination] = useState<Destination | null>(null);
+
+  // 多言語翻訳
+  const { translatedFields: spotTrans } = useContentTranslation(
+    'spot',
+    destination?.id,
+    (destination as any)?.originalLanguage || 'en'
+  );
+  const ts = (field: string, original: string) =>
+    getTranslatedField(spotTrans, field, original);
   const [experiences, setExperiences] = useState<Experience[]>([]);
   const [guides, setGuides] = useState<Guide[]>([]);
   const [trips, setTrips] = useState<RelatedTrip[]>([]);
@@ -405,10 +415,10 @@ export default function DestinationPage() {
               {activeTab === 'overview' && (
                 <div>
                   <h2 className="font-heading font-bold text-xl md:text-2xl text-foreground-900 mb-4">
-                    About {destination.title}
+                    About {ts("title", destination.title)}
                   </h2>
                   <p className="text-foreground-600 text-base md:text-lg leading-relaxed mb-10">
-                    {destination.description}
+                    {ts("description", destination.description)}
                   </p>
 
                   {similarSpots.length > 0 && (
@@ -453,7 +463,7 @@ export default function DestinationPage() {
                       spotId={destination.id}
                       spotTitle={destination.title}
                       spotImageUrl={destination.image}
-                      spotDescription={destination.description}
+                      spotDescription={ts("description", destination.description)}
                       spotCategory={destination.category}
                       className="inline-flex items-center gap-2 bg-background-100 hover:bg-background-200 text-foreground-800 font-semibold text-sm md:text-base px-6 py-3.5 rounded-lg transition-colors whitespace-nowrap cursor-pointer"
                     />
