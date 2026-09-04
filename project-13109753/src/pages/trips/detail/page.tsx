@@ -1,4 +1,4 @@
-import LocalizedLink from '@/components/feature/LocalizedLink';
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Navbar from '@/components/feature/Navbar';
@@ -63,6 +63,7 @@ const TRIP_TYPE_BADGE: Record<string, { label: string; className: string }> = {
 
 export default function PublicTripDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [trip, setTrip] = useState<PublicTrip | null>(null);
@@ -306,7 +307,7 @@ export default function PublicTripDetailPage() {
               {(trip.reflectionWhatWorked || trip.reflectionWhatToChange) && (
                 <section className="bg-background-100 rounded-xl p-6 mb-10">
                   <h4 className="font-heading font-semibold text-sm text-foreground-900 mb-3">
-                    Traveler's Reflection
+                    {t("trips_reflection")}
                   </h4>
                   {trip.reflectionWhatWorked && (
                     <p className="text-foreground-700 text-sm mb-2">
@@ -316,7 +317,7 @@ export default function PublicTripDetailPage() {
                   )}
                   {trip.reflectionWhatToChange && (
                     <p className="text-foreground-700 text-sm">
-                      <span className="font-semibold">What they'd change: </span>
+                      <span className="font-semibold">{t("trips_whatChange")} </span>
                       {trip.reflectionWhatToChange}
                     </p>
                   )}
