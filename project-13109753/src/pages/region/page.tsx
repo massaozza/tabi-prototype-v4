@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Navbar from '@/components/feature/Navbar';
@@ -15,6 +16,7 @@ interface Destination {
 }
 
 export default function RegionPage() {
+  const { t } = useTranslation();
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const [destinations, setDestinations] = useState<Destination[]>(fallbackDestinations);
