@@ -1,4 +1,4 @@
-import LocalizedLink from '@/components/feature/LocalizedLink';
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '@/components/feature/Navbar';
@@ -34,6 +34,7 @@ export interface Guide {
 }
 
 export default function GuidesPage() {
+  const { t } = useTranslation();
   const [guides, setGuides] = useState<Guide[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -77,14 +78,14 @@ export default function GuidesPage() {
               Home
             </Link>
             <span className="text-white/30">/</span>
-            <span className="text-white whitespace-nowrap">Guides</span>
+            <span className="text-white whitespace-nowrap">{t("guides_title")}</span>
           </nav>
 
           <span className="inline-block text-xs font-semibold tracking-widest uppercase text-accent-400 mb-3">
             From Japanese Locals
           </span>
           <h1 className="font-heading font-bold text-3xl md:text-5xl text-white leading-tight mb-4">
-            Local Knowledge, <span className="text-primary-400">Shared by Japanese Creators</span>
+            Local Knowledge, <span className="text-primary-400">{t("guides_sharedBy")}</span>
           </h1>
           <p className="text-white/60 text-base max-w-xl mx-auto leading-relaxed">
             Written in Japanese by people who actually know the area, and brought to you in
