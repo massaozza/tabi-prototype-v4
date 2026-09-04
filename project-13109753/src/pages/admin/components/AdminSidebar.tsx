@@ -9,6 +9,8 @@ const sidebarLinks = [
   { to: '/admin/articles', icon: 'ri-article-line', label: 'Articles' },
   { to: '/admin/articles/new', icon: 'ri-add-circle-line', label: 'New Article' },
   { to: '/admin/content', icon: 'ri-database-2-line', label: 'Content' },
+  { to: '/admin/trips', icon: 'ri-map-pin-line', label: 'Trips' },
+  { to: '/admin/experiences', icon: 'ri-camera-line', label: 'Experiences' },
   { to: '/admin/featured', icon: 'ri-star-line', label: 'Featured' },
   { to: '/admin/users', icon: 'ri-team-line', label: 'Users' },
 ];
