@@ -1,8 +1,5 @@
-import LocalizedLink from '@/components/feature/LocalizedLink';
-import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { useLocalizedNavigate } from '@/hooks/useLocalizedNavigate';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import Navbar from '@/components/feature/Navbar';
 import Footer from '@/components/feature/Footer';
 import { destinations as fallbackDestinations } from '@/mocks/homeData';
@@ -19,8 +16,7 @@ interface Destination {
 
 export default function RegionPage() {
   const { slug } = useParams<{ slug: string }>();
-  const { t } = useTranslation();
-  const navigate = useLocalizedNavigate();
+  const navigate = useNavigate();
   const [destinations, setDestinations] = useState<Destination[]>(fallbackDestinations);
 
   useEffect(() => {
@@ -63,7 +59,7 @@ export default function RegionPage() {
         <div className="flex-1 flex items-center justify-center px-6 py-32">
           <div className="text-center">
             <i className="ri-error-warning-line text-5xl text-foreground-300 block mb-4"></i>
-            <h1 className="text-2xl font-bold text-foreground-900 font-heading mb-2">{t("region_notFound")}</h1>
+            <h1 className="text-2xl font-bold text-foreground-900 font-heading mb-2">{t('region_notFound', 'Region not found')}</h1>
             <Link
               to="/"
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-500 hover:bg-primary-600 text-white text-sm font-semibold rounded-lg transition-colors cursor-pointer whitespace-nowrap"
@@ -92,7 +88,7 @@ export default function RegionPage() {
               Home
             </Link>
             <span className="text-foreground-300">/</span>
-            <span className="text-foreground-700 whitespace-nowrap">{t("region_title")}</span>
+            <span className="text-foreground-700 whitespace-nowrap">{t('region_title', 'Regions')}</span>
             <span className="text-foreground-300">/</span>
             <span className="text-foreground-900 whitespace-nowrap">{region.region}</span>
           </nav>
@@ -127,7 +123,7 @@ export default function RegionPage() {
               const hasContent = prefDestinations.length > 0;
 
               return (
-                <LocalizedLink
+                <Link
                   key={pref}
                   to={`/prefectures/${encodeURIComponent(pref)}`}
                   className="bg-background-50 border border-background-200 rounded-xl overflow-hidden flex flex-col hover:border-background-300 transition-colors cursor-pointer"
@@ -156,14 +152,14 @@ export default function RegionPage() {
                         {prefDestinations.length === 1 ? 'destination' : 'destinations'} on TABI
                       </p>
                     ) : (
-                      <p className="text-foreground-400 text-xs">{t("region_noDestinations")}</p>
+                      <p className="text-foreground-400 text-xs">{t('region_noDestinations', 'No destinations posted yet')}</p>
                     )}
                     <span className="mt-auto pt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-primary-500 whitespace-nowrap">
                       Explore {pref}
                       <i className="ri-arrow-right-s-line"></i>
                     </span>
                   </div>
-                </LocalizedLink>
+                </Link>
               );
             })}
           </div>
