@@ -1,5 +1,3 @@
-import { useContentTranslation, getTranslatedField } from '@/hooks/useContentTranslation';
-import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Navbar from '@/components/feature/Navbar';
@@ -64,19 +62,9 @@ const TRIP_TYPE_BADGE: Record<string, { label: string; className: string }> = {
 
 export default function PublicTripDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [trip, setTrip] = useState<PublicTrip | null>(null);
-
-  // 多言語翻訳
-  const { translatedFields: tripTrans } = useContentTranslation(
-    'trip',
-    trip?.id,
-    (trip as any)?.originalLanguage || 'en'
-  );
-  const tt = (field: string, original: string) =>
-    getTranslatedField(tripTrans, field, original);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -203,7 +191,7 @@ export default function PublicTripDetailPage() {
                   Trips
                 </Link>
                 <span className="text-foreground-300">/</span>
-                <span className="text-foreground-900 line-clamp-1">{tt("title", trip.title)}</span>
+                <span className="text-foreground-900 line-clamp-1">{trip.title}</span>
               </nav>
 
               <div className="flex items-center gap-2 mb-3 flex-wrap">
@@ -221,12 +209,12 @@ export default function PublicTripDetailPage() {
               </div>
 
               <h1 className="font-heading font-bold text-3xl md:text-4xl text-foreground-900 leading-tight mb-3">
-                {tt("title", trip.title)}
+                {trip.title}
               </h1>
 
               {trip.summary && (
                 <p className="text-foreground-600 text-base leading-relaxed mb-6">
-                  {tt("summary", trip.summary || "")}
+                  {trip.summary}
                 </p>
               )}
 
@@ -251,7 +239,7 @@ export default function PublicTripDetailPage() {
                   className="inline-flex items-center gap-2 bg-background-100 hover:bg-background-200 disabled:opacity-60 text-foreground-800 font-semibold text-sm px-5 py-2.5 rounded-lg transition-colors cursor-pointer whitespace-nowrap"
                 >
                   <i className={saved ? 'ri-bookmark-fill' : 'ri-bookmark-line'}></i>
-                  {saved ? 'Saved' : saving ? 'Saving...' : 'Save'}
+                  {saved ? t('trips_saved', 'Saved') : saving ? t('trips_saving', 'Saving...') : t('trips_save', 'Save')}
                 </button>
                 <button
                   onClick={handleCopy}
@@ -259,7 +247,7 @@ export default function PublicTripDetailPage() {
                   className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 disabled:opacity-60 text-white font-semibold text-sm px-5 py-2.5 rounded-lg transition-colors cursor-pointer whitespace-nowrap"
                 >
                   <i className="ri-file-copy-line"></i>
-                  {copying ? 'Copying...' : 'Copy to My Trip'}
+                  {copying ? t('trips_copying', 'Copying...') : t('trips_copyToMyTrip', 'Copy to My Trip')}
                 </button>
               </div>
 
@@ -317,17 +305,17 @@ export default function PublicTripDetailPage() {
               {(trip.reflectionWhatWorked || trip.reflectionWhatToChange) && (
                 <section className="bg-background-100 rounded-xl p-6 mb-10">
                   <h4 className="font-heading font-semibold text-sm text-foreground-900 mb-3">
-                    {t("trips_reflection")}
+                    {t('trips_reflection', "Traveler's Reflection")}
                   </h4>
                   {trip.reflectionWhatWorked && (
                     <p className="text-foreground-700 text-sm mb-2">
-                      <span className="font-semibold">What worked well: </span>
+                      <span className="font-semibold">{t('trips_whatWorked', 'What worked well:')} </span>
                       {trip.reflectionWhatWorked}
                     </p>
                   )}
                   {trip.reflectionWhatToChange && (
                     <p className="text-foreground-700 text-sm">
-                      <span className="font-semibold">{t("trips_whatChange")} </span>
+                      <span className="font-semibold">{t('trips_whatChange', "What they'd change:")} </span>
                       {trip.reflectionWhatToChange}
                     </p>
                   )}
