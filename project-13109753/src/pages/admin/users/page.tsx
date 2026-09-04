@@ -11,11 +11,7 @@ function formatDate(iso: string): string {
   if (!iso) return '—';
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return iso;
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
+  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
 export default function UsersPage() {
@@ -26,6 +22,34 @@ export default function UsersPage() {
   const [deleteTarget, setDeleteTarget] = useState<AdminUser | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
+
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchUsers() {
+      setLoading(true);
+      setLoadError(false);
+      try {
+        const res = await fetch('/api/admin-users');
+        if (!res.ok) throw new Error('Failed to fetch');
+        const json = await res.json();
+        if (!cancelled && Array.isArray(json.users)) setUsers(json.users);
+      } catch {
+        if (!cancelled) setLoadError(true);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    fetchUsers();
+    return () => { cancelled = true; };
+  }, []);
+
+  const filtered = useMemo(() => {
+    if (!search.trim()) return users;
+    const q = search.trim().toLowerCase();
+    return users.filter(
+      (u) => u.displayName.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
+    );
+  }, [users, search]);
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -43,45 +67,10 @@ export default function UsersPage() {
     }
   };
 
-  useEffect(() => {
-    let cancelled = false;
-    async function fetchUsers() {
-      setLoading(true);
-      setLoadError(false);
-      try {
-        const res = await fetch('/api/admin-users');
-        if (!res.ok) throw new Error('Failed to fetch');
-        const json = await res.json();
-        if (!cancelled && Array.isArray(json.users)) {
-          setUsers(json.users);
-        }
-      } catch {
-        if (!cancelled) setLoadError(true);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-    fetchUsers();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const filtered = useMemo(() => {
-    if (!search.trim()) return users;
-    const q = search.trim().toLowerCase();
-    return users.filter(
-      (u) =>
-        u.displayName.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
-    );
-  }, [users, search]);
-
   const handleExportCSV = () => {
     const headers = ['Display Name', 'Email', 'Registered', 'UID'];
     const rows = filtered.map((u) => [u.displayName, u.email, u.createdAt, u.uid]);
-    const csv = [headers.join(','), ...rows.map((r) => r.map((c) => `"${c}"`).join(','))].join(
-      '\n'
-    );
+    const csv = [headers.join(','), ...rows.map((r) => r.map((c) => `"${c}"`).join(','))].join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -146,27 +135,16 @@ export default function UsersPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-background-100 border-b border-background-200">
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-foreground-600 whitespace-nowrap">
-                    Display Name
-                  </th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-foreground-600 whitespace-nowrap">
-                    Email
-                  </th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-foreground-600 whitespace-nowrap">
-                    Registered
-                  </th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-foreground-600 whitespace-nowrap">
-                    UID
-                  </th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-foreground-600 whitespace-nowrap">Display Name</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-foreground-600 whitespace-nowrap">Email</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-foreground-600 whitespace-nowrap">Registered</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-foreground-600 whitespace-nowrap">UID</th>
                   <th className="px-4 py-3"></th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.map((user) => (
-                  <tr
-                    key={user.uid}
-                    className="border-b border-background-200 hover:bg-background-100/50 transition-colors"
-                  >
+                  <tr key={user.uid} className="border-b border-background-200 hover:bg-background-100/50 transition-colors">
                     <td className="px-4 py-3">
                       <span className="text-foreground-900 font-medium">{user.displayName}</span>
                     </td>
@@ -174,16 +152,16 @@ export default function UsersPage() {
                       <span className="text-xs text-foreground-600">{user.email}</span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="text-xs text-foreground-500 whitespace-nowrap">
-                        {formatDate(user.createdAt)}
-                      </span>
+                      <span className="text-xs text-foreground-500 whitespace-nowrap">{formatDate(user.createdAt)}</span>
                     </td>
                     <td className="px-4 py-3">
                       <span className="text-xs font-mono text-foreground-400">{user.uid}</span>
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <button onClick={() => setDeleteTarget(user)}
-                        className="text-xs text-red-500 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded cursor-pointer">
+                      <button
+                        onClick={() => setDeleteTarget(user)}
+                        className="text-xs text-red-500 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded cursor-pointer"
+                      >
                         Delete
                       </button>
                     </td>
@@ -192,7 +170,6 @@ export default function UsersPage() {
               </tbody>
             </table>
           </div>
-
           {filtered.length === 0 && (
             <div className="text-center py-16">
               <i className="ri-user-search-line text-4xl text-foreground-300 block mb-3"></i>
@@ -203,26 +180,35 @@ export default function UsersPage() {
           )}
         </div>
       )}
-    </div>
+
+      {/* 削除確認モーダル */}
       {deleteTarget && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-6">
             <h3 className="font-bold text-foreground-900 mb-2">Delete User?</h3>
-            <p className="text-sm text-foreground-600 mb-1">{deleteTarget.displayName}（{deleteTarget.email}）を削除します。</p>
+            <p className="text-sm text-foreground-600 mb-1">
+              {deleteTarget.displayName}（{deleteTarget.email}）を削除します。
+            </p>
             <p className="text-xs text-red-600 mb-4">この操作は取り消せません。</p>
             {deleteError && <p className="text-xs text-red-600 mb-3">{deleteError}</p>}
             <div className="flex gap-3">
-              <button onClick={() => { setDeleteTarget(null); setDeleteError(''); }}
-                className="flex-1 py-2 text-sm border border-background-300 rounded-lg text-foreground-700 hover:bg-background-100 cursor-pointer">
+              <button
+                onClick={() => { setDeleteTarget(null); setDeleteError(''); }}
+                className="flex-1 py-2 text-sm border border-background-300 rounded-lg text-foreground-700 hover:bg-background-100 cursor-pointer"
+              >
                 Cancel
               </button>
-              <button onClick={handleDelete} disabled={deleting}
-                className="flex-1 py-2 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 cursor-pointer">
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="flex-1 py-2 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 cursor-pointer"
+              >
                 {deleting ? 'Deleting…' : 'Delete'}
               </button>
             </div>
           </div>
         </div>
       )}
+    </div>
   );
 }
