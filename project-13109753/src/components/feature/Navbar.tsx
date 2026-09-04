@@ -100,7 +100,7 @@ export default function Navbar({ variant }: { variant?: 'default' | 'dark' } = {
           }`}>
             TABI47
           </h1>
-        </a>
+        </LocalizedLink>
 
         <div className="hidden md:flex items-center gap-6">
           {navLinks.map((link) =>
