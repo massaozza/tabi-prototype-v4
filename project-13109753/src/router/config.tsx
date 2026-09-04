@@ -27,6 +27,8 @@ import EditArticlePage from "../pages/admin/articles/edit/page";
 import ContentPage from "../pages/admin/content/page";
 import FeaturedPage from "../pages/admin/featured/page";
 import UsersPage from "../pages/admin/users/page";
+import AdminTripsPage from "../pages/admin/trips/page";
+import AdminExperiencesPage from "../pages/admin/experiences/page";
 import CreatorProfilePage from "../pages/creator/page";
 import RegionPage from "../pages/region/page";
 import PrefecturePage from "../pages/prefecture/page";
@@ -101,6 +103,14 @@ const routes: RouteObject[] = [
       {
         path: "users",
         element: <UsersPage />,
+        },
+        {
+          path: "trips",
+          element: <AdminTripsPage />,
+        },
+        {
+          path: "experiences",
+          element: <AdminExperiencesPage />,
       },
     ],
   },
