@@ -1,4 +1,4 @@
-import LocalizedLink from '@/components/feature/LocalizedLink';
+import { useTranslation } from 'react-i18next';
 import { useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Navbar from '@/components/feature/Navbar';
@@ -116,6 +116,7 @@ function LocationMap({ lat, lng, title }: { lat: number; lng: number; title: str
 
 export default function DestinationPage() {
   const { id } = useParams<{ id: string }>();
+  const { t } = useTranslation();
   const [destination, setDestination] = useState<Destination | null>(null);
   const [experiences, setExperiences] = useState<Experience[]>([]);
   const [guides, setGuides] = useState<Guide[]>([]);
@@ -467,7 +468,7 @@ export default function DestinationPage() {
                   </h2>
                   {guides.length === 0 ? (
                     <p className="text-foreground-500 text-sm">
-                      No guides mention this spot yet.
+                      {t("dest_noGuides")}
                     </p>
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 md:gap-6">
@@ -503,7 +504,7 @@ export default function DestinationPage() {
                   </h2>
                   {experiences.length === 0 ? (
                     <p className="text-foreground-500 text-sm">
-                      No traveler experiences shared yet.
+                      {t("dest_noExp")}
                     </p>
                   ) : (
                     <>
@@ -570,7 +571,7 @@ export default function DestinationPage() {
                   </h2>
                   {trips.length === 0 ? (
                     <p className="text-foreground-500 text-sm">
-                      No trips include this spot yet.
+                      {t("dest_noTrips")}
                     </p>
                   ) : (
                     <div className="space-y-4">
@@ -633,7 +634,7 @@ export default function DestinationPage() {
                     />
                   ) : (
                     <p className="text-foreground-500 text-sm">
-                      Location information is not available for this spot.
+                      {t("dest_noLocation")}
                     </p>
                   )}
                 </div>
