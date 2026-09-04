@@ -163,13 +163,16 @@ export default function RegionPage() {
                     {hasContent ? (
                       <p className="text-foreground-500 text-xs">
                         {prefDestinations.length}{' '}
-                        {prefDestinations.length === 1 ? 'destination' : 'destinations'} on TABI
+                        {prefDestinations.length === 1
+                          ? t('region_destination', 'destination')
+                          : t('region_destinations', 'destinations')}{' '}
+                        {t('region_onTabi', 'on TABI')}
                       </p>
                     ) : (
                       <p className="text-foreground-400 text-xs">{t('region_noDestinations', 'No destinations posted yet')}</p>
                     )}
                     <span className="mt-auto pt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-primary-500 whitespace-nowrap">
-                      Explore {pref}
+                      {t('region_explore', 'Explore')} {pref}
                       <i className="ri-arrow-right-s-line"></i>
                     </span>
                   </div>
