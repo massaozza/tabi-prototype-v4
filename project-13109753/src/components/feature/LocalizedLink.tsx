@@ -10,6 +10,7 @@ import { useParams, useLocation } from 'react-router-dom';
 const SUPPORTED_LANGS = ['en','ja','zh-TW','zh-CN','ko','th','fr','de','es','id'];
 
 const LOCALIZED_PATHS = [
+  '/',
   '/trips/', '/trips',
   '/experiences/', '/experiences',
   '/explore', '/destinations/',
@@ -30,6 +31,14 @@ function needsLangPrefix(path: string): boolean {
 // 現在のURLから言語コードを取得する
 function useLangFromUrl(): string {
   const location = useLocation();
+  const { lang: langParam } = useParams<{ lang?: string }>();
+  
+  // useParamsから取得（/:lang/* ルート内の場合）
+  if (langParam && SUPPORTED_LANGS.includes(langParam)) {
+    return langParam;
+  }
+  
+  // フォールバック：URLを直接パース
   const parts = location.pathname.split('/').filter(Boolean);
   if (parts.length > 0 && SUPPORTED_LANGS.includes(parts[0])) {
     return parts[0];
@@ -42,7 +51,9 @@ export default function LocalizedLink({ to, ...props }: LinkProps) {
 
   const toStr = typeof to === 'string' ? to : '';
   const localizedTo = toStr && needsLangPrefix(toStr)
-    ? `/${lang}${toStr.startsWith('/') ? toStr : `/${toStr}`}`
+    ? toStr === '/'
+      ? `/${lang}`
+      : `/${lang}${toStr.startsWith('/') ? toStr : `/${toStr}`}`
     : to;
 
   return <Link to={localizedTo} {...props} />;
