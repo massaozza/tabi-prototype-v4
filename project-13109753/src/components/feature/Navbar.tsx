@@ -1,3 +1,4 @@
+import LocalizedLink from '@/components/feature/LocalizedLink';
 import { useState, useEffect, useRef } from 'react';
 import { navLinks } from '@/mocks/homeData';
 import LogoMark from '@/components/feature/LogoMark';
@@ -92,7 +93,7 @@ export default function Navbar({ variant }: { variant?: 'default' | 'dark' } = {
       </div>
 
       <nav className="flex items-center justify-between px-6 md:px-10 py-3 md:py-4">
-        <a href="/" className="flex items-center gap-3">
+        <a href="/en" className="flex items-center gap-3">
           <LogoMark />
           <h1 className={`font-heading font-bold text-xl md:text-2xl tracking-[0.08em] leading-none transition-colors duration-300 ${
             (isDark || !scrolled) ? 'text-white' : 'text-foreground-900'
@@ -115,11 +116,11 @@ export default function Navbar({ variant }: { variant?: 'default' | 'dark' } = {
                 {link.label}
               </button>
             ) : (
-              <a key={link.label} href={link.href} className={`text-sm font-semibold whitespace-nowrap transition-colors duration-300 hover:opacity-70 ${
+              <LocalizedLink key={link.label} to={link.href} className={`text-sm font-semibold whitespace-nowrap transition-colors duration-300 hover:opacity-70 ${
                   (isDark || !scrolled) ? 'text-white' : 'text-foreground-800'
                 }`}>
                 {link.label}
-              </a>
+              </LocalizedLink>
             )
           )}
 
@@ -234,9 +235,9 @@ export default function Navbar({ variant }: { variant?: 'default' | 'dark' } = {
                 {link.label}
               </button>
             ) : (
-              <a key={link.label} href={link.href} className="text-foreground-800 text-sm font-semibold whitespace-nowrap hover:text-primary-500 transition-colors" onClick={() => setMobileOpen(false)}>
+              <LocalizedLink key={link.label} to={link.href} className="text-foreground-800 text-sm font-semibold whitespace-nowrap hover:text-primary-500 transition-colors" onClick={() => setMobileOpen(false)}>
                 {link.label}
-              </a>
+              </LocalizedLink>
             )
           )}
 
