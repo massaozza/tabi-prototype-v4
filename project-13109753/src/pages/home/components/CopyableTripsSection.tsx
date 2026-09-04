@@ -1,3 +1,4 @@
+import LocalizedLink from '@/components/feature/LocalizedLink';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -91,7 +92,7 @@ function TripCard({ trip, spotImages }: { trip: PublicTrip; spotImages: Map<stri
   return (
     <div className="bg-white border border-background-200 rounded-2xl overflow-hidden flex flex-col hover:border-primary-200 transition-colors">
       {/* 写真グリッド */}
-      <Link to={`/trips/${trip.id}`}>
+      <LocalizedLink to={`/trips/${trip.id}`}>
         <div
           className="grid gap-0.5"
           style={{
@@ -129,7 +130,7 @@ function TripCard({ trip, spotImages }: { trip: PublicTrip; spotImages: Map<stri
             </div>
           )}
         </div>
-      </Link>
+      </LocalizedLink>
 
       {/* テキスト部分 */}
       <div className="p-4 flex flex-col flex-1">
@@ -153,9 +154,9 @@ function TripCard({ trip, spotImages }: { trip: PublicTrip; spotImages: Map<stri
         </div>
 
         {/* タイトル */}
-        <Link to={`/trips/${trip.id}`} className="font-heading font-bold text-base text-foreground-900 hover:text-primary-600 transition-colors leading-snug mb-1 block">
+        <LocalizedLink to={`/trips/${trip.id}`} className="font-heading font-bold text-base text-foreground-900 hover:text-primary-600 transition-colors leading-snug mb-1 block">
           {trip.title}
-        </Link>
+        </LocalizedLink>
 
         {/* 概要 */}
         {trip.summary && (
@@ -180,7 +181,7 @@ function TripCard({ trip, spotImages }: { trip: PublicTrip; spotImages: Map<stri
           {error && <p className="text-xs text-red-600 mt-1.5">{error}</p>}
           <p className="text-xs text-foreground-400 mt-1.5 text-center">
             See full itinerary before copying →{' '}
-            <Link to={`/trips/${trip.id}`} className="underline hover:text-foreground-600">View trip</Link>
+            <LocalizedLink to={`/trips/${trip.id}`} className="underline hover:text-foreground-600">View trip</LocalizedLink>
           </p>
         </div>
       </div>
@@ -264,9 +265,9 @@ export default function CopyableTripsSection() {
               ))}
             </div>
             <div className="text-center mt-10">
-              <Link to="/explore" className="inline-flex items-center gap-2 text-foreground-700 hover:text-primary-600 font-semibold text-sm transition-colors">
+              <LocalizedLink to="/explore" className="inline-flex items-center gap-2 text-foreground-700 hover:text-primary-600 font-semibold text-sm transition-colors">
                 Browse all trips <i className="ri-arrow-right-line"></i>
-              </Link>
+              </LocalizedLink>
             </div>
           </>
         )}
