@@ -13,7 +13,7 @@ const TRANSLATABLE_FIELDS: Record<string, string[]> = {
   region: ['region', 'description'],
   experience: ['placeName', 'whatWasGood', 'whatWasHard', 'tip'],
   trip: ['title', 'summary'],
-  spot: ['title', 'description'],
+  spot: ['title', 'description', 'story', 'tips'],
 };
 
 function transKey(type: string, id: string, lang: string) {
@@ -90,13 +90,26 @@ async function getRecord(type: string, id: string, host: string): Promise<any> {
     return REGIONS[id] || null;
   }
   if (type === 'spot') {
-    const list = await kv.get<any[]>('content:destinations');
+    // destinations を検索
+    let list = await kv.get<any[]>('content:destinations');
     let record = list?.find((d: any) => d.id === id) || null;
     if (!record) {
       const res = await fetch(`https://${host}/api/content?type=destinations`);
       if (res.ok) {
         const data = await res.json();
         record = (data.data || []).find((d: any) => d.id === id) || null;
+      }
+    }
+    // localsPlaces も検索
+    if (!record) {
+      list = await kv.get<any[]>('content:localsPlaces');
+      record = list?.find((d: any) => d.id === id) || null;
+      if (!record) {
+        const res = await fetch(`https://${host}/api/content?type=localsPlaces`);
+        if (res.ok) {
+          const data = await res.json();
+          record = (data.data || []).find((d: any) => d.id === id) || null;
+        }
       }
     }
     return record;
