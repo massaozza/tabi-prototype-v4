@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Navbar from '@/components/feature/Navbar';
@@ -60,6 +61,7 @@ function DestinationImage({ dest }: { dest: Destination }) {
 }
 
 export default function PrefecturePage() {
+  const { t } = useTranslation();
   const { name } = useParams<{ name: string }>();
   const [destinations, setDestinations] = useState<Destination[]>(fallbackDestinations);
   const [guides, setGuides] = useState<Guide[]>([]);
