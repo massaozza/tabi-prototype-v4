@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useLocalizedNavigate } from '@/hooks/useLocalizedNavigate';
 import { PREFECTURE_REGIONS } from '@/mocks/prefectureData';
 
 interface RegionImage {
@@ -42,7 +42,7 @@ const REGION_IMAGES: RegionImage[] = [
 ];
 
 export default function JapanMapSection() {
-  const navigate = useNavigate();
+  const navigate = useLocalizedNavigate();
 
   return (
     <section className="py-16 md:py-24 px-6 md:px-10 lg:px-20 bg-background-100">
