@@ -19,7 +19,6 @@ interface PublicTrip {
 }
 
 function PublicTripCard({ trip }: { trip: PublicTrip }) {
-  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
@@ -120,6 +119,7 @@ function PublicTripCard({ trip }: { trip: PublicTrip }) {
 }
 
 export default function PublicTripsPage() {
+  const { t } = useTranslation();
   const [trips, setTrips] = useState<PublicTrip[]>([]);
   const [loading, setLoading] = useState(true);
 
