@@ -1,5 +1,5 @@
 import type { RouteObject } from "react-router-dom";
-import { Navigate } from "react-router-dom";
+import { Navigate, useParams } from "react-router-dom";
 import NotFound from "../pages/NotFound";
 import Home from "../pages/home/page";
 import AboutPage from "../pages/about/page";
@@ -42,28 +42,102 @@ import CreatorDashboardPage from "../pages/creators/dashboard/page";
 import NewRecommendedTripPage from "../pages/creators/trips/new/page";
 import WriteTravelogueePage from "../pages/creators/guides/write/page";
 import NewExperiencePageJa from "../pages/creators/experiences/new/page";
+import LanguageWrapper from "../components/feature/LanguageWrapper";
+
+// ルートのデフォルト言語へリダイレクト（英語）
+// 将来的にはブラウザ言語を検出してリダイレクト先を変更できる
 
 const routes: RouteObject[] = [
+  // ── ルート：英語にリダイレクト ──
   {
     path: "/",
-    element: <Home />,
+    element: <Navigate to="/en" replace />,
   },
+
+  // ── 言語付きTravelerルート ──
   {
-    path: "/about",
-    element: <AboutPage />,
+    path: "/:lang",
+    element: <LanguageWrapper />,
+    children: [
+      {
+        index: true,
+        element: <Home />,
+      },
+      {
+        path: "trips",
+        element: <PublicTripsPage />,
+      },
+      {
+        path: "trips/:id",
+        element: <PublicTripDetailPage />,
+      },
+      {
+        path: "experiences",
+        element: <ExperiencesPage />,
+      },
+      {
+        path: "experiences/:id",
+        element: <ExperienceDetailPage />,
+      },
+      {
+        path: "explore",
+        element: <ExplorePage />,
+      },
+      {
+        path: "destinations/:id",
+        element: <DestinationPage />,
+      },
+      {
+        path: "guides",
+        element: <GuidesPage />,
+      },
+      {
+        path: "guides/:id",
+        element: <GuideDetailPage />,
+      },
+      {
+        path: "regions/:slug",
+        element: <RegionPage />,
+      },
+      {
+        path: "prefectures/:name",
+        element: <PrefecturePage />,
+      },
+      {
+        path: "creator/:userId",
+        element: <CreatorProfilePage />,
+      },
+      {
+        path: "blog",
+        element: <PublicArticlesPage />,
+      },
+      {
+        path: "about",
+        element: <AboutPage />,
+      },
+      {
+        path: ":category/:articleSlug",
+        element: <ArticlePage />,
+      },
+    ],
   },
-  {
-    path: "/privacy-policy",
-    element: <PrivacyPolicyPage />,
-  },
-  {
-    path: "/affiliate-disclosure",
-    element: <AffiliateDisclosurePage />,
-  },
-  {
-    path: "/disclaimer",
-    element: <DisclaimerPage />,
-  },
+
+  // ── 旧URLからのリダイレクト（ブックマーク保護）──
+  { path: "/trips", element: <Navigate to="/en/trips" replace /> },
+  { path: "/trips/:id", element: <LegacyTripRedirect /> },
+  { path: "/experiences", element: <Navigate to="/en/experiences" replace /> },
+  { path: "/experiences/:id", element: <LegacyExperienceRedirect /> },
+  { path: "/explore", element: <Navigate to="/en/explore" replace /> },
+  { path: "/blog", element: <Navigate to="/en/blog" replace /> },
+  { path: "/about", element: <Navigate to="/en/about" replace /> },
+  { path: "/destinations/:id", element: <LegacyDestinationRedirect /> },
+  { path: "/creator/:userId", element: <LegacyCreatorRedirect /> },
+  { path: "/regions/:slug", element: <LegacyRegionRedirect /> },
+  { path: "/prefectures/:name", element: <LegacyPrefectureRedirect /> },
+  { path: "/guides", element: <Navigate to="/en/guides" replace /> },
+  { path: "/guides/:id", element: <LegacyGuideRedirect /> },
+
+  // ── 言語prefixなし（Creator / Auth / Admin / MyTrip）──
   {
     path: "/admin",
     element: (
@@ -72,152 +146,63 @@ const routes: RouteObject[] = [
       </AdminAuthProvider>
     ),
     children: [
-      {
-        index: true,
-        element: <Navigate to="/admin/dashboard" replace />,
-      },
-      {
-        path: "dashboard",
-        element: <DashboardPage />,
-      },
-      {
-        path: "articles",
-        element: <ArticlesPage />,
-      },
-      {
-        path: "articles/new",
-        element: <NewArticlePage />,
-      },
-      {
-        path: "articles/:id/edit",
-        element: <EditArticlePage />,
-      },
-      {
-        path: "content",
-        element: <ContentPage />,
-      },
-      {
-        path: "featured",
-        element: <FeaturedPage />,
-      },
-      {
-        path: "users",
-        element: <UsersPage />,
-        },
-        {
-          path: "trips",
-          element: <AdminTripsPage />,
-        },
-        {
-          path: "experiences",
-          element: <AdminExperiencesPage />,
-      },
+      { index: true, element: <Navigate to="/admin/dashboard" replace /> },
+      { path: "dashboard", element: <DashboardPage /> },
+      { path: "articles", element: <ArticlesPage /> },
+      { path: "articles/new", element: <NewArticlePage /> },
+      { path: "articles/:id/edit", element: <EditArticlePage /> },
+      { path: "content", element: <ContentPage /> },
+      { path: "featured", element: <FeaturedPage /> },
+      { path: "users", element: <UsersPage /> },
+      { path: "trips", element: <AdminTripsPage /> },
+      { path: "experiences", element: <AdminExperiencesPage /> },
     ],
   },
-  {
-    path: "/destinations/:id",
-    element: <DestinationPage />,
-  },
-  {
-    path: "/blog",
-    element: <PublicArticlesPage />,
-  },
-  {
-    path: "/signup",
-    element: <SignupPage />,
-  },
-  {
-    path: "/login",
-    element: <LoginPage />,
-  },
-  {
-    path: "/experiences/new",
-    element: <NewExperiencePage />,
-  },
-  {
-    path: "/experiences/:id",
-    element: <ExperienceDetailPage />,
-  },
-  {
-    path: "/experiences",
-    element: <ExperiencesPage />,
-  },
-  {
-    path: "/trips",
-    element: <PublicTripsPage />,
-  },
-  {
-    path: "/trips/:id",
-    element: <PublicTripDetailPage />,
-  },
-  {
-    path: "/my-trip",
-    element: <MyTripPage />,
-  },
-  {
-    path: "/my-trip/:id",
-    element: <MyTripDetailPage />,
-  },
-  {
-    path: "/creator/:userId",
-    element: <CreatorProfilePage />,
-  },
-  {
-    path: "/regions/:slug",
-    element: <RegionPage />,
-  },
-  {
-    path: "/prefectures/:name",
-    element: <PrefecturePage />,
-  },
-  {
-    path: "/guides/new",
-    element: <NewGuidePage />,
-  },
-  {
-    path: "/guides/:id",
-    element: <GuideDetailPage />,
-  },
-  {
-    path: "/guides",
-    element: <GuidesPage />,
-  },
-  {
-    path: "/share",
-    element: <SharePage />,
-  },
-  {
-    path: "/explore",
-    element: <ExplorePage />,
-  },
-  {
-    path: "/creators",
-    element: <CreatorsHomePage />,
-  },
-  {
-    path: "/creators/dashboard",
-    element: <CreatorDashboardPage />,
-  },
-  {
-    path: "/creators/trips/new",
-    element: <NewRecommendedTripPage />,
-  },
-  {
-    path: "/creators/guides/write",
-    element: <WriteTravelogueePage />,
-  },
-  {
-    path: "/creators/experiences/new",
-    element: <NewExperiencePageJa />,
-  },
-  {
-    path: "/:category/:articleSlug",
-    element: <ArticlePage />,
-  },
-  {
-    path: "*",
-    element: <NotFound />,
-  },
+  { path: "/signup", element: <SignupPage /> },
+  { path: "/login", element: <LoginPage /> },
+  { path: "/share", element: <SharePage /> },
+  { path: "/my-trip", element: <MyTripPage /> },
+  { path: "/my-trip/:id", element: <MyTripDetailPage /> },
+  { path: "/creators", element: <CreatorsHomePage /> },
+  { path: "/creators/dashboard", element: <CreatorDashboardPage /> },
+  { path: "/creators/trips/new", element: <NewRecommendedTripPage /> },
+  { path: "/creators/guides/write", element: <WriteTravelogueePage /> },
+  { path: "/creators/experiences/new", element: <NewExperiencePageJa /> },
+  { path: "/privacy-policy", element: <PrivacyPolicyPage /> },
+  { path: "/affiliate-disclosure", element: <AffiliateDisclosurePage /> },
+  { path: "/disclaimer", element: <DisclaimerPage /> },
+
+  { path: "*", element: <NotFound /> },
 ];
+
+// 旧URL → /en/{path} へリダイレクトするコンポーネント群
+function LegacyTripRedirect() {
+  const { id } = useParams();
+  return <Navigate to={`/en/trips/${id}`} replace />;
+}
+function LegacyExperienceRedirect() {
+  const { id } = useParams();
+  return <Navigate to={`/en/experiences/${id}`} replace />;
+}
+function LegacyDestinationRedirect() {
+  const { id } = useParams();
+  return <Navigate to={`/en/destinations/${id}`} replace />;
+}
+function LegacyCreatorRedirect() {
+  const { userId } = useParams();
+  return <Navigate to={`/en/creator/${userId}`} replace />;
+}
+function LegacyRegionRedirect() {
+  const { slug } = useParams();
+  return <Navigate to={`/en/regions/${slug}`} replace />;
+}
+function LegacyPrefectureRedirect() {
+  const { name } = useParams();
+  return <Navigate to={`/en/prefectures/${name}`} replace />;
+}
+function LegacyGuideRedirect() {
+  const { id } = useParams();
+  return <Navigate to={`/en/guides/${id}`} replace />;
+}
 
 export default routes;
