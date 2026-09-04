@@ -418,6 +418,17 @@ export default async function handler(
 
     try {
       await createExperienceRecord(id, experience, uid);
+
+      // 投稿完了後、バックグラウンドで英語翻訳をトリガー（非同期・失敗しても投稿は成功）
+      const baseUrl = process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : 'https://www.tabi47.com';
+      fetch(`${baseUrl}/api/translate-content`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'experience', id, targetLang: 'en' }),
+      }).catch(() => {/* 翻訳失敗は無視 */});
+
       res.status(200).json({ success: true, experience });
     } catch (err) {
       res.status(500).json({ error: 'Failed to save experience', detail: String(err) });
