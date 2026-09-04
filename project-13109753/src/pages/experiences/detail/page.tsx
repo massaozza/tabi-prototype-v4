@@ -5,6 +5,7 @@ import Footer from '@/components/feature/Footer';
 import { useAuth } from '@/context/AuthContext';
 import { formatArea, formatMonth, type Experience } from '../types';
 import { computeExperienceScore, MAX_EXPERIENCE_SCORE } from '../score';
+import { useContentTranslation, getTranslatedField } from '@/hooks/useContentTranslation';
 
 interface RelatedSpot {
   id: string;
@@ -61,6 +62,17 @@ export default function ExperienceDetailPage() {
   const [citationCount, setCitationCount] = useState(0);
   const [relatedSpot, setRelatedSpot] = useState<RelatedSpot | null>(null);
   const [relatedTrips, setRelatedTrips] = useState<RelatedTrip[]>([]);
+
+  // 多言語翻訳hook
+  const { translatedFields } = useContentTranslation(
+    'experience',
+    experience?.id,
+    (experience as any)?.originalLanguage || 'ja'
+  );
+
+  // 翻訳済みフィールドを取得するヘルパー
+  const tf = (field: string, original: string) =>
+    getTranslatedField(translatedFields, field, original);
 
   useEffect(() => {
     let cancelled = false;
@@ -286,7 +298,7 @@ export default function ExperienceDetailPage() {
               </div>
 
               <h1 className="font-heading font-bold text-3xl md:text-4xl text-foreground-900 leading-tight mb-3">
-                {experience.placeName}
+                {tf('placeName', experience.placeName)}
               </h1>
 
               <p className="text-foreground-500 text-sm mb-8">
@@ -337,7 +349,7 @@ export default function ExperienceDetailPage() {
                   What was good?
                 </h4>
                 <p className="text-foreground-700 text-base leading-relaxed whitespace-pre-wrap">
-                  {experience.whatWasGood}
+                  {tf('whatWasGood', experience.whatWasGood)}
                 </p>
               </section>
 
@@ -349,7 +361,7 @@ export default function ExperienceDetailPage() {
                     What was hard?
                   </h4>
                   <p className="text-amber-900 text-base leading-relaxed whitespace-pre-wrap">
-                    {experience.whatWasHard}
+                    {tf('whatWasHard', experience.whatWasHard || '')}
                   </p>
                 </section>
               )}
@@ -362,7 +374,7 @@ export default function ExperienceDetailPage() {
                     Tip for travelers
                   </h4>
                   <p className="text-accent-900 text-base leading-relaxed whitespace-pre-wrap">
-                    {experience.tip}
+                    {tf('tip', experience.tip || '')}
                   </p>
                 </section>
               )}
