@@ -1,3 +1,4 @@
+import LocalizedLink from '@/components/feature/LocalizedLink';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
@@ -37,7 +38,6 @@ function getPlaceholder(category: string) {
 }
 
 function DestinationImage({ dest }: { dest: Destination }) {
-  const { t } = useTranslation();
   const [failed, setFailed] = useState(false);
   const placeholder = getPlaceholder(dest.category);
 
@@ -63,6 +63,7 @@ function DestinationImage({ dest }: { dest: Destination }) {
 
 export default function PrefecturePage() {
   const { name } = useParams<{ name: string }>();
+  const { t } = useTranslation();
   const [destinations, setDestinations] = useState<Destination[]>(fallbackDestinations);
   const [guides, setGuides] = useState<Guide[]>([]);
 
@@ -164,12 +165,12 @@ export default function PrefecturePage() {
             <span className="text-foreground-300">/</span>
             {region && (
               <>
-                <Link
+                <LocalizedLink
                   to={`/regions/${region.slug}`}
                   className="hover:text-foreground-700 transition-colors whitespace-nowrap"
                 >
                   {region.region}
-                </Link>
+                </LocalizedLink>
                 <span className="text-foreground-300">/</span>
               </>
             )}
@@ -205,13 +206,13 @@ export default function PrefecturePage() {
                     <p className="text-foreground-600 text-sm leading-relaxed mb-3 line-clamp-2">
                       {dest.description}
                     </p>
-                    <Link
+                    <LocalizedLink
                       to={`/destinations/${dest.id}`}
                       className="inline-flex items-center gap-1 text-primary-500 font-semibold text-sm hover:gap-2 transition-all duration-200 cursor-pointer whitespace-nowrap"
                     >
                       {t("pref_discoverMore", "Discover More")}
                       <i className="ri-arrow-right-line"></i>
-                    </Link>
+                    </LocalizedLink>
                   </div>
                 </article>
               ))}
