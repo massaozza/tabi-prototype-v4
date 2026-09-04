@@ -1,3 +1,4 @@
+import LocalizedLink from '@/components/feature/LocalizedLink';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/feature/Navbar';
@@ -70,7 +71,7 @@ function PublicTripCard({ trip }: { trip: PublicTrip }) {
 
   return (
     <div className="bg-background-50 border border-background-200 rounded-xl p-6 flex flex-col">
-      <Link
+      <LocalizedLink
         to={`/trips/${trip.id}`}
         className="font-heading font-bold text-lg text-foreground-900 mb-2 hover:text-primary-600 transition-colors block"
       >
