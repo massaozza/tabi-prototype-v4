@@ -1,3 +1,4 @@
+import LocalizedLink from '@/components/feature/LocalizedLink';
 import { destinations as fallbackDestinations } from '@/mocks/homeData';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
