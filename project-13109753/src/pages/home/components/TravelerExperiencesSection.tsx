@@ -117,7 +117,7 @@ export default function TravelerExperiencesSection() {
                     — {exp.authorName || 'Anonymous'}
                   </span>
                 </div>
-              </Link>
+              </LocalizedLink>
             ))}
           </div>
         )}
