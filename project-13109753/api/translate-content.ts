@@ -10,6 +10,7 @@ const SUPPORTED_LANGS = ['en','ja','zh-TW','zh-CN','ko','th','fr','de','es','id'
 type Lang = (typeof SUPPORTED_LANGS)[number];
 
 const TRANSLATABLE_FIELDS: Record<string, string[]> = {
+  region: ['region', 'description'],
   experience: ['placeName', 'whatWasGood', 'whatWasHard', 'tip'],
   trip: ['title', 'summary'],
   spot: ['title', 'description'],
@@ -74,6 +75,19 @@ async function getRecord(type: string, id: string, host: string): Promise<any> {
   }
   if (type === 'trip') {
     return await kv.get(`trips:${id}`);
+  }
+  if (type === 'region') {
+    const REGIONS: Record<string, { region: string; description: string }> = {
+      'hokkaido': { region: 'Hokkaido', description: "Japan's northernmost island, known for powder snow, national parks, and fresh seafood." },
+      'tohoku': { region: 'Tohoku', description: 'The northeastern region of Honshu, known for hot springs, mountain scenery, and seasonal traditions.' },
+      'kanto': { region: 'Kanto', description: 'Home to Tokyo and the surrounding prefectures, blending modern city life with historic towns like Kamakura.' },
+      'chubu': { region: 'Chubu', description: 'Central Japan, home to the Japanese Alps, Mt. Fuji, and cities like Nagoya and Kanazawa.' },
+      'kansai': { region: 'Kansai', description: "The historic heart of Japan, home to Kyoto, Osaka, and Nara's ancient temples and shrines." },
+      'chugoku': { region: 'Chugoku', description: 'Western Honshu, home to Hiroshima and the scenic Seto Inland Sea coastline.' },
+      'shikoku': { region: 'Shikoku', description: "Japan's smallest main island, known for its pilgrimage route, rural landscapes, and udon culture." },
+      'kyushu-okinawa': { region: 'Kyushu & Okinawa', description: 'Southern Japan, known for volcanic hot springs, subtropical islands, and distinctive local cuisine.' },
+    };
+    return REGIONS[id] || null;
   }
   if (type === 'spot') {
     const list = await kv.get<any[]>('content:destinations');
