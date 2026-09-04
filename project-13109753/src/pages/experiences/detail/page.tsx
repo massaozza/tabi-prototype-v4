@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/feature/Navbar';
@@ -49,6 +50,7 @@ function ScoreBar({ label, value, max }: { label: string; value: number; max: nu
 }
 
 export default function ExperienceDetailPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
