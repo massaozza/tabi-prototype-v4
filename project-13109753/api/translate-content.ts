@@ -1,10 +1,6 @@
 // /api/translate-content.ts
-// POST /api/translate-content
-//   body: { type: 'experience'|'trip'|'spot', id: string, targetLang: string, force?: boolean }
-// → 指定コンテンツを指定言語に翻訳してKVに保存
-//
-// GET /api/translate-content?type=experience&id=xxx&lang=ko
-// → 保存済み翻訳を返す（なければon-demand生成）
+// GET  /api/translate-content?type=experience&id=xxx&lang=ko → 翻訳済みコンテンツを返す
+// POST /api/translate-content → 翻訳を生成・保存
 
 import { kv } from '@vercel/kv';
 
@@ -13,19 +9,14 @@ export const config = { runtime: 'edge' };
 const SUPPORTED_LANGS = ['en','ja','zh-TW','zh-CN','ko','th','fr','de','es','id'] as const;
 type Lang = (typeof SUPPORTED_LANGS)[number];
 
-// 翻訳対象フィールド定義
 const TRANSLATABLE_FIELDS: Record<string, string[]> = {
-  experience: ['placeName', 'whatWasGood', 'bestTimeToVisit', 'localTips', 'description'],
-  trip: ['title', 'summary', 'highlights'],
+  experience: ['placeName', 'whatWasGood', 'whatWasHard', 'tip', 'description'],
+  trip: ['title', 'summary', 'highlights', 'whatWorkedWell', 'whatTheyWouldChange'],
   spot: ['title', 'description', 'tips'],
 };
 
 function transKey(type: string, id: string, lang: string) {
   return `${type}:${id}:trans:${lang}`;
-}
-
-function statusKey(type: string, id: string) {
-  return `${type}:${id}:trans:status`;
 }
 
 function json(data: unknown, status = 200) {
@@ -55,13 +46,12 @@ Translate the following travel content from ${langNames[sourceLang] || sourceLan
 
 Rules:
 1. This is real local knowledge about Japan — preserve the meaning and nuance
-2. Make it natural and understandable for ${langNames[targetLang]} speakers
+2. Make it natural and understandable for ${langNames[targetLang]} speakers  
 3. Keep proper nouns (place names, station names, restaurant names) in their original form or standard romanization
-4. Do NOT translate: {{variable}} placeholders
-5. Return ONLY a valid JSON object with the same keys — no markdown, no explanation
-6. If a field is empty or null, keep it as empty string
+4. Return ONLY a valid JSON object with the same keys — no markdown, no explanation
+5. If a field is empty or null, return empty string
 
-Content to translate:
+Content:
 ${fieldsJson}
 
 Return translated JSON:`;
@@ -79,19 +69,13 @@ Return translated JSON:`;
   );
 
   if (!res.ok) return null;
-
   const data = await res.json();
   const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
   const cleaned = text.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
-  try {
-    return JSON.parse(cleaned);
-  } catch {
-    return null;
-  }
+  try { return JSON.parse(cleaned); } catch { return null; }
 }
 
-async function getSourceContent(type: string, id: string): Promise<{
-  record: any;
+async function getSourceContent(type: string, id: string, req: Request): Promise<{
   fields: Record<string, string>;
   originalLang: string;
 } | null> {
@@ -102,8 +86,21 @@ async function getSourceContent(type: string, id: string): Promise<{
   } else if (type === 'trip') {
     record = await kv.get(`trips:${id}`);
   } else if (type === 'spot') {
-    const destinations = await kv.get<any[]>('content:destinations');
-    record = destinations?.find((d) => d.id === id) || null;
+    // KVから取得
+    const kvDest = await kv.get<any[]>('content:destinations');
+    record = kvDest?.find((d: any) => d.id === id) || null;
+    // KVにない場合はcontent APIから取得
+    if (!record) {
+      try {
+        const origin = new URL(req.url).origin;
+        const res = await fetch(`${origin}/api/content?type=destinations`);
+        if (res.ok) {
+          const data = await res.json();
+          const list = data.data || data.destinations || [];
+          record = list.find((d: any) => d.id === id) || null;
+        }
+      } catch { /* ignore */ }
+    }
   }
 
   if (!record) return null;
@@ -112,13 +109,17 @@ async function getSourceContent(type: string, id: string): Promise<{
   for (const field of TRANSLATABLE_FIELDS[type] || []) {
     if (record[field] && typeof record[field] === 'string') {
       fields[field] = record[field];
-    } else if (Array.isArray(record[field])) {
-      fields[field] = record[field].join(' | ');
     }
   }
 
-  const originalLang = record.originalLanguage || 'ja';
-  return { record, fields, originalLang };
+  // reflectionフィールド（Trip）
+  if (type === 'trip' && record.reflection) {
+    if (record.reflection.whatWorkedWell) fields['whatWorkedWell'] = record.reflection.whatWorkedWell;
+    if (record.reflection.whatTheyWouldChange) fields['whatTheyWouldChange'] = record.reflection.whatTheyWouldChange;
+  }
+
+  const originalLang = record.originalLanguage || (type === 'spot' ? 'en' : 'ja');
+  return { fields, originalLang };
 }
 
 export default async function handler(req: Request) {
@@ -133,68 +134,49 @@ export default async function handler(req: Request) {
     if (!type || !id || !lang) return json({ error: 'type, id, lang are required' }, 400);
     if (!SUPPORTED_LANGS.includes(lang)) return json({ error: 'Unsupported language' }, 400);
 
-    // キャッシュを確認
+    // キャッシュ確認
     const cached = await kv.get(transKey(type, id, lang));
     if (cached) return json({ translation: cached, fromCache: true });
 
-    // on-demand生成
-    const source = await getSourceContent(type, id);
+    // ソースコンテンツ取得
+    const source = await getSourceContent(type, id, req);
     if (!source) return json({ error: 'Content not found' }, 404);
 
-    // 同一言語ならそのまま返す
+    // 同一言語チェック
     if (source.originalLang === lang) {
       return json({ translation: source.fields, fromCache: false, isOriginal: true });
     }
 
+    // 翻訳実行
     const translated = await translateWithGemini(source.fields, source.originalLang, lang);
     if (!translated) return json({ error: 'Translation failed' }, 500);
 
     // キャッシュ保存（30日）
     await kv.set(transKey(type, id, lang), translated, { ex: 60 * 60 * 24 * 30 });
-
     return json({ translation: translated, fromCache: false });
   }
 
   // ── POST: 翻訳を生成・保存 ──
   if (req.method === 'POST') {
-    let body: { type: string; id: string; targetLang?: string; allLangs?: boolean; force?: boolean };
+    let body: { type: string; id: string; targetLang?: string; force?: boolean };
     try { body = await req.json(); } catch { return json({ error: 'Invalid JSON' }, 400); }
 
-    const { type, id, targetLang, allLangs, force } = body;
+    const { type, id, targetLang = 'en', force } = body;
     if (!type || !id) return json({ error: 'type and id are required' }, 400);
 
-    const source = await getSourceContent(type, id);
+    const source = await getSourceContent(type, id, req);
     if (!source) return json({ error: 'Content not found' }, 404);
 
-    const targetLangs: Lang[] = allLangs
-      ? SUPPORTED_LANGS.filter((l) => l !== source.originalLang)
-      : targetLang
-      ? [targetLang as Lang]
-      : ['en']; // デフォルトは英語のみ
-
-    const results: Record<string, string> = {};
-
-    for (const lang of targetLangs) {
-      // force=falseかつキャッシュありはスキップ
-      if (!force) {
-        const cached = await kv.get(transKey(type, id, lang));
-        if (cached) { results[lang] = 'skipped (cached)'; continue; }
-      }
-
-      const translated = await translateWithGemini(source.fields, source.originalLang, lang);
-      if (translated) {
-        await kv.set(transKey(type, id, lang), translated, { ex: 60 * 60 * 24 * 30 });
-        // statusを更新
-        const status = await kv.get<Record<string, string>>(statusKey(type, id)) || {};
-        status[lang] = 'generated';
-        await kv.set(statusKey(type, id), status);
-        results[lang] = 'generated';
-      } else {
-        results[lang] = 'failed';
-      }
+    if (!force) {
+      const cached = await kv.get(transKey(type, id, targetLang));
+      if (cached) return json({ success: true, result: 'skipped (cached)' });
     }
 
-    return json({ success: true, results });
+    const translated = await translateWithGemini(source.fields, source.originalLang, targetLang);
+    if (!translated) return json({ error: 'Translation failed' }, 500);
+
+    await kv.set(transKey(type, id, targetLang), translated, { ex: 60 * 60 * 24 * 30 });
+    return json({ success: true, result: 'generated' });
   }
 
   return json({ error: 'Method not allowed' }, 405);
