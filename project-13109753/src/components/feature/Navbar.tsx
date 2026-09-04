@@ -93,7 +93,7 @@ export default function Navbar({ variant }: { variant?: 'default' | 'dark' } = {
       </div>
 
       <nav className="flex items-center justify-between px-6 md:px-10 py-3 md:py-4">
-        <a href="/en" className="flex items-center gap-3">
+        <LocalizedLink to="/" className="flex items-center gap-3">
           <LogoMark />
           <h1 className={`font-heading font-bold text-xl md:text-2xl tracking-[0.08em] leading-none transition-colors duration-300 ${
             (isDark || !scrolled) ? 'text-white' : 'text-foreground-900'
