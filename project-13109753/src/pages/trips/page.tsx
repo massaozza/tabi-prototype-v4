@@ -1,4 +1,4 @@
-import LocalizedLink from '@/components/feature/LocalizedLink';
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/feature/Navbar';
@@ -19,6 +19,7 @@ interface PublicTrip {
 }
 
 function PublicTripCard({ trip }: { trip: PublicTrip }) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
@@ -71,12 +72,12 @@ function PublicTripCard({ trip }: { trip: PublicTrip }) {
 
   return (
     <div className="bg-background-50 border border-background-200 rounded-xl p-6 flex flex-col">
-      <LocalizedLink
+      <Link
         to={`/trips/${trip.id}`}
         className="font-heading font-bold text-lg text-foreground-900 mb-2 hover:text-primary-600 transition-colors block"
       >
         {trip.title}
-      </LocalizedLink>
+      </Link>
       <p className="text-foreground-600 text-sm leading-relaxed mb-4 line-clamp-3 flex-1">
         {trip.summary || ''}
       </p>
@@ -158,14 +159,14 @@ export default function PublicTripsPage() {
               Home
             </Link>
             <span className="text-white/30">/</span>
-            <span className="text-white whitespace-nowrap">Trips</span>
+            <span className="text-white whitespace-nowrap">{t("trips_title")}</span>
           </nav>
 
           <span className="inline-block text-xs font-semibold tracking-widest uppercase text-accent-400 mb-3">
             Real Trips, Real Travelers
           </span>
           <h1 className="font-heading font-bold text-3xl md:text-5xl text-white leading-tight mb-4">
-            Trips <span className="text-primary-400">Shared by Travelers</span>
+            Trips <span className="text-primary-400">{t("trips_sharedBy")}</span>
           </h1>
           <p className="text-white/60 text-base max-w-xl mx-auto leading-relaxed">
             Real itineraries from travelers who have actually been to Japan. Save one,
