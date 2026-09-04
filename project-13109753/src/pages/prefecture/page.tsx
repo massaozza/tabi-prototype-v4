@@ -1,3 +1,4 @@
+import { useBatchTranslation, getBatchField } from '@/hooks/useBatchTranslation';
 import LocalizedLink from '@/components/feature/LocalizedLink';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
@@ -54,7 +55,7 @@ function DestinationImage({ dest }: { dest: Destination }) {
   return (
     <img
       src={dest.image}
-      alt={`${dest.title} — ${dest.category}`}
+      alt={`${tb(dest.id, "title", dest.title)} — ${dest.category}`}
       onError={() => setFailed(true)}
       className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
     />
@@ -113,6 +114,12 @@ export default function PrefecturePage() {
 
   const region = PREFECTURE_REGIONS.find((r) => r.prefectures.includes(name || ''));
   const prefDestinations = destinations.filter((d) => d.prefecture === name);
+
+  // Spotコンテンツのバッチ翻訳
+  const spotIds = prefDestinations.map((d) => d.id);
+  const { translations: spotTrans } = useBatchTranslation('spot', spotIds, 'en');
+  const tb = (id: string, field: string, original: string) =>
+    getBatchField(spotTrans, id, field, original);
   const prefGuides = guides.filter((g) => g.spots.some((s) => s.prefecture === name));
 
   const handleAskAboutPrefecture = () => {
@@ -201,16 +208,16 @@ export default function PrefecturePage() {
                   </div>
                   <div className="p-4">
                     <h3 className="font-heading font-bold text-base text-foreground-900 mb-1.5">
-                      {dest.title}
+                      {tb(dest.id, "title", dest.title)}
                     </h3>
                     <p className="text-foreground-600 text-sm leading-relaxed mb-3 line-clamp-2">
-                      {dest.description}
+                      {tb(dest.id, "description", dest.description)}
                     </p>
                     <LocalizedLink
                       to={`/destinations/${dest.id}`}
                       className="inline-flex items-center gap-1 text-primary-500 font-semibold text-sm hover:gap-2 transition-all duration-200 cursor-pointer whitespace-nowrap"
                     >
-                      Discover More
+                      {t("pref_discoverMore", "Discover More")}
                       <i className="ri-arrow-right-line"></i>
                     </LocalizedLink>
                   </div>
