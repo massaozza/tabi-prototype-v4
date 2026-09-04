@@ -23,6 +23,25 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [search, setSearch] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState<AdminUser | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    setDeleteError('');
+    try {
+      const res = await fetch(`/api/admin-users?uid=${encodeURIComponent(deleteTarget.uid)}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error();
+      setUsers((prev) => prev.filter((u) => u.uid !== deleteTarget.uid));
+      setDeleteTarget(null);
+    } catch {
+      setDeleteError('Failed to delete. Please try again.');
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -139,6 +158,7 @@ export default function UsersPage() {
                   <th className="text-left px-4 py-3 text-xs font-semibold text-foreground-600 whitespace-nowrap">
                     UID
                   </th>
+                  <th className="px-4 py-3"></th>
                 </tr>
               </thead>
               <tbody>
@@ -161,6 +181,12 @@ export default function UsersPage() {
                     <td className="px-4 py-3">
                       <span className="text-xs font-mono text-foreground-400">{user.uid}</span>
                     </td>
+                    <td className="px-4 py-3 text-right">
+                      <button onClick={() => setDeleteTarget(user)}
+                        className="text-xs text-red-500 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded cursor-pointer">
+                        Delete
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -178,5 +204,25 @@ export default function UsersPage() {
         </div>
       )}
     </div>
+      {deleteTarget && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-6">
+            <h3 className="font-bold text-foreground-900 mb-2">Delete User?</h3>
+            <p className="text-sm text-foreground-600 mb-1">{deleteTarget.displayName}（{deleteTarget.email}）を削除します。</p>
+            <p className="text-xs text-red-600 mb-4">この操作は取り消せません。</p>
+            {deleteError && <p className="text-xs text-red-600 mb-3">{deleteError}</p>}
+            <div className="flex gap-3">
+              <button onClick={() => { setDeleteTarget(null); setDeleteError(''); }}
+                className="flex-1 py-2 text-sm border border-background-300 rounded-lg text-foreground-700 hover:bg-background-100 cursor-pointer">
+                Cancel
+              </button>
+              <button onClick={handleDelete} disabled={deleting}
+                className="flex-1 py-2 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 cursor-pointer">
+                {deleting ? 'Deleting…' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
   );
 }
