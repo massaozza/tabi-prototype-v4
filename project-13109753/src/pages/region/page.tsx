@@ -1,6 +1,8 @@
+import LocalizedLink from '@/components/feature/LocalizedLink';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
+import { useLocalizedNavigate } from '@/hooks/useLocalizedNavigate';
 import Navbar from '@/components/feature/Navbar';
 import Footer from '@/components/feature/Footer';
 import { destinations as fallbackDestinations } from '@/mocks/homeData';
@@ -18,7 +20,7 @@ interface Destination {
 export default function RegionPage() {
   const { slug } = useParams<{ slug: string }>();
   const { t } = useTranslation();
-  const navigate = useNavigate();
+  const navigate = useLocalizedNavigate();
   const [destinations, setDestinations] = useState<Destination[]>(fallbackDestinations);
 
   useEffect(() => {
@@ -125,7 +127,7 @@ export default function RegionPage() {
               const hasContent = prefDestinations.length > 0;
 
               return (
-                <Link
+                <LocalizedLink
                   key={pref}
                   to={`/prefectures/${encodeURIComponent(pref)}`}
                   className="bg-background-50 border border-background-200 rounded-xl overflow-hidden flex flex-col hover:border-background-300 transition-colors cursor-pointer"
@@ -161,7 +163,7 @@ export default function RegionPage() {
                       <i className="ri-arrow-right-s-line"></i>
                     </span>
                   </div>
-                </Link>
+                </LocalizedLink>
               );
             })}
           </div>
