@@ -38,6 +38,7 @@ function getPlaceholder(category: string) {
 }
 
 function DestinationImage({ dest }: { dest: Destination }) {
+  const { t } = useTranslation();
   const [failed, setFailed] = useState(false);
   const placeholder = getPlaceholder(dest.category);
 
@@ -63,7 +64,6 @@ function DestinationImage({ dest }: { dest: Destination }) {
 
 export default function PrefecturePage() {
   const { name } = useParams<{ name: string }>();
-  const { t } = useTranslation();
   const [destinations, setDestinations] = useState<Destination[]>(fallbackDestinations);
   const [guides, setGuides] = useState<Guide[]>([]);
 
