@@ -1,5 +1,3 @@
-import LocalizedLink from '@/components/feature/LocalizedLink';
-import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Navbar from '@/components/feature/Navbar';
@@ -38,7 +36,6 @@ function getPlaceholder(category: string) {
 }
 
 function DestinationImage({ dest }: { dest: Destination }) {
-  const { t } = useTranslation();
   const [failed, setFailed] = useState(false);
   const placeholder = getPlaceholder(dest.category);
 
@@ -64,7 +61,6 @@ function DestinationImage({ dest }: { dest: Destination }) {
 
 export default function PrefecturePage() {
   const { name } = useParams<{ name: string }>();
-  const { t } = useTranslation();
   const [destinations, setDestinations] = useState<Destination[]>(fallbackDestinations);
   const [guides, setGuides] = useState<Guide[]>([]);
 
@@ -134,14 +130,14 @@ export default function PrefecturePage() {
           <div className="text-center">
             <i className="ri-error-warning-line text-5xl text-foreground-300 block mb-4"></i>
             <h1 className="text-2xl font-bold text-foreground-900 font-heading mb-2">
-              {t("pref_notFound", "Prefecture not found")}
+              Prefecture not found
             </h1>
             <Link
               to="/"
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-500 hover:bg-primary-600 text-white text-sm font-semibold rounded-lg transition-colors cursor-pointer whitespace-nowrap"
             >
               <i className="ri-arrow-left-line"></i>
-              {t("pref_backToHome", "Back to Home")}
+              Back to Home
             </Link>
           </div>
         </div>
@@ -166,12 +162,12 @@ export default function PrefecturePage() {
             <span className="text-foreground-300">/</span>
             {region && (
               <>
-                <LocalizedLink
+                <Link
                   to={`/regions/${region.slug}`}
                   className="hover:text-foreground-700 transition-colors whitespace-nowrap"
                 >
                   {region.region}
-                </LocalizedLink>
+                </Link>
                 <span className="text-foreground-300">/</span>
               </>
             )}
@@ -183,7 +179,7 @@ export default function PrefecturePage() {
           </h1>
           <p className="text-foreground-600 text-base max-w-2xl mb-10">
             {prefDestinations.length > 0
-              ? `Popular destinations and experiences in ${name}.`
+              ? `{t('pref_popularIn', 'Popular destinations and experiences in')} ${name}.`
               : `We're still building out destinations for ${name}.`}
           </p>
 
@@ -207,13 +203,13 @@ export default function PrefecturePage() {
                     <p className="text-foreground-600 text-sm leading-relaxed mb-3 line-clamp-2">
                       {dest.description}
                     </p>
-                    <LocalizedLink
+                    <Link
                       to={`/destinations/${dest.id}`}
                       className="inline-flex items-center gap-1 text-primary-500 font-semibold text-sm hover:gap-2 transition-all duration-200 cursor-pointer whitespace-nowrap"
                     >
-                      {t("pref_discoverMore", "Discover More")}
+                      Discover More
                       <i className="ri-arrow-right-line"></i>
-                    </LocalizedLink>
+                    </Link>
                   </div>
                 </article>
               ))}
