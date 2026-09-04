@@ -1,3 +1,4 @@
+import LocalizedLink from '@/components/feature/LocalizedLink';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
@@ -164,12 +165,12 @@ export default function PrefecturePage() {
             <span className="text-foreground-300">/</span>
             {region && (
               <>
-                <Link
+                <LocalizedLink
                   to={`/regions/${region.slug}`}
                   className="hover:text-foreground-700 transition-colors whitespace-nowrap"
                 >
                   {region.region}
-                </Link>
+                </LocalizedLink>
                 <span className="text-foreground-300">/</span>
               </>
             )}
@@ -181,7 +182,7 @@ export default function PrefecturePage() {
           </h1>
           <p className="text-foreground-600 text-base max-w-2xl mb-10">
             {prefDestinations.length > 0
-              ? `{t('pref_popularIn', 'Popular destinations and experiences in')} ${name}.`
+              ? `${t('pref_popularIn', 'Popular destinations and experiences in')} ${name}.`
               : `We're still building out destinations for ${name}.`}
           </p>
 
@@ -205,13 +206,13 @@ export default function PrefecturePage() {
                     <p className="text-foreground-600 text-sm leading-relaxed mb-3 line-clamp-2">
                       {dest.description}
                     </p>
-                    <Link
+                    <LocalizedLink
                       to={`/destinations/${dest.id}`}
                       className="inline-flex items-center gap-1 text-primary-500 font-semibold text-sm hover:gap-2 transition-all duration-200 cursor-pointer whitespace-nowrap"
                     >
                       Discover More
                       <i className="ri-arrow-right-line"></i>
-                    </Link>
+                    </LocalizedLink>
                   </div>
                 </article>
               ))}
