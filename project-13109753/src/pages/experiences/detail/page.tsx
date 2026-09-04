@@ -217,7 +217,7 @@ export default function ExperienceDetailPage() {
               </p>
               <Link to="/experiences" className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-6 py-3 rounded-lg transition-colors whitespace-nowrap">
                 <i className="ri-arrow-left-line"></i>
-                {t('exp_backToExp', '{t('exp_backToExp', 'Back to Experiences')}')}
+                {t('exp_backToExp', 'Back to Experiences')}
               </Link>
             </div>
           ) : (
@@ -513,7 +513,7 @@ export default function ExperienceDetailPage() {
 
               <Link to="/experiences" className="inline-flex items-center gap-2 text-primary-500 hover:text-primary-600 font-semibold text-sm transition-colors whitespace-nowrap">
                 <i className="ri-arrow-left-line"></i>
-                {t('exp_backToExp', '{t('exp_backToExp', 'Back to Experiences')}')}
+                {t('exp_backToExp', 'Back to Experiences')}
               </Link>
             </article>
           )}
