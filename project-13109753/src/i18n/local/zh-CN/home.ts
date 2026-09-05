@@ -35,6 +35,18 @@ const translations = {
   map_regionByRegion: '按地区',
   map_selectRegion: '选择一个地区，发现其县、当地景点和隐藏体验。',
   map_explore: '探索',
+  copy_startOneClick: '一键开始',
+  copy_tripsYouCanCopy: '可复制的行程',
+  copy_copyToMyTrip: '复制到我的行程',
+  copy_viewTrip: '查看行程',
+  copy_comingSoon: '行程准备中',
+  copy_browseAll: '浏览所有行程',
+  dest_sectionLabel: '景点',
+  dest_trending: '热门',
+  dest_spots: '景点',
+  dest_discoverMore: '探索更多',
+  locals_favorites: '本地推荐',
+  locals_hiddenJapan: '隐藏的日本',
 };
 
 export default translations;
