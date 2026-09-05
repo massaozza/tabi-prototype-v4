@@ -70,6 +70,10 @@ const translations = {
   common_home: 'Inicio',
   common_backToHome: 'Volver al inicio',
   common_discoverMore: 'Descubrir más',
+  region_destination: 'destino',
+  region_destinations: 'destinos',
+  region_onTabi: 'en TABI',
+  region_explore: 'Explorar',
 };
 
 export default translations;
