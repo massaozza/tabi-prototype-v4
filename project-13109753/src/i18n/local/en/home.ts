@@ -15,6 +15,18 @@ const translations = {
   map_regionByRegion: 'Region by Region',
   map_selectRegion: 'Select a region to discover its prefectures, local destinations, and hidden experiences.',
   map_explore: 'Explore',
+  copy_startOneClick: 'Start in one click',
+  copy_tripsYouCanCopy: 'Trips You Can Copy',
+  copy_copyToMyTrip: 'Copy to My Trip',
+  copy_viewTrip: 'View trip',
+  copy_comingSoon: 'Trips coming soon',
+  copy_browseAll: 'Browse all trips',
+  dest_sectionLabel: 'Destinations',
+  dest_trending: 'Trending',
+  dest_spots: 'Spots',
+  dest_discoverMore: 'Discover More',
+  locals_favorites: 'Local Favorites',
+  locals_hiddenJapan: 'Hidden Japan',
 };
 
 export default translations;
