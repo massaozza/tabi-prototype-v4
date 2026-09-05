@@ -74,6 +74,15 @@ const translations = {
   region_destinations: 'スポット',
   region_onTabi: 'を掲載',
   region_explore: '探す',
+  hero_trustedBy: '日本中の旅行者とローカルに支持されています',
+  copy_comingSoonDesc: 'ローカルと旅行者のリアルな旅程を準備中です。',
+  dest_notFoundDesc: 'お探しのスポットが見つかりませんでした。',
+  exp_tripsIncluding: 'このスポットを含む旅程',
+  exp_wouldNotRecommend: 'おすすめしない',
+  guides_shareJapan: 'あなたの日本を共有',
+  explore_spots: 'スポット',
+  explore_areaPlaceholder: 'エリア（例：京都）',
+  explore_searchPlaceholder: 'キーワードで検索',
 };
 
 export default translations;
