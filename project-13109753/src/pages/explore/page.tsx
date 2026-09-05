@@ -257,7 +257,7 @@ export default function ExplorePage() {
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search by keyword (e.g. temple, ramen, hiking)"
+                placeholder={t("explore_searchPlaceholder", "Search by keyword")}
                 className="w-full bg-background-50 border border-background-200 rounded-md pl-10 pr-4 py-2.5 text-sm text-foreground-900 placeholder:text-foreground-400 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
               />
             </div>
@@ -267,7 +267,7 @@ export default function ExplorePage() {
                 type="text"
                 value={area}
                 onChange={(e) => setArea(e.target.value)}
-                placeholder="Area (e.g. Kyoto)"
+                placeholder={t("explore_areaPlaceholder", "Area (e.g. Kyoto)")}
                 className="w-full bg-background-50 border border-background-200 rounded-md pl-10 pr-4 py-2.5 text-sm text-foreground-900 placeholder:text-foreground-400 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
               />
             </div>
