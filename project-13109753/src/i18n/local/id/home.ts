@@ -47,6 +47,8 @@ const translations = {
   dest_discoverMore: 'Temukan Lebih',
   locals_favorites: 'Favorit Lokal',
   locals_hiddenJapan: 'Jepang Tersembunyi',
+  hero_trustedBy: 'Dipercaya wisatawan dan penduduk lokal di seluruh Jepang',
+  copy_comingSoonDesc: 'Itinerari nyata segera hadir.',
 };
 
 export default translations;
