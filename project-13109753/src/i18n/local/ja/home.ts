@@ -38,6 +38,18 @@ const translations = {
   map_regionByRegion: '地域別に探す',
   map_selectRegion: '地域を選んで、都道府県・スポット・隠れた体験を見つけましょう。',
   map_explore: '探す',
+  copy_startOneClick: 'ワンクリックで始める',
+  copy_tripsYouCanCopy: 'コピーできる旅程',
+  copy_copyToMyTrip: 'マイトリップにコピー',
+  copy_viewTrip: '旅程を見る',
+  copy_comingSoon: '旅程を準備中',
+  copy_browseAll: 'すべての旅程を見る',
+  dest_sectionLabel: 'スポット',
+  dest_trending: '人気の',
+  dest_spots: 'スポット',
+  dest_discoverMore: 'もっと見る',
+  locals_favorites: 'ローカルのお気に入り',
+  locals_hiddenJapan: '知られざる日本',
 };
 
 export default translations;
