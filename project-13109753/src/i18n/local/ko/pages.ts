@@ -70,6 +70,10 @@ const translations = {
   common_home: '홈',
   common_backToHome: '홈으로',
   common_discoverMore: '더 보기',
+  region_destination: '명소',
+  region_destinations: '명소',
+  region_onTabi: '등록됨',
+  region_explore: '탐색',
 };
 
 export default translations;
