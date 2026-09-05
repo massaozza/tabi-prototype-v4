@@ -70,6 +70,10 @@ const translations = {
   common_home: 'Beranda',
   common_backToHome: 'Kembali ke Beranda',
   common_discoverMore: 'Temukan Lebih',
+  region_destination: 'destinasi',
+  region_destinations: 'destinasi',
+  region_onTabi: 'di TABI',
+  region_explore: 'Jelajahi',
 };
 
 export default translations;
