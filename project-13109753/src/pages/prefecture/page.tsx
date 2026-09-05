@@ -140,14 +140,14 @@ export default function PrefecturePage() {
           <div className="text-center">
             <i className="ri-error-warning-line text-5xl text-foreground-300 block mb-4"></i>
             <h1 className="text-2xl font-bold text-foreground-900 font-heading mb-2">
-              Prefecture not found
+              {t("pref_notFound", "Prefecture not found")}
             </h1>
             <Link
               to="/"
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-500 hover:bg-primary-600 text-white text-sm font-semibold rounded-lg transition-colors cursor-pointer whitespace-nowrap"
             >
               <i className="ri-arrow-left-line"></i>
-              Back to Home
+              {t("common_backToHome", "Back to Home")}
             </Link>
           </div>
         </div>
@@ -167,7 +167,7 @@ export default function PrefecturePage() {
             aria-label="Breadcrumb"
           >
             <Link to="/" className="hover:text-foreground-700 transition-colors whitespace-nowrap">
-              Home
+              {t("common_home", "Home")}
             </Link>
             <span className="text-foreground-300">/</span>
             {region && (
