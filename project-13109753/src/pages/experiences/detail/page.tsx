@@ -215,7 +215,7 @@ export default function ExperienceDetailPage() {
                 Experience not found
               </h1>
               <p className="text-foreground-500 text-sm mb-6">
-                The experience you are looking for may have been removed.
+                {t("exp_notFoundDesc", "The experience you are looking for may have been removed.")}
               </p>
               <Link to="/experiences" className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-6 py-3 rounded-lg transition-colors whitespace-nowrap">
                 <i className="ri-arrow-left-line"></i>
