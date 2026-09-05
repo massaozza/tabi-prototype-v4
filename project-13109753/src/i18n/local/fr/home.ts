@@ -47,6 +47,8 @@ const translations = {
   dest_discoverMore: 'Découvrir plus',
   locals_favorites: 'Coups de cœur locaux',
   locals_hiddenJapan: 'Japon caché',
+  hero_trustedBy: 'Approuvé par les voyageurs et les locaux à travers le Japon',
+  copy_comingSoonDesc: 'De vrais itinéraires arrivent bientôt.',
 };
 
 export default translations;
