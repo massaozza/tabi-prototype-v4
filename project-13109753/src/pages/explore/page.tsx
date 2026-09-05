@@ -47,6 +47,7 @@ const SPOT_CATEGORIES = [
 // TABI 3.0：検索結果（SPOTのみ、緯度経度を持つもの）を地図にピン表示し、
 // カード一覧と連動させる。ピンをクリックすると、その場所の詳細ページに移動する。
 function ExploreMapPanel({ results }: { results: ExploreResult[] }) {
+  const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
