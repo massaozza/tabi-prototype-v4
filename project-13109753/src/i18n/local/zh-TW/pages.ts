@@ -70,6 +70,10 @@ const translations = {
   common_home: '首頁',
   common_backToHome: '返回首頁',
   common_discoverMore: '探索更多',
+  region_destination: '個景點',
+  region_destinations: '個景點',
+  region_onTabi: '在 TABI',
+  region_explore: '探索',
 };
 
 export default translations;
