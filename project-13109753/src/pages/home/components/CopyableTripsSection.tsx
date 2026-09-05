@@ -1,4 +1,4 @@
-import { useBatchTranslation, getBatchField } from '@/hooks/useBatchTranslation';
+import { useContentTranslation, getTranslatedField } from '@/hooks/useContentTranslation';
 import { useTranslation } from 'react-i18next';
 import LocalizedLink from '@/components/feature/LocalizedLink';
 import { useEffect, useState } from 'react';
@@ -64,6 +64,10 @@ const PLACEHOLDER_COLORS = [
 ];
 
 function TripCard({ trip, spotImages }: { trip: PublicTrip; spotImages: Map<string, string> }) {
+  const { t } = useTranslation();
+  const { translatedFields: cardTrans } = useContentTranslation('trip', trip.id, 'en');
+  const tb = (_id: string, field: string, original: string) =>
+    getTranslatedField(cardTrans, field, original);
   const { user } = useAuth();
   const navigate = useNavigate();
   const [copying, setCopying] = useState(false);
@@ -105,7 +109,7 @@ function TripCard({ trip, spotImages }: { trip: PublicTrip; spotImages: Map<stri
           {coverImages[0] ? (
             <img
               src={coverImages[0]}
-              alt={tb(trip.id, "title", trip.title)}
+              alt={trip.title}
               className="w-full h-full object-cover"
               style={{ gridRow: coverImages.length >= 2 ? '1 / 3' : '1' }}
             />
@@ -194,10 +198,6 @@ function TripCard({ trip, spotImages }: { trip: PublicTrip; spotImages: Map<stri
 export default function CopyableTripsSection() {
   const { t } = useTranslation();
   const [trips, setTrips] = useState<PublicTrip[]>([]);
-  const tripIds = trips.map((tr) => tr.id);
-  const { translations: tripTrans } = useBatchTranslation('trip', tripIds, 'en');
-  const tb = (id: string, field: string, original: string) =>
-    getBatchField(tripTrans, id, field, original);
   const [spotImages, setSpotImages] = useState<Map<string, string>>(new Map());
   const [loading, setLoading] = useState(true);
 
