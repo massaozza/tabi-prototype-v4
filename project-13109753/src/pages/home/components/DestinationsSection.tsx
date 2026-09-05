@@ -52,8 +52,8 @@ function DestinationImage({ dest }: { dest: Destination }) {
   return (
     <img
       src={dest.image}
-      alt={`${tb(dest.id, "title", dest.title)} — ${dest.category}`}
-      title={`${tb(dest.id, "title", dest.title)} travel experience — TABI`}
+      alt={`${dest.title} — ${dest.category}`}
+      title={`${dest.title} travel experience — TABI`}
       onError={() => setFailed(true)}
       className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
     />
