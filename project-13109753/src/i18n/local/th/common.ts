@@ -58,6 +58,7 @@ const translations = {
   hero_cta_plan: 'สร้างทริปญี่ปุ่นที่ออกแบบมาเพื่อคุณ',
   hero_cta_explore: 'สำรวจญี่ปุ่น',
   hero_subtitle_explore: 'ดูทริปจริงและข้อมูลท้องถิ่น',
+  nav_profile: 'โปรไฟล์',
 };
 
 export default translations;
