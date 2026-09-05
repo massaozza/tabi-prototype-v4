@@ -74,6 +74,15 @@ const translations = {
   region_destinations: 'destinasi',
   region_onTabi: 'di TABI',
   region_explore: 'Jelajahi',
+  hero_trustedBy: 'Dipercaya wisatawan dan penduduk lokal di seluruh Jepang',
+  copy_comingSoonDesc: 'Itinerari nyata dari penduduk lokal dan wisatawan segera hadir.',
+  dest_notFoundDesc: 'Kami tidak dapat menemukan destinasi yang Anda cari.',
+  exp_tripsIncluding: 'Perjalanan yang Mencakup Tempat Ini',
+  exp_wouldNotRecommend: 'Tidak merekomendasikan',
+  guides_shareJapan: 'Bagikan Jepangmu',
+  explore_spots: 'Tempat',
+  explore_areaPlaceholder: 'Area (mis. Kyoto)',
+  explore_searchPlaceholder: 'Cari berdasarkan kata kunci',
 };
 
 export default translations;
