@@ -52,6 +52,7 @@ const translations = {
   auth_signup: '新規登録',
   auth_loginToCopy: 'コピーするにはログインしてください',
   auth_loginToSave: '保存するにはログインしてください',
+  nav_profile: 'プロフィール',
 };
 
 export default translations;
