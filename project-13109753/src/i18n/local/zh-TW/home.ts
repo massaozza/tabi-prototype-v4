@@ -35,6 +35,18 @@ const translations = {
   map_regionByRegion: '按地區',
   map_selectRegion: '選擇一個地區，發現其縣、當地景點和隱藏體驗。',
   map_explore: '探索',
+  copy_startOneClick: '一鍵開始',
+  copy_tripsYouCanCopy: '可複製的行程',
+  copy_copyToMyTrip: '複製到我的行程',
+  copy_viewTrip: '查看行程',
+  copy_comingSoon: '行程準備中',
+  copy_browseAll: '瀏覽所有行程',
+  dest_sectionLabel: '景點',
+  dest_trending: '熱門',
+  dest_spots: '景點',
+  dest_discoverMore: '探索更多',
+  locals_favorites: '在地推薦',
+  locals_hiddenJapan: '隱藏的日本',
 };
 
 export default translations;
