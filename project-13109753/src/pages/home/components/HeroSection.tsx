@@ -25,7 +25,7 @@ export default function HeroSection() {
               <div className="w-9 h-9 rounded-full border-2 border-white/60 bg-primary-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">M</div>
               <div className="w-9 h-9 rounded-full border-2 border-white/60 bg-primary-800 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">A</div>
             </div>
-            <span className="text-white/90 text-sm">Trusted by travelers and locals across Japan</span>
+            <span className="text-white/90 text-sm">{t("hero_trustedBy", "Trusted by travelers and locals across Japan")}</span>
           </div>
 
           <h2 className="font-heading font-bold text-4xl md:text-6xl lg:text-7xl text-white leading-tight mb-6">

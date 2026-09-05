@@ -100,7 +100,7 @@ export default function DestinationsSection() {
       <div className="max-w-7xl mx-auto">
         <div className="mb-12">
           <span className="inline-block text-xs font-semibold tracking-widest uppercase text-accent-600 mb-3">
-            Destinations
+            {t("dest_sectionLabel", "Destinations")}
           </span>
           <h2 className="font-heading font-bold text-3xl md:text-5xl text-foreground-900 leading-tight">
             {t("dest_trending", "Trending")} <span className="text-primary-500">{t("dest_spots", "Spots")}</span>
