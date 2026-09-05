@@ -35,6 +35,18 @@ const translations = {
   map_regionByRegion: 'Region für Region',
   map_selectRegion: 'Wählen Sie eine Region, um Präfekturen und verborgene Erlebnisse zu entdecken.',
   map_explore: 'Entdecken',
+  copy_startOneClick: 'Mit einem Klick starten',
+  copy_tripsYouCanCopy: 'Reisen zum Kopieren',
+  copy_copyToMyTrip: 'In meine Reisen kopieren',
+  copy_viewTrip: 'Reise ansehen',
+  copy_comingSoon: 'Reisen in Kürze',
+  copy_browseAll: 'Alle Reisen durchsuchen',
+  dest_sectionLabel: 'Reiseziele',
+  dest_trending: 'Beliebte',
+  dest_spots: 'Orte',
+  dest_discoverMore: 'Mehr entdecken',
+  locals_favorites: 'Lokale Favoriten',
+  locals_hiddenJapan: 'Verborgenes Japan',
 };
 
 export default translations;
