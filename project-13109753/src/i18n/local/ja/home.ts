@@ -50,6 +50,8 @@ const translations = {
   dest_discoverMore: 'もっと見る',
   locals_favorites: 'ローカルのお気に入り',
   locals_hiddenJapan: '知られざる日本',
+  hero_trustedBy: '日本中の旅行者とローカルに支持されています',
+  copy_comingSoonDesc: 'ローカルと旅行者のリアルな旅程を準備中です。',
 };
 
 export default translations;
