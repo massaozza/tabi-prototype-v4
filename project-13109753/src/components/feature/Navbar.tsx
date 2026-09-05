@@ -4,7 +4,7 @@ import { navLinks } from '@/mocks/homeData';
 import LogoMark from '@/components/feature/LogoMark';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { SUPPORTED_LANGUAGES } from '@/i18n/index';
 
 export default function Navbar({ variant }: { variant?: 'default' | 'dark' } = {}) {
@@ -170,20 +170,20 @@ export default function Navbar({ variant }: { variant?: 'default' | 'dark' } = {
                 </button>
                 {userMenuOpen && (
                   <div className="absolute right-0 top-full mt-2 min-w-[160px] bg-background-50 border border-background-200 rounded-md py-1">
-                    <a
-                      href="/my-trip"
+                    <Link
+                      to="/my-trip"
                       onClick={() => setUserMenuOpen(false)}
                       className="block w-full text-left px-4 py-2.5 text-sm text-foreground-700 hover:bg-background-100 hover:text-foreground-900 transition-colors whitespace-nowrap"
                     >
-                      My Trip
-                    </a>
-                    <a
-                      href={`/creator/${user.uid}`}
+                      {t('nav_myTrips', 'My Trip')}
+                    </Link>
+                    <LocalizedLink
+                      to={`/creator/${user.uid}`}
                       onClick={() => setUserMenuOpen(false)}
                       className="block w-full text-left px-4 py-2.5 text-sm text-foreground-700 hover:bg-background-100 hover:text-foreground-900 transition-colors whitespace-nowrap"
                     >
-                      Profile
-                    </a>
+                      {t('nav_profile', 'Profile')}
+                    </LocalizedLink>
                     <button
                       onClick={handleLogout}
                       className="w-full text-left px-4 py-2.5 text-sm text-foreground-700 hover:bg-background-100 hover:text-foreground-900 transition-colors whitespace-nowrap cursor-pointer border-t border-background-200"
@@ -241,16 +241,42 @@ export default function Navbar({ variant }: { variant?: 'default' | 'dark' } = {
             )
           )}
 
+          {/* モバイル言語切替 */}
+          <div className="flex flex-col gap-2 pt-3 border-t border-background-200">
+            <p className="text-xs font-semibold text-foreground-400 uppercase tracking-wider">
+              <i className="ri-global-line mr-1"></i>
+              {t('nav_language', 'Language')}
+            </p>
+            <div className="grid grid-cols-2 gap-1.5">
+              {SUPPORTED_LANGUAGES.map((lang) => (
+                <button
+                  key={lang.code}
+                  onClick={() => {
+                    handleLanguageChange(lang.code);
+                    setMobileOpen(false);
+                  }}
+                  className={`text-left px-3 py-2 text-sm rounded-lg transition-colors cursor-pointer ${
+                    i18n.language === lang.code
+                      ? 'bg-primary-50 text-primary-600 font-semibold'
+                      : 'text-foreground-700 hover:bg-background-100'
+                  }`}
+                >
+                  {lang.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="flex flex-col gap-3 pt-3 border-t border-background-200">
             {loading ? null : user ? (
               <>
                 <span className="text-foreground-500 text-sm">{user.displayName}</span>
-                <a href="/my-trip" onClick={() => setMobileOpen(false)} className="text-foreground-800 text-sm font-semibold whitespace-nowrap hover:text-primary-500 transition-colors">
-                  My Trip
-                </a>
-                <a href={`/creator/${user.uid}`} onClick={() => setMobileOpen(false)} className="text-foreground-800 text-sm font-semibold whitespace-nowrap hover:text-primary-500 transition-colors">
-                  Profile
-                </a>
+                <Link to="/my-trip" onClick={() => setMobileOpen(false)} className="text-foreground-800 text-sm font-semibold whitespace-nowrap hover:text-primary-500 transition-colors">
+                  {t('nav_myTrips', 'My Trip')}
+                </Link>
+                <LocalizedLink to={`/creator/${user.uid}`} onClick={() => setMobileOpen(false)} className="text-foreground-800 text-sm font-semibold whitespace-nowrap hover:text-primary-500 transition-colors">
+                  {t('nav_profile', 'Profile')}
+                </LocalizedLink>
                 <button
                   onClick={() => {
                     setMobileOpen(false);
