@@ -166,14 +166,14 @@ export default function PublicTripDetailPage() {
                 <i className="ri-error-warning-line text-3xl text-foreground-400"></i>
               </span>
               <h1 className="font-heading font-bold text-2xl text-foreground-900 mb-2">
-                Trip not found
+                {t("trips_notFound", "Trip not found")}
               </h1>
               <Link
                 to="/trips"
                 className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-6 py-3 rounded-lg transition-colors whitespace-nowrap"
               >
                 <i className="ri-arrow-left-line"></i>
-                Back to Trips
+                {t("trips_backToTrips", "Back to Trips")}
               </Link>
             </div>
           ) : (
@@ -183,14 +183,14 @@ export default function PublicTripDetailPage() {
                 aria-label="Breadcrumb"
               >
                 <Link to="/" className="hover:text-foreground-700 transition-colors whitespace-nowrap">
-                  Home
+                  {t("common_home", "Home")}
                 </Link>
                 <span className="text-foreground-300">/</span>
                 <Link
                   to="/trips"
                   className="hover:text-foreground-700 transition-colors whitespace-nowrap"
                 >
-                  Trips
+                  {t("trips_title", "Trips")}
                 </Link>
                 <span className="text-foreground-300">/</span>
                 <span className="text-foreground-900 line-clamp-1">{trip.title}</span>
@@ -329,7 +329,7 @@ export default function PublicTripDetailPage() {
                 className="inline-flex items-center gap-2 text-primary-500 hover:text-primary-600 font-semibold text-sm transition-colors whitespace-nowrap"
               >
                 <i className="ri-arrow-left-line"></i>
-                Back to Trips
+                {t("trips_backToTrips", "Back to Trips")}
               </Link>
             </article>
           )}
