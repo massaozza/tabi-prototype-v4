@@ -74,6 +74,15 @@ const translations = {
   region_destinations: '個景點',
   region_onTabi: '在 TABI',
   region_explore: '探索',
+  hero_trustedBy: '深受日本各地旅人與在地人信賴',
+  copy_comingSoonDesc: '正在準備在地人與旅人的真實行程。',
+  dest_notFoundDesc: '找不到您尋找的景點。',
+  exp_tripsIncluding: '包含此景點的行程',
+  exp_wouldNotRecommend: '不推薦',
+  guides_shareJapan: '分享你的日本',
+  explore_spots: '景點',
+  explore_areaPlaceholder: '地區（例：京都）',
+  explore_searchPlaceholder: '以關鍵字搜尋',
 };
 
 export default translations;
