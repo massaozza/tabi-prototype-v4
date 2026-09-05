@@ -85,7 +85,7 @@ export default function GuidesPage() {
             From Japanese Locals
           </span>
           <h1 className="font-heading font-bold text-3xl md:text-5xl text-white leading-tight mb-4">
-            Local Knowledge, <span className="text-primary-400">{t("guides_sharedBy")}</span>
+            {t("guides_localKnowledge", "Local Knowledge")}, <span className="text-primary-400">{t("guides_sharedBy")}</span>
           </h1>
           <p className="text-white/60 text-base max-w-xl mx-auto leading-relaxed">
             Written in Japanese by people who actually know the area, and brought to you in
