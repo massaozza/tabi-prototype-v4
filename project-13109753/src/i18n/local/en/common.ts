@@ -56,6 +56,7 @@ const translations = {
   auth_signup: 'Sign up',
   auth_loginToCopy: 'Log in to copy this trip',
   auth_loginToSave: 'Log in to save',
+  nav_profile: 'Profile',
 };
 
 export default translations;
