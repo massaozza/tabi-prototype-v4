@@ -47,6 +47,8 @@ const translations = {
   dest_discoverMore: 'ค้นพบเพิ่มเติม',
   locals_favorites: 'สถานที่โปรดของคนท้องถิ่น',
   locals_hiddenJapan: 'ญี่ปุ่นที่ซ่อนอยู่',
+  hero_trustedBy: 'ได้รับความไว้วางใจจากนักเดินทางและคนท้องถิ่นทั่วญี่ปุ่น',
+  copy_comingSoonDesc: 'แผนการเดินทางจริงกำลังจะมา',
 };
 
 export default translations;
