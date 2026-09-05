@@ -70,6 +70,10 @@ const translations = {
   common_home: 'หน้าหลัก',
   common_backToHome: 'กลับหน้าหลัก',
   common_discoverMore: 'ค้นพบเพิ่มเติม',
+  region_destination: 'สถานที่',
+  region_destinations: 'สถานที่',
+  region_onTabi: 'บน TABI',
+  region_explore: 'สำรวจ',
 };
 
 export default translations;
