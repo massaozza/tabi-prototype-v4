@@ -47,6 +47,8 @@ const translations = {
   dest_discoverMore: '더 보기',
   locals_favorites: '현지인 추천',
   locals_hiddenJapan: '숨겨진 일본',
+  hero_trustedBy: '일본 전역의 여행자와 현지인이 신뢰합니다',
+  copy_comingSoonDesc: '현지인과 여행자의 실제 일정을 준비 중입니다.',
 };
 
 export default translations;
