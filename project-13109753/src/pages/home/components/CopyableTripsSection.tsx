@@ -262,7 +262,7 @@ export default function CopyableTripsSection() {
           <div className="text-center py-16 text-foreground-400">
             <i className="ri-map-2-line text-4xl mb-4 block"></i>
             <p className="text-base font-medium text-foreground-500 mb-1">{t("copy_comingSoon", "Trips coming soon")}</p>
-            <p className="text-sm">Real itineraries from locals and travelers are on their way.</p>
+            <p className="text-sm">{t("copy_comingSoonDesc", "Real itineraries from locals and travelers are on their way.")}</p>
           </div>
         ) : (
           <>
