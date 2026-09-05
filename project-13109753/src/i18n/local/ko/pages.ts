@@ -74,6 +74,15 @@ const translations = {
   region_destinations: '명소',
   region_onTabi: '등록됨',
   region_explore: '탐색',
+  hero_trustedBy: '일본 전역의 여행자와 현지인이 신뢰합니다',
+  copy_comingSoonDesc: '현지인과 여행자의 실제 일정을 준비 중입니다.',
+  dest_notFoundDesc: '찾으시는 명소를 찾을 수 없습니다.',
+  exp_tripsIncluding: '이 장소를 포함한 여행',
+  exp_wouldNotRecommend: '추천하지 않음',
+  guides_shareJapan: '당신의 일본을 공유하세요',
+  explore_spots: '명소',
+  explore_areaPlaceholder: '지역 (예: 교토)',
+  explore_searchPlaceholder: '키워드로 검색',
 };
 
 export default translations;
