@@ -30,6 +30,7 @@ const translations = {
   hero_cta_plan: '為您打造專屬日本之旅',
   hero_cta_explore: '探索日本',
   hero_subtitle_explore: '瀏覽真實行程與在地知識',
+  nav_profile: '個人檔案',
 };
 
 export default translations;
