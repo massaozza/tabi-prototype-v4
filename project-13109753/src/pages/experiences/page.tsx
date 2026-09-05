@@ -81,14 +81,14 @@ export default function ExperiencesPage() {
             aria-label="Breadcrumb"
           >
             <Link to="/" className="hover:text-white/80 transition-colors whitespace-nowrap">
-              Home
+              {t("common_home", "Home")}
             </Link>
             <span className="text-white/30">/</span>
             <span className="text-white whitespace-nowrap">{t("exp_title")}</span>
           </nav>
 
           <span className="inline-block text-xs font-semibold tracking-widest uppercase text-accent-400 mb-3">
-            Traveler Stories
+            {t("exp_travelerStories", "Traveler Stories")}
           </span>
           <h1 className="font-heading font-bold text-3xl md:text-5xl text-white leading-tight mb-4">
             {t("exp_realExp")} <span className="text-primary-400"></span>
@@ -103,7 +103,7 @@ export default function ExperiencesPage() {
             className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-6 py-3 rounded-lg transition-colors mt-8 whitespace-nowrap"
           >
             <i className="ri-add-line"></i>
-            Share Your Experience
+            {t("exp_shareExp", "Share Your Experience")}
           </Link>
         </div>
       </section>
@@ -134,7 +134,7 @@ export default function ExperiencesPage() {
                 <i className="ri-emotion-line text-3xl text-foreground-400"></i>
               </span>
               <h2 className="font-heading font-bold text-xl md:text-2xl text-foreground-900 mb-2">
-                No experiences yet
+                {t("exp_noExp", "No experiences yet")}
               </h2>
               <p className="text-foreground-500 text-sm mb-6">
                 {t("exp_beFirst")}
@@ -144,7 +144,7 @@ export default function ExperiencesPage() {
                 className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-6 py-3 rounded-lg transition-colors whitespace-nowrap"
               >
                 <i className="ri-add-line"></i>
-                Share Your Experience
+                {t("exp_shareExp", "Share Your Experience")}
               </Link>
             </div>
           ) : (
@@ -195,7 +195,7 @@ export default function ExperiencesPage() {
                       {exp.wouldRecommend && (
                         <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 whitespace-nowrap">
                           <i className="ri-checkbox-circle-fill"></i>
-                          Recommended
+                          {t("exp_recommended", "Recommended")}
                         </span>
                       )}
                     </div>
