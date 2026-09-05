@@ -76,7 +76,7 @@ export default function GuideDetailPage() {
                 <i className="ri-error-warning-line text-3xl text-foreground-400"></i>
               </span>
               <h1 className="font-heading font-bold text-2xl text-foreground-900 mb-2">
-                Guide not found
+                {t("guides_notFound", "Guide not found")}
               </h1>
               <p className="text-foreground-500 text-sm mb-6">
                 {t('guides_notFoundDesc', 'The guide you are looking for may have been removed.')}
@@ -86,7 +86,7 @@ export default function GuideDetailPage() {
                 className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-6 py-3 rounded-lg transition-colors whitespace-nowrap"
               >
                 <i className="ri-arrow-left-line"></i>
-                Back to Guides
+                {t("guides_backToGuides", "Back to Guides")}
               </Link>
             </div>
           ) : (
@@ -148,7 +148,7 @@ export default function GuideDetailPage() {
                 )}
                 <span className="inline-flex items-center gap-1 ml-2 text-accent-600">
                   <i className="ri-translate-2 text-xs"></i>
-                  Translated by TABI AI
+                  {t("guides_translatedByAI", "Translated by TABI AI")}
                 </span>
               </p>
 
@@ -162,7 +162,7 @@ export default function GuideDetailPage() {
               {/* Spots */}
               <section className="mb-10">
                 <h4 className="font-heading font-semibold text-lg text-foreground-900 mb-4">
-                  Spots featured in this Guide
+                  {t("guides_spotsInGuide", "Spots featured in this Guide")}
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {guide.spots.map((spot, idx) => (
@@ -215,7 +215,7 @@ export default function GuideDetailPage() {
                   className="inline-flex items-center gap-2 text-primary-500 hover:text-primary-600 font-semibold text-sm transition-colors whitespace-nowrap"
                 >
                   <i className="ri-arrow-left-line"></i>
-                  Back to Guides
+                  {t("guides_backToGuides", "Back to Guides")}
                 </Link>
               </div>
             </article>
