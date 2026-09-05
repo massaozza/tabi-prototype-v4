@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 
-// TABI47：TOPページ「{t("copy_tripsYouCanCopy", "Trips You Can Copy")}」セクション。
+// TABI47：TOPページ「Trips You Can Copy」セクション。
 // カードはティーザーに徹する。写真・タグ・タイトル・概要・予算・CTAのみ。
 // 詳細（日程タイムライン・ハイライト等）はTripの詳細ページで見せる。
 
