@@ -30,6 +30,7 @@ const translations = {
   hero_cta_plan: '나만의 일본 여행 만들기',
   hero_cta_explore: '일본 탐색',
   hero_subtitle_explore: '실제 여행 일정과 현지 정보 탐색',
+  nav_profile: '프로필',
 };
 
 export default translations;
