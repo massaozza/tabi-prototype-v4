@@ -35,6 +35,18 @@ const translations = {
   map_regionByRegion: 'Wilayah demi Wilayah',
   map_selectRegion: 'Pilih wilayah untuk menemukan prefektur dan pengalaman tersembunyi.',
   map_explore: 'Jelajahi',
+  copy_startOneClick: 'Mulai dengan satu klik',
+  copy_tripsYouCanCopy: 'Perjalanan yang Bisa Disalin',
+  copy_copyToMyTrip: 'Salin ke Perjalananku',
+  copy_viewTrip: 'Lihat perjalanan',
+  copy_comingSoon: 'Perjalanan segera hadir',
+  copy_browseAll: 'Lihat semua perjalanan',
+  dest_sectionLabel: 'Destinasi',
+  dest_trending: 'Populer',
+  dest_spots: 'Tempat',
+  dest_discoverMore: 'Temukan Lebih',
+  locals_favorites: 'Favorit Lokal',
+  locals_hiddenJapan: 'Jepang Tersembunyi',
 };
 
 export default translations;
