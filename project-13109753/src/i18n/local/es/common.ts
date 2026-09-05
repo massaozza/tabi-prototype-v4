@@ -30,6 +30,7 @@ const translations = {
   hero_cta_plan: 'Crea un viaje a Japón hecho para ti',
   hero_cta_explore: 'Descubrir Japón',
   hero_subtitle_explore: 'Explora itinerarios reales y conocimiento local',
+  nav_profile: 'Perfil',
 };
 
 export default translations;
