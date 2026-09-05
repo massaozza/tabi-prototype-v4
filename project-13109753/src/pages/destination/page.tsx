@@ -291,7 +291,7 @@ export default function DestinationPage() {
             Destination not found
           </h1>
           <p className="text-foreground-500 text-base mb-8">
-            We couldn't find the destination you're looking for.
+            {t("dest_notFoundDesc", "We could not find the destination you are looking for.")}
           </p>
           <Link
             to="/"
@@ -634,7 +634,7 @@ export default function DestinationPage() {
                     />
                   ) : (
                     <p className="text-foreground-500 text-sm">
-                      Location information is not available for this spot.
+                      {t("dest_noLocation", "Location information is not available for this spot.")}
                     </p>
                   )}
                 </div>
