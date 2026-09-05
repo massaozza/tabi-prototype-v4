@@ -27,6 +27,8 @@ const translations = {
   dest_discoverMore: 'Discover More',
   locals_favorites: 'Local Favorites',
   locals_hiddenJapan: 'Hidden Japan',
+  hero_trustedBy: 'Trusted by travelers and locals across Japan',
+  copy_comingSoonDesc: 'Real itineraries from locals and travelers are on their way.',
 };
 
 export default translations;
