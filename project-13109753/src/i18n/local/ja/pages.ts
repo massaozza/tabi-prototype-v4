@@ -70,6 +70,10 @@ const translations = {
   common_home: 'ホーム',
   common_backToHome: 'ホームに戻る',
   common_discoverMore: 'もっと見る',
+  region_destination: 'スポット',
+  region_destinations: 'スポット',
+  region_onTabi: 'を掲載',
+  region_explore: '探す',
 };
 
 export default translations;
