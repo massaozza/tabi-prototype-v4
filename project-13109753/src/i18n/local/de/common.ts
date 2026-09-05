@@ -30,6 +30,7 @@ const translations = {
   hero_cta_plan: 'Erstellen Sie eine Japan-Reise, die zu Ihnen passt',
   hero_cta_explore: 'Japan entdecken',
   hero_subtitle_explore: 'Echte Reiserouten und lokales Wissen erkunden',
+  nav_profile: 'Profil',
 };
 
 export default translations;
