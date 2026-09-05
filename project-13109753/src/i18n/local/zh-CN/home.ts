@@ -47,6 +47,8 @@ const translations = {
   dest_discoverMore: '探索更多',
   locals_favorites: '本地推荐',
   locals_hiddenJapan: '隐藏的日本',
+  hero_trustedBy: '深受日本各地旅行者与本地人信赖',
+  copy_comingSoonDesc: '正在准备本地人与旅行者的真实行程。',
 };
 
 export default translations;
