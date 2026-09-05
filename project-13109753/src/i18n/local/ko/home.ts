@@ -35,6 +35,18 @@ const translations = {
   map_regionByRegion: '지역별로 탐색',
   map_selectRegion: '지역을 선택하여 도도부현, 현지 명소, 숨겨진 체험을 발견하세요.',
   map_explore: '탐색',
+  copy_startOneClick: '원클릭으로 시작',
+  copy_tripsYouCanCopy: '복사할 수 있는 여행',
+  copy_copyToMyTrip: '내 여행에 복사',
+  copy_viewTrip: '일정 보기',
+  copy_comingSoon: '일정 준비 중',
+  copy_browseAll: '모든 일정 보기',
+  dest_sectionLabel: '명소',
+  dest_trending: '인기',
+  dest_spots: '명소',
+  dest_discoverMore: '더 보기',
+  locals_favorites: '현지인 추천',
+  locals_hiddenJapan: '숨겨진 일본',
 };
 
 export default translations;
