@@ -74,6 +74,15 @@ const translations = {
   region_destinations: 'สถานที่',
   region_onTabi: 'บน TABI',
   region_explore: 'สำรวจ',
+  hero_trustedBy: 'ได้รับความไว้วางใจจากนักเดินทางและคนท้องถิ่นทั่วญี่ปุ่น',
+  copy_comingSoonDesc: 'แผนการเดินทางจริงจากคนท้องถิ่นและนักเดินทางกำลังจะมา',
+  dest_notFoundDesc: 'เราไม่พบสถานที่ที่คุณกำลังมองหา',
+  exp_tripsIncluding: 'ทริปที่รวมสถานที่นี้',
+  exp_wouldNotRecommend: 'ไม่แนะนำ',
+  guides_shareJapan: 'แบ่งปันญี่ปุ่นของคุณ',
+  explore_spots: 'สถานที่',
+  explore_areaPlaceholder: 'พื้นที่ (เช่น เกียวโต)',
+  explore_searchPlaceholder: 'ค้นหาด้วยคำสำคัญ',
 };
 
 export default translations;
