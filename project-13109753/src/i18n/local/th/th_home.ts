@@ -35,6 +35,18 @@ const translations = {
   map_regionByRegion: 'ทีละภูมิภาค',
   map_selectRegion: 'เลือกภูมิภาคเพื่อค้นพบจังหวัดและประสบการณ์ที่ซ่อนอยู่',
   map_explore: 'สำรวจ',
+  copy_startOneClick: 'เริ่มด้วยคลิกเดียว',
+  copy_tripsYouCanCopy: 'ทริปที่คัดลอกได้',
+  copy_copyToMyTrip: 'คัดลอกไปยังทริปของฉัน',
+  copy_viewTrip: 'ดูทริป',
+  copy_comingSoon: 'ทริปเร็วๆ นี้',
+  copy_browseAll: 'ดูทริปทั้งหมด',
+  dest_sectionLabel: 'สถานที่',
+  dest_trending: 'ยอดนิยม',
+  dest_spots: 'สถานที่',
+  dest_discoverMore: 'ค้นพบเพิ่มเติม',
+  locals_favorites: 'สถานที่โปรดของคนท้องถิ่น',
+  locals_hiddenJapan: 'ญี่ปุ่นที่ซ่อนอยู่',
 };
 
 export default translations;
