@@ -74,6 +74,15 @@ const translations = {
   region_destinations: 'destinos',
   region_onTabi: 'en TABI',
   region_explore: 'Explorar',
+  hero_trustedBy: 'Con la confianza de viajeros y locales en todo Japón',
+  copy_comingSoonDesc: 'Itinerarios reales de locales y viajeros están en camino.',
+  dest_notFoundDesc: 'No pudimos encontrar el destino que buscas.',
+  exp_tripsIncluding: 'Viajes que incluyen este lugar',
+  exp_wouldNotRecommend: 'No recomendaría',
+  guides_shareJapan: 'Comparte tu Japón',
+  explore_spots: 'Lugares',
+  explore_areaPlaceholder: 'Área (ej. Kioto)',
+  explore_searchPlaceholder: 'Buscar por palabra clave',
 };
 
 export default translations;
