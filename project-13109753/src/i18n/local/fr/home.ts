@@ -35,6 +35,18 @@ const translations = {
   map_regionByRegion: 'Région par région',
   map_selectRegion: 'Sélectionnez une région pour découvrir ses préfectures et expériences cachées.',
   map_explore: 'Explorer',
+  copy_startOneClick: 'Commencez en un clic',
+  copy_tripsYouCanCopy: 'Voyages à copier',
+  copy_copyToMyTrip: 'Copier dans mes voyages',
+  copy_viewTrip: 'Voir le voyage',
+  copy_comingSoon: 'Voyages bientôt disponibles',
+  copy_browseAll: 'Parcourir tous les voyages',
+  dest_sectionLabel: 'Destinations',
+  dest_trending: 'Tendances',
+  dest_spots: 'Lieux',
+  dest_discoverMore: 'Découvrir plus',
+  locals_favorites: 'Coups de cœur locaux',
+  locals_hiddenJapan: 'Japon caché',
 };
 
 export default translations;
