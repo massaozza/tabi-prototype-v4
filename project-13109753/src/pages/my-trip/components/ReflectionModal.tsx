@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import type { Trip } from '../types';
+import { useAutoT } from '@/hooks/useAutoT';
 
 interface ReflectionModalProps {
   trip: Trip;
@@ -11,6 +12,7 @@ const inputClass =
   'w-full bg-background-50 border border-background-200 rounded-md px-3.5 py-2.5 text-sm text-foreground-900 placeholder:text-foreground-400 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-primary-400 transition-all';
 
 export default function ReflectionModal({ trip, onClose, onSaved }: ReflectionModalProps) {
+  const t = useAutoT();
   const [actualTotalCost, setActualTotalCost] = useState(
     trip.actualTotalCost !== undefined ? String(trip.actualTotalCost) : ''
   );
@@ -69,20 +71,19 @@ export default function ReflectionModal({ trip, onClose, onSaved }: ReflectionMo
       <div className="bg-background-50 rounded-xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 md:p-8">
         <div className="flex items-center justify-between mb-5">
           <h3 className="font-heading font-bold text-lg text-foreground-900">
-            How did your trip go?
+            {t('auto_54ae8b7ac3', "How did your trip go?")}
           </h3>
           <button
             onClick={onClose}
             className="w-8 h-8 flex items-center justify-center text-foreground-400 hover:text-foreground-700 rounded-full transition-colors cursor-pointer"
-            aria-label="Close"
+            aria-label={t('auto_bbfa773e5a', "Close")}
           >
             <i className="ri-close-line text-xl"></i>
           </button>
         </div>
 
         <p className="text-foreground-500 text-sm mb-6">
-          Adding your real experience helps other travelers — and lets you publish this
-          Trip so others can save or copy it.
+          {t('auto_ba15f0ffca', "Adding your real experience helps other travelers — and lets you publish this Trip so others can save or copy it.")}
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -94,13 +95,13 @@ export default function ReflectionModal({ trip, onClose, onSaved }: ReflectionMo
 
           <div>
             <label className="block text-xs font-semibold text-foreground-700 mb-1.5">
-              What worked well? <span className="text-red-500">*</span>
+              {t('auto_a5312b76be', "What worked well?")}{' '}<span className="text-red-500">*</span>
             </label>
             <textarea
               value={reflectionWhatWorked}
               onChange={(e) => setReflectionWhatWorked(e.target.value)}
               rows={3}
-              placeholder="What made this trip great?"
+              placeholder={t('auto_9b4e7252fa', "What made this trip great?")}
               required
               className={`${inputClass} resize-none`}
             />
@@ -108,20 +109,20 @@ export default function ReflectionModal({ trip, onClose, onSaved }: ReflectionMo
 
           <div>
             <label className="block text-xs font-semibold text-foreground-700 mb-1.5">
-              What would you change next time?
+              {t('auto_56a142465a', "What would you change next time?")}
             </label>
             <textarea
               value={reflectionWhatToChange}
               onChange={(e) => setReflectionWhatToChange(e.target.value)}
               rows={2}
-              placeholder="Anything you'd do differently?"
+              placeholder={t('auto_8e5984b833', "Anything you'd do differently?")}
               className={`${inputClass} resize-none`}
             />
           </div>
 
           <div>
             <label className="block text-xs font-semibold text-foreground-700 mb-1.5">
-              Actual total cost (optional)
+              {t('auto_f1825502c2', "Actual total cost (optional)")}
             </label>
             <input
               type="number"
@@ -136,25 +137,25 @@ export default function ReflectionModal({ trip, onClose, onSaved }: ReflectionMo
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-foreground-700 mb-1.5">
-                Nationality
+                {t('auto_1969ead537', "Nationality")}
               </label>
               <input
                 type="text"
                 value={nationality}
                 onChange={(e) => setNationality(e.target.value)}
-                placeholder="e.g. Australia"
+                placeholder={t('auto_e8eb6afa90', "e.g. Australia")}
                 className={inputClass}
               />
             </div>
             <div>
               <label className="block text-xs font-semibold text-foreground-700 mb-1.5">
-                Travel style
+                {t('auto_8f740359f6', "Travel style")}
               </label>
               <input
                 type="text"
                 value={travelStyle}
                 onChange={(e) => setTravelStyle(e.target.value)}
-                placeholder="e.g. Solo, Couple, Family"
+                placeholder={t('auto_f96a7668a4', "e.g. Solo, Couple, Family")}
                 className={inputClass}
               />
             </div>
@@ -163,19 +164,19 @@ export default function ReflectionModal({ trip, onClose, onSaved }: ReflectionMo
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-foreground-700 mb-1.5">
-                Budget level
+                {t('auto_13df4a404e', "Budget level")}
               </label>
               <input
                 type="text"
                 value={budgetLevel}
                 onChange={(e) => setBudgetLevel(e.target.value)}
-                placeholder="e.g. Mid-range"
+                placeholder={t('auto_404a875855', "e.g. Mid-range")}
                 className={inputClass}
               />
             </div>
             <div>
               <label className="block text-xs font-semibold text-foreground-700 mb-1.5">
-                First visit to Japan?
+                {t('auto_4a2f1ff58a', "First visit to Japan?")}
               </label>
               <select
                 value={isFirstVisit === undefined ? '' : isFirstVisit ? 'yes' : 'no'}
@@ -187,8 +188,8 @@ export default function ReflectionModal({ trip, onClose, onSaved }: ReflectionMo
                 className={inputClass}
               >
                 <option value="">—</option>
-                <option value="yes">Yes</option>
-                <option value="no">No, been before</option>
+                <option value="yes">{t('auto_5397e0583f', "Yes")}</option>
+                <option value="no">{t('auto_d28a0a5c9f', "No, been before")}</option>
               </select>
             </div>
           </div>
@@ -198,7 +199,7 @@ export default function ReflectionModal({ trip, onClose, onSaved }: ReflectionMo
             disabled={!canSubmit}
             className="w-full bg-primary-500 hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-sm py-3 rounded-lg transition-colors cursor-pointer whitespace-nowrap"
           >
-            {submitting ? 'Saving...' : 'Save Reflection'}
+            {submitting ? t('auto_ae7e887517', "Saving...") : t('auto_ae55b76409', "Save Reflection")}
           </button>
         </form>
       </div>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import Navbar from '@/components/feature/Navbar';
 import Footer from '@/components/feature/Footer';
+import { useAutoT } from '@/hooks/useAutoT';
 
 const beliefCards = [
   {
@@ -90,6 +91,7 @@ const coverageItems = [
 ];
 
 export default function AboutPage() {
+  const t = useAutoT();
   const [showBackToTop, setShowBackToTop] = useState(false);
 
   useEffect(() => {
@@ -105,17 +107,17 @@ export default function AboutPage() {
       {/* Page Header */}
       <section className="bg-background-900 pt-24 md:pt-28 pb-16 md:pb-20 px-6 md:px-10">
         <div className="max-w-[960px] mx-auto text-center">
-          <nav className="flex items-center justify-center gap-2 text-white/50 text-xs mb-6" aria-label="Breadcrumb">
-            <a href="/" className="hover:text-white/80 transition-colors cursor-pointer">Home</a>
+          <nav className="flex items-center justify-center gap-2 text-white/50 text-xs mb-6" aria-label={t('auto_c766e66518', "Breadcrumb")}>
+            <a href="/" className="hover:text-white/80 transition-colors cursor-pointer">{t('auto_70f8bb9a8a', "Home")}</a>
             <span className="text-white/30">/</span>
-            <span className="text-white">About</span>
+            <span className="text-white">{t('auto_6b21fb791a', "About")}</span>
           </nav>
-          <span className="text-accent-400 text-xs font-semibold tracking-[0.25em] uppercase">About</span>
+          <span className="text-accent-400 text-xs font-semibold tracking-[0.25em] uppercase">{t('auto_6b21fb791a', "About")}</span>
           <h1 className="font-heading font-bold text-3xl md:text-5xl lg:text-6xl text-white mt-3 mb-3 leading-tight">
-            Why TABI Exists
+            {t('auto_31566ad11c', "Why TABI Exists")}
           </h1>
           <p className="text-white/60 text-sm md:text-base max-w-xl mx-auto">
-            Discover Japan Beyond the Guidebooks
+            {t('auto_40eeb5245c', "Discover Japan Beyond the Guidebooks")}
           </p>
         </div>
       </section>
@@ -128,21 +130,21 @@ export default function AboutPage() {
 
         <div className="relative max-w-[960px] mx-auto">
           <h2 className="font-heading font-bold text-3xl md:text-5xl lg:text-6xl text-foreground-900 leading-tight mb-10 md:mb-14 max-w-3xl">
-            Most travelers see Japan. They don&apos;t feel it.
+            {t('auto_5e04fc23e0', "Most travelers see Japan. They don't feel it.")}
           </h2>
 
           <div className="space-y-6 text-base md:text-lg text-foreground-600 leading-relaxed max-w-2xl">
             <p>
-              Every year, millions of travelers visit Japan. They check off Senso-ji, Fushimi Inari, and the deer park in Nara.
+              {t('auto_20724d4057', "Every year, millions of travelers visit Japan. They check off Senso-ji, Fushimi Inari, and the deer park in Nara.")}
             </p>
             <p>
-              They take the photos. They share the moments.
+              {t('auto_33e249d672', "They take the photos. They share the moments.")}
             </p>
             <p>
-              And then they go home wondering why it felt like something was missing.
+              {t('auto_b18f5d638b', "And then they go home wondering why it felt like something was missing.")}
             </p>
             <p className="text-foreground-800 font-semibold pt-4">
-              The guidebooks showed them Japan. Nobody showed them how to experience it.
+              {t('auto_6004e56bdc', "The guidebooks showed them Japan. Nobody showed them how to experience it.")}
             </p>
           </div>
         </div>
@@ -161,31 +163,31 @@ export default function AboutPage() {
               <div className="flex items-center gap-6 mb-12 md:mb-16">
                 <div className="hidden md:block w-12 h-px bg-accent-400"></div>
                 <span className="text-xs font-semibold tracking-[0.25em] uppercase text-accent-600">
-                  Our Philosophy
+                  {t('auto_46983c80fb', "Our Philosophy")}
                 </span>
               </div>
 
               <h2 className="font-heading font-bold text-5xl md:text-7xl lg:text-8xl text-foreground-900 leading-[0.9] mb-8 md:mb-12 tracking-tight">
-                Beyond<br />Sightseeing<span className="text-accent-500">.</span>
+                {t('auto_68055b05a7', "Beyond")}<br />{t('auto_b0f96c68f4', "Sightseeing")}<span className="text-accent-500">.</span>
               </h2>
 
               <div className="w-20 h-px bg-foreground-300 mb-8 md:mb-12"></div>
 
               <div className="space-y-5 text-base md:text-lg text-foreground-600 leading-relaxed max-w-xl">
                 <p>
-                  Travel is more than checking famous places off a list.
+                  {t('auto_ac4eee7e94', "Travel is more than checking famous places off a list.")}
                 </p>
                 <p>
-                  The most memorable journeys begin when you slow down, explore deeper, and discover the stories, traditions, people, and moments that guidebooks often miss.
+                  {t('auto_27501ffd68', "The most memorable journeys begin when you slow down, explore deeper, and discover the stories, traditions, people, and moments that guidebooks often miss.")}
                 </p>
                 <p>
-                  At TABI, we believe the real Japan is found beyond the obvious.
+                  {t('auto_f06d7930a7', "At TABI, we believe the real Japan is found beyond the obvious.")}
                 </p>
                 <p>
-                  In the izakaya where nobody speaks English. In the mountain trail that isn&apos;t on any map. In the craftsman who has been making the same pottery for forty years.
+                  {t('auto_01060c4b4c', "In the izakaya where nobody speaks English. In the mountain trail that isn't on any map. In the craftsman who has been making the same pottery for forty years.")}
                 </p>
                 <p className="text-foreground-800 font-semibold pt-2">
-                  That Japan is worth finding.
+                  {t('auto_8fdee9443c', "That Japan is worth finding.")}
                 </p>
               </div>
             </div>
@@ -195,8 +197,8 @@ export default function AboutPage() {
                 <div className="w-full aspect-[3/4] rounded-lg overflow-hidden">
                   <img
                     src="https://readdy.ai/api/search-image?query=Traditional%20Japanese%20pottery%20studio%20interior%20with%20craftsman%20hands%20shaping%20clay%20on%20wooden%20wheel%2C%20warm%20ambient%20light%20from%20paper%20lantern%2C%20shelves%20of%20handmade%20ceramics%20in%20background%2C%20documentary%20style%20photography%20with%20intimate%20atmosphere%2C%20soft%20natural%20tones&width=600&height=800&seq=about-philosophy-visual&orientation=portrait"
-                    alt="Beyond Sightseeing — traditional Japanese craftsmanship"
-                    title="Beyond Sightseeing — TABI Philosophy"
+                    alt={t('auto_e12feffb75', "Beyond Sightseeing — traditional Japanese craftsmanship")}
+                    title={t('auto_588b1bde23', "Beyond Sightseeing — TABI Philosophy")}
                     className="w-full h-full object-cover"
                   />
                 </div>
@@ -211,10 +213,10 @@ export default function AboutPage() {
       <section className="py-20 md:py-28 px-6 md:px-10 lg:px-20 bg-background-50">
         <div className="max-w-[960px] mx-auto">
           <h2 className="font-heading font-bold text-2xl md:text-3xl text-foreground-900 mb-4">
-            What We Believe
+            {t('auto_cbc1149258', "What We Believe")}
           </h2>
           <p className="text-foreground-500 text-base mb-12 max-w-xl">
-            Three things that guide everything we create.
+            {t('auto_554c3efab5', "Three things that guide everything we create.")}
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -242,10 +244,10 @@ export default function AboutPage() {
       <section className="py-20 md:py-28 px-6 md:px-10 lg:px-20 bg-background-100">
         <div className="max-w-[960px] mx-auto">
           <h2 className="font-heading font-bold text-2xl md:text-3xl text-foreground-900 mb-4">
-            What You&apos;ll Discover
+            {t('auto_d7bbe4ea49', "What You'll Discover")}
           </h2>
           <p className="text-foreground-500 text-base mb-12 max-w-xl">
-            Three promises we make to every traveler.
+            {t('auto_07c40eb1a9', "Three promises we make to every traveler.")}
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -273,11 +275,11 @@ export default function AboutPage() {
       <section className="py-20 md:py-28 px-6 md:px-10 lg:px-20 bg-background-100">
         <div className="max-w-[960px] mx-auto">
           <h2 className="font-heading font-bold text-2xl md:text-3xl text-foreground-900 mb-4">
-            How We Create Our Content
+            {t('auto_7cf862566d', "How We Create Our Content")}
           </h2>
           <p className="text-foreground-500 text-base md:text-lg leading-relaxed mb-14 max-w-2xl">
-            Every piece of content on TABI is created with one question in mind:{' '}
-            <span className="text-foreground-800 font-medium">Would we recommend this to a friend planning their trip to Japan?</span>
+            {t('auto_d1af27e46d', "Every piece of content on TABI is created with one question in mind:")}{' '}
+            <span className="text-foreground-800 font-medium">{t('auto_3074dfed1a', "Would we recommend this to a friend planning their trip to Japan?")}</span>
           </p>
 
           <div className="space-y-10">
@@ -304,14 +306,14 @@ export default function AboutPage() {
       <section className="py-20 md:py-20 px-6 md:px-10 lg:px-20 bg-background-900">
         <div className="max-w-[960px] mx-auto text-center">
           <h2 className="font-heading font-bold text-2xl md:text-[36px] lg:text-[40px] text-white leading-tight max-w-2xl mx-auto">
-            Discover Japan Beyond the Guidebooks
+            {t('auto_40eeb5245c', "Discover Japan Beyond the Guidebooks")}
           </h2>
           <div className="w-[60px] h-px bg-primary-500 mx-auto my-6"></div>
           <p className="text-white font-body text-base md:text-lg leading-relaxed max-w-xl mx-auto mb-5">
-            We are building the only platform that knows not just where travelers go in Japan, but why they fall in love with it.
+            {t('auto_f0762d9d91', "We are building the only platform that knows not just where travelers go in Japan, but why they fall in love with it.")}
           </p>
           <p className="text-white/40 text-[13px]">
-            TABI · Beyond Sightseeing
+            {t('auto_70910c3379', "TABI · Beyond Sightseeing")}
           </p>
         </div>
       </section>
@@ -320,7 +322,7 @@ export default function AboutPage() {
       <section className="py-20 md:py-28 px-6 md:px-10 lg:px-20 bg-background-50">
         <div className="max-w-[960px] mx-auto">
           <h2 className="font-heading font-bold text-2xl md:text-3xl text-foreground-900 mb-12">
-            What TABI Covers
+            {t('auto_f2b4765d56', "What TABI Covers")}
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -348,24 +350,24 @@ export default function AboutPage() {
         <div className="max-w-[960px] mx-auto">
           <div className="bg-primary-50 border-l-4 border-primary-500 rounded-r-lg p-6 md:p-10">
             <h2 className="font-heading font-bold text-xl md:text-2xl text-foreground-900 mb-4">
-              A note on transparency
+              {t('auto_2002311ad9', "A note on transparency")}
             </h2>
             <div className="space-y-4 text-foreground-600 text-sm md:text-base leading-relaxed max-w-2xl">
               <p>
-                Some links on TABI are affiliate links. When you book or buy through them, we may earn a small commission — at no extra cost to you.
+                {t('auto_79e184283b', "Some links on TABI are affiliate links. When you book or buy through them, we may earn a small commission — at no extra cost to you.")}
               </p>
               <p>
-                This is how we keep the site free, independent, and constantly updated.
+                {t('auto_dbbacddb4a', "This is how we keep the site free, independent, and constantly updated.")}
               </p>
               <p>
-                Our recommendations are never influenced by commission rates. Full details in our Affiliate Disclosure.
+                {t('auto_7aad55a14b', "Our recommendations are never influenced by commission rates. Full details in our Affiliate Disclosure.")}
               </p>
             </div>
             <a
               href="/affiliate-disclosure"
               className="inline-flex items-center gap-2 text-primary-500 hover:text-primary-600 font-semibold text-sm mt-6 transition-colors cursor-pointer"
             >
-              Read our full Affiliate Disclosure
+              {t('auto_02641f1e07', "Read our full Affiliate Disclosure")}
               <i className="ri-arrow-right-line"></i>
             </a>
           </div>
@@ -376,21 +378,21 @@ export default function AboutPage() {
       <section className="py-20 md:py-28 px-6 md:px-10 lg:px-20 bg-background-50">
         <div className="max-w-[960px] mx-auto text-center">
           <h2 className="font-heading font-bold text-2xl md:text-4xl lg:text-5xl text-foreground-900 mb-8 leading-tight">
-            Ready to explore Japan differently?
+            {t('auto_038a279838', "Ready to explore Japan differently?")}
           </h2>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <a
               href="/"
               className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-8 py-3.5 rounded-md transition-all duration-200 whitespace-nowrap cursor-pointer"
             >
-              Start Exploring
+              {t('auto_b3f24eee10', "Start Exploring")}
               <i className="ri-arrow-right-line"></i>
             </a>
             <a
               href="/"
               className="inline-flex items-center gap-2 border-2 border-foreground-200 text-foreground-700 hover:border-foreground-400 hover:text-foreground-900 font-semibold text-sm px-8 py-3.5 rounded-md transition-all duration-200 whitespace-nowrap cursor-pointer"
             >
-              Plan Your Trip
+              {t('auto_674236a9a4', "Plan Your Trip")}
               <i className="ri-calendar-line"></i>
             </a>
           </div>
@@ -401,7 +403,7 @@ export default function AboutPage() {
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           className="fixed bottom-8 right-8 w-10 h-10 bg-primary-500 hover:bg-primary-600 text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer transition-all z-40"
-          aria-label="Back to top"
+          aria-label={t('auto_d9c883a905', "Back to top")}
         >
           <i className="ri-arrow-up-line"></i>
         </button>

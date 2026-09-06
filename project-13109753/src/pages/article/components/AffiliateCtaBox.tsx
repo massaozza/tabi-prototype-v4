@@ -1,4 +1,5 @@
 import type { AffiliateCtaData } from '../types';
+import { useAutoT } from '@/hooks/useAutoT';
 
 interface AffiliateCtaBoxProps {
   data?: AffiliateCtaData;
@@ -6,6 +7,7 @@ interface AffiliateCtaBoxProps {
 }
 
 export default function AffiliateCtaBox({ data, articleSlug }: AffiliateCtaBoxProps) {
+  const t = useAutoT();
   if (!data || !data.title) return null;
 
   const handleCtaClick = () => {
@@ -62,7 +64,7 @@ export default function AffiliateCtaBox({ data, articleSlug }: AffiliateCtaBoxPr
               </a>
             )}
             {data.partnerName && (
-              <span className="text-foreground-400 text-xs">via {data.partnerName}</span>
+              <span className="text-foreground-400 text-xs">{t('auto_a19e070e30', "via")}{' '}{data.partnerName}</span>
             )}
           </div>
           {data.reviewLinkText && (

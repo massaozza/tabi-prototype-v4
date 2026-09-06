@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import Navbar from '@/components/feature/Navbar';
 import Footer from '@/components/feature/Footer';
 import { loadGoogleMaps } from '@/lib/loadGoogleMaps';
+import { useAutoT, useAutoText } from '@/hooks/useAutoT';
 
 type ContentType = 'trip' | 'guide' | 'spot';
 
@@ -129,6 +130,7 @@ function ExploreMapPanel({ results }: { results: ExploreResult[] }) {
 }
 
 function ResultCard({ r }: { r: ExploreResult }) {
+  const tx = useAutoText();
   const badge = TYPE_BADGE[r.contentType];
   return (
     <Link
@@ -139,7 +141,7 @@ function ResultCard({ r }: { r: ExploreResult }) {
         {r.image ? (
           <img
             src={r.image}
-            alt={r.title}
+            alt={tx(r.title)}
             className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
@@ -150,21 +152,21 @@ function ResultCard({ r }: { r: ExploreResult }) {
         <span
           className={`absolute top-3 left-3 text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap ${badge.className}`}
         >
-          {badge.label}
+          {tx(badge.label)}
         </span>
       </div>
       <div className="p-5 flex flex-col flex-1">
         {r.area && (
           <span className="text-xs text-foreground-400 mb-1.5 whitespace-nowrap">
             <i className="ri-map-pin-line mr-1"></i>
-            {r.area}
+            {tx(r.area)}
           </span>
         )}
         <h3 className="font-heading font-bold text-base text-foreground-900 mb-2 leading-snug line-clamp-2">
-          {r.title}
+          {tx(r.title)}
         </h3>
         {r.summary && (
-          <p className="text-foreground-600 text-sm leading-relaxed line-clamp-2">{r.summary}</p>
+          <p className="text-foreground-600 text-sm leading-relaxed line-clamp-2">{tx(r.summary)}</p>
         )}
       </div>
     </Link>
@@ -172,7 +174,8 @@ function ResultCard({ r }: { r: ExploreResult }) {
 }
 
 export default function ExplorePage() {
-  const { t } = useTranslation();
+  const tx = useAutoText();
+  const t = useAutoT();
   const [activeTab, setActiveTab] = useState<'all' | ContentType>('all');
   const [query, setQuery] = useState('');
   const [area, setArea] = useState('');
@@ -226,23 +229,23 @@ export default function ExplorePage() {
         <div className="max-w-6xl mx-auto px-6 md:px-10 lg:px-20 text-center">
           <nav
             className="flex items-center justify-center gap-2 text-white/50 text-xs mb-5 flex-wrap"
-            aria-label="Breadcrumb"
+            aria-label={t('auto_c766e66518', "Breadcrumb")}
           >
             <Link to="/" className="hover:text-white/80 transition-colors whitespace-nowrap">
-              Home
+              {t('auto_70f8bb9a8a', "Home")}
             </Link>
             <span className="text-white/30">/</span>
             <span className="text-white whitespace-nowrap">{t("explore_title")}</span>
           </nav>
 
           <span className="inline-block text-xs font-semibold tracking-widest uppercase text-accent-400 mb-3">
-            Trips · Guides · Spots
+            {t('auto_846806675a', "Trips · Guides · Spots")}
           </span>
           <h1 className="font-heading font-bold text-2xl md:text-4xl text-white leading-tight mb-3">
-            Explore Everything <span className="text-primary-400">TABI Knows</span>
+            {t('auto_204bff878e', "Explore Everything")}{' '}<span className="text-primary-400">{t('auto_fd38c1e51d', "TABI Knows")}</span>
           </h1>
           <p className="text-white/60 text-sm md:text-base max-w-xl mx-auto leading-relaxed">
-            Search across real trips, local guides, and spots — all in one place.
+            {t('auto_8f6a172738', "Search across real trips, local guides, and spots — all in one place.")}
           </p>
         </div>
       </section>
@@ -289,7 +292,7 @@ export default function ExplorePage() {
                       : 'text-foreground-500 hover:text-foreground-700'
                   }`}
                 >
-                  {tab.label}
+                  {tx(tab.label)}
                 </button>
               ))}
             </div>
@@ -303,9 +306,9 @@ export default function ExplorePage() {
                 onChange={(e) => setSort(e.target.value as 'popular' | 'rating' | 'az')}
                 className="text-sm font-semibold text-foreground-700 bg-background-50 border border-background-200 rounded-md px-3 py-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-400"
               >
-                <option value="popular">Sort: Most Popular</option>
-                {activeTab === 'spot' && <option value="rating">Sort: Highest Rated</option>}
-                <option value="az">Sort: A-Z</option>
+                <option value="popular">{t('auto_44a7b8e176', "Sort: Most Popular")}</option>
+                {activeTab === 'spot' && <option value="rating">{t('auto_3c70de3f57', "Sort: Highest Rated")}</option>}
+                <option value="az">{t('auto_ed4476af52', "Sort: A-Z")}</option>
               </select>
             )}
           </div>
@@ -321,7 +324,7 @@ export default function ExplorePage() {
                     : 'bg-background-100 text-foreground-600 hover:bg-background-200'
                 }`}
               >
-                All Categories
+                {t('auto_1fd266c217', "All Categories")}
               </button>
               {SPOT_CATEGORIES.map((c) => (
                 <button
@@ -364,10 +367,10 @@ export default function ExplorePage() {
                   <i className="ri-search-line text-3xl text-foreground-400"></i>
                 </span>
                 <h2 className="font-heading font-bold text-xl text-foreground-900 mb-2">
-                  No results found
+                  {t('auto_658e79f9dc', "No results found")}
                 </h2>
                 <p className="text-foreground-500 text-sm">
-                  Try a different keyword, area, or category.
+                  {t('auto_83f465b1f4', "Try a different keyword, area, or category.")}
                 </p>
               </div>
             ) : activeTab !== 'all' ? (
@@ -385,13 +388,13 @@ export default function ExplorePage() {
                   <div>
                     <div className="flex items-center justify-between mb-4">
                       <h2 className="font-heading font-bold text-lg text-foreground-900">
-                        Spots
+                        {t('auto_bd6cb76b0b', "Spots")}
                       </h2>
                       <button
                         onClick={() => setActiveTab('spot')}
                         className="text-primary-500 hover:text-primary-600 text-sm font-semibold whitespace-nowrap cursor-pointer"
                       >
-                        View all →
+                        {t('auto_fe48df2e4a', "View all →")}
                       </button>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -406,13 +409,13 @@ export default function ExplorePage() {
                   <div>
                     <div className="flex items-center justify-between mb-4">
                       <h2 className="font-heading font-bold text-lg text-foreground-900">
-                        Guides
+                        {t('auto_929a28d261', "Guides")}
                       </h2>
                       <button
                         onClick={() => setActiveTab('guide')}
                         className="text-primary-500 hover:text-primary-600 text-sm font-semibold whitespace-nowrap cursor-pointer"
                       >
-                        View all →
+                        {t('auto_fe48df2e4a', "View all →")}
                       </button>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -427,13 +430,13 @@ export default function ExplorePage() {
                   <div>
                     <div className="flex items-center justify-between mb-4">
                       <h2 className="font-heading font-bold text-lg text-foreground-900">
-                        Trips
+                        {t('auto_d82b7e45c1', "Trips")}
                       </h2>
                       <button
                         onClick={() => setActiveTab('trip')}
                         className="text-primary-500 hover:text-primary-600 text-sm font-semibold whitespace-nowrap cursor-pointer"
                       >
-                        View all →
+                        {t('auto_fe48df2e4a', "View all →")}
                       </button>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">

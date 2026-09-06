@@ -1,4 +1,3 @@
-import { useContentTranslation, getTranslatedField } from '@/hooks/useContentTranslation';
 import LocalizedLink from '@/components/feature/LocalizedLink';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
@@ -8,6 +7,7 @@ import Navbar from '@/components/feature/Navbar';
 import Footer from '@/components/feature/Footer';
 import { destinations as fallbackDestinations } from '@/mocks/homeData';
 import { PREFECTURE_REGIONS, getRegionBySlug } from '@/mocks/prefectureData';
+import { useAutoT, useAutoText } from '@/hooks/useAutoT';
 
 interface Destination {
   id: string;
@@ -19,7 +19,8 @@ interface Destination {
 }
 
 export default function RegionPage() {
-  const { t } = useTranslation();
+  const tx = useAutoText();
+  const t = useAutoT();
   const { slug } = useParams<{ slug: string }>();
   const navigate = useLocalizedNavigate();
   const [destinations, setDestinations] = useState<Destination[]>(fallbackDestinations);
@@ -51,13 +52,6 @@ export default function RegionPage() {
   const region = slug ? getRegionBySlug(slug) : undefined;
 
   // 地域コンテンツの多言語翻訳
-  const { translatedFields: regionTrans } = useContentTranslation(
-    'region',
-    region?.slug,
-    'en'
-  );
-  const tr = (field: string, original: string) =>
-    getTranslatedField(regionTrans, field, original);
   const regionIndex = region ? PREFECTURE_REGIONS.findIndex((r) => r.slug === region.slug) : -1;
   const prevRegion =
     regionIndex >= 0
@@ -96,7 +90,7 @@ export default function RegionPage() {
         <div className="max-w-5xl mx-auto">
           <nav
             className="flex items-center gap-2 text-foreground-400 text-xs mb-6 flex-wrap"
-            aria-label="Breadcrumb"
+            aria-label={t('auto_c766e66518', "Breadcrumb")}
           >
             <Link to="/" className="hover:text-foreground-700 transition-colors whitespace-nowrap">
               {t("common_home", "Home")}
@@ -104,7 +98,7 @@ export default function RegionPage() {
             <span className="text-foreground-300">/</span>
             <span className="text-foreground-700 whitespace-nowrap">{t('region_title', 'Regions')}</span>
             <span className="text-foreground-300">/</span>
-            <span className="text-foreground-900 whitespace-nowrap">{tr("region", region.region)}</span>
+            <span className="text-foreground-900 whitespace-nowrap">{tx(region.region)}</span>
           </nav>
 
           <div className="flex items-center justify-between gap-4 mb-3">
@@ -127,9 +121,9 @@ export default function RegionPage() {
           </div>
 
           <h1 className="font-heading font-bold text-3xl md:text-5xl text-foreground-900 leading-tight mb-3">
-            {tr("region", region.region)}
+            {tx(region.region)}
           </h1>
-          <p className="text-foreground-600 text-base max-w-2xl mb-10">{tr("description", region.description)}</p>
+          <p className="text-foreground-600 text-base max-w-2xl mb-10">{tx(region.description)}</p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {region.prefectures.map((pref) => {

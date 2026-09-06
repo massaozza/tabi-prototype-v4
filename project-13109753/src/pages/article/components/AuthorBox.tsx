@@ -1,4 +1,5 @@
-interface AuthorBoxProps {
+
+import { useAutoT } from '@/hooks/useAutoT';interface AuthorBoxProps {
   name: string;
   bio: string;
   avatar: string;
@@ -6,6 +7,7 @@ interface AuthorBoxProps {
 }
 
 export default function AuthorBox({ name, bio, avatar, articlesHref }: AuthorBoxProps) {
+  const t = useAutoT();
   return (
     <section className="px-6 md:px-10 lg:px-20 bg-background-50">
       <div className="max-w-[860px] mx-auto">
@@ -21,7 +23,7 @@ export default function AuthorBox({ name, bio, avatar, articlesHref }: AuthorBox
           </div>
           <div className="min-w-0">
             <span className="text-foreground-400 text-[11px] font-semibold uppercase tracking-wider block mb-1">
-              Written by
+              {t('auto_d04c53e6f7', "Written by")}
             </span>
             <p className="font-heading font-bold text-[15px] text-foreground-900 mb-2">
               {name}
@@ -33,7 +35,7 @@ export default function AuthorBox({ name, bio, avatar, articlesHref }: AuthorBox
               href={articlesHref}
               className="inline-flex items-center gap-1 text-primary-500 hover:text-primary-600 font-semibold text-sm transition-colors cursor-pointer whitespace-nowrap"
             >
-              View all articles
+              {t('auto_63fd105b4c', "View all articles")}
               <i className="ri-arrow-right-line"></i>
             </a>
           </div>

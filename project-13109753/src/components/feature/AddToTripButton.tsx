@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { useAutoT } from '@/hooks/useAutoT';
 
 interface TripOption {
   id: string;
@@ -67,6 +68,7 @@ export default function AddToTripButton({
   spotCategory,
   className,
 }: AddToTripButtonProps) {
+  const t = useAutoT();
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [trips, setTrips] = useState<TripOption[]>([]);
@@ -142,7 +144,7 @@ export default function AddToTripButton({
         }
       >
         <i className="ri-add-line"></i>
-        Add to Trip
+        {t('auto_3ab4d097ea', "Add to Trip")}
       </button>
 
       {open && (
@@ -151,11 +153,11 @@ export default function AddToTripButton({
           <div className="relative w-full max-w-sm bg-background-50 rounded-xl overflow-hidden shadow-lg">
             <div className="flex items-center justify-between px-5 py-4 border-b border-background-200">
               <h3 className="font-heading font-semibold text-base text-foreground-950">
-                Add to a Trip
+                {t('auto_6036fd206c', "Add to a Trip")}
               </h3>
               <button
                 onClick={() => setOpen(false)}
-                aria-label="Close"
+                aria-label={t('auto_bbfa773e5a', "Close")}
                 className="w-8 h-8 rounded-full flex items-center justify-center text-foreground-500 hover:bg-background-100 transition-colors cursor-pointer"
               >
                 <i className="ri-close-line text-lg"></i>
@@ -174,14 +176,14 @@ export default function AddToTripButton({
               ) : trips.length === 0 ? (
                 <div className="text-center py-6">
                   <p className="text-foreground-500 text-sm mb-4">
-                    You don't have any editable trips yet.
+                    {t('auto_12ddfca53e', "You don't have any editable trips yet.")}
                   </p>
                   <Link
                     to="/creators/trips/new"
                     className="inline-flex items-center gap-1.5 bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-4 py-2.5 rounded-lg transition-colors whitespace-nowrap"
                   >
                     <i className="ri-add-line"></i>
-                    Create a new Trip
+                    {t('auto_9ed38b1916', "Create a new Trip")}
                   </Link>
                 </div>
               ) : (
@@ -200,11 +202,11 @@ export default function AddToTripButton({
                       {doneId === trip.id ? (
                         <span className="text-xs text-emerald-600 font-semibold whitespace-nowrap">
                           <i className="ri-checkbox-circle-fill mr-1"></i>
-                          Added
+                          {t('auto_b68734c259', "Added")}
                         </span>
                       ) : addingId === trip.id ? (
                         <span className="text-xs text-foreground-400 whitespace-nowrap">
-                          Adding...
+                          {t('auto_268c06a28a', "Adding...")}
                         </span>
                       ) : (
                         <i className="ri-add-line text-foreground-400"></i>

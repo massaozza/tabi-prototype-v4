@@ -3,6 +3,7 @@ import { Link, Navigate } from 'react-router-dom';
 import CreatorNavbar from '@/components/feature/CreatorNavbar';
 import Footer from '@/components/feature/Footer';
 import { useAuth } from '@/context/AuthContext';
+import { useAutoT } from '@/hooks/useAutoT';
 
 type TabKey =
   | 'overview'
@@ -46,6 +47,7 @@ interface ExperienceSummary {
 }
 
 export default function CreatorDashboardPage() {
+  const t = useAutoT();
   const { user, loading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<TabKey>('overview');
   const [trips, setTrips] = useState<TripSummary[]>([]);
@@ -163,10 +165,10 @@ export default function CreatorDashboardPage() {
               {activeTab === 'overview' && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {[
-                    { label: 'Trips', value: trips.length, icon: 'ri-map-2-line', color: 'primary' },
-                    { label: 'Spot Reviews', value: guides.length, icon: 'ri-map-pin-line', color: 'accent' },
-                    { label: 'Experiences', value: experiences.length, icon: 'ri-camera-3-line', color: 'secondary' },
-                    { label: 'Published Trips', value: publishedTrips, icon: 'ri-global-line', color: 'primary' },
+                    { label: t('auto_d82b7e45c1', "Trips"), value: trips.length, icon: 'ri-map-2-line', color: 'primary' },
+                    { label: t('auto_5df4509c21', "Spot Reviews"), value: guides.length, icon: 'ri-map-pin-line', color: 'accent' },
+                    { label: t('auto_5227125821', "Experiences"), value: experiences.length, icon: 'ri-camera-3-line', color: 'secondary' },
+                    { label: t('auto_7b60bc054c', "Published Trips"), value: publishedTrips, icon: 'ri-global-line', color: 'primary' },
                   ].map((stat) => (
                     <div
                       key={stat.label}
@@ -296,20 +298,19 @@ export default function CreatorDashboardPage() {
               {activeTab === 'analytics' && (
                 <div>
                   <p className="text-foreground-500 text-sm mb-6">
-                    ページ閲覧数（Views）の計測は、今後の実装で対応予定です。
-                    現時点では、実際の行動につながった実績のみを表示しています。
+                    {t('auto_e2ee094ec2', "ページ閲覧数（Views）の計測は、今後の実装で対応予定です。 現時点では、実際の行動につながった実績のみを表示しています。")}
                   </p>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {[
-                      { label: 'Trip Saves', value: totalSaves, icon: 'ri-bookmark-line', color: 'accent' },
-                      { label: 'Trip Copies', value: totalCopies, icon: 'ri-file-copy-line', color: 'accent' },
+                      { label: t('auto_5d78260347', "Trip Saves"), value: totalSaves, icon: 'ri-bookmark-line', color: 'accent' },
+                      { label: t('auto_939bf0e66c', "Trip Copies"), value: totalCopies, icon: 'ri-file-copy-line', color: 'accent' },
                       {
-                        label: 'Translated Guides',
+                        label: t('auto_a386634b04', "Translated Guides"),
                         value: translatedGuides,
                         icon: 'ri-translate-2',
                         color: 'accent',
                       },
-                      { label: 'Published Trips', value: publishedTrips, icon: 'ri-global-line', color: 'accent' },
+                      { label: t('auto_7b60bc054c', "Published Trips"), value: publishedTrips, icon: 'ri-global-line', color: 'accent' },
                     ].map((stat) => (
                       <div
                         key={stat.label}

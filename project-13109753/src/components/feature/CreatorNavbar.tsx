@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { useAutoT } from '@/hooks/useAutoT';
 
 // TABI 3.0：日本人クリエイター向けの、既存の（英語・外国人向け）Navbarとは
 // 別の専用ナビゲーション。/creators 以下のページでのみ使用する。
 export default function CreatorNavbar() {
+  const t = useAutoT();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const { user, loading, logout } = useAuth();
@@ -21,7 +23,7 @@ export default function CreatorNavbar() {
             <i className="ri-store-2-line text-white text-sm"></i>
           </span>
           <span className="font-heading font-bold text-lg tracking-wide">
-            TABI <span className="text-white/50 text-xs font-normal ml-1">Creators</span>
+            {t('auto_cc5cf04a66', "TABI")}{' '}<span className="text-white/50 text-xs font-normal ml-1">{t('auto_029d528885', "Creators")}</span>
           </span>
         </a>
 
@@ -77,7 +79,7 @@ export default function CreatorNavbar() {
             href="/"
             className="text-xs text-white/40 hover:text-white/70 transition-colors whitespace-nowrap"
           >
-            International site →
+            {t('auto_2cc86d7fd2', "International site →")}
           </a>
         </div>
 
@@ -116,7 +118,7 @@ export default function CreatorNavbar() {
             </a>
           )}
           <a href="/" className="text-xs text-white/40" onClick={() => setMobileOpen(false)}>
-            International site →
+            {t('auto_2cc86d7fd2', "International site →")}
           </a>
         </div>
       )}

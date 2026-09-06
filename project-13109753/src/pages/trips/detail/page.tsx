@@ -4,6 +4,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import Navbar from '@/components/feature/Navbar';
 import Footer from '@/components/feature/Footer';
 import { useAuth } from '@/context/AuthContext';
+import { useAutoT, useAutoText } from '@/hooks/useAutoT';
 
 interface TripMeal {
   id: string;
@@ -62,7 +63,8 @@ const TRIP_TYPE_BADGE: Record<string, { label: string; className: string }> = {
 };
 
 export default function PublicTripDetailPage() {
-  const { t } = useTranslation();
+  const tx = useAutoText();
+  const t = useAutoT();
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -180,7 +182,7 @@ export default function PublicTripDetailPage() {
             <article>
               <nav
                 className="flex items-center gap-2 text-foreground-400 text-xs mb-6 flex-wrap"
-                aria-label="Breadcrumb"
+                aria-label={t('auto_c766e66518', "Breadcrumb")}
               >
                 <Link to="/" className="hover:text-foreground-700 transition-colors whitespace-nowrap">
                   {t("common_home", "Home")}
@@ -193,7 +195,7 @@ export default function PublicTripDetailPage() {
                   {t("trips_title", "Trips")}
                 </Link>
                 <span className="text-foreground-300">/</span>
-                <span className="text-foreground-900 line-clamp-1">{trip.title}</span>
+                <span className="text-foreground-900 line-clamp-1">{tx(trip.title)}</span>
               </nav>
 
               <div className="flex items-center gap-2 mb-3 flex-wrap">
@@ -202,7 +204,7 @@ export default function PublicTripDetailPage() {
                     TRIP_TYPE_BADGE[trip.tripType || 'actual'].className
                   }`}
                 >
-                  {TRIP_TYPE_BADGE[trip.tripType || 'actual'].label}
+                  {tx(TRIP_TYPE_BADGE[trip.tripType || 'actual'].label)}
                 </span>
                 <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-background-100 text-foreground-700 whitespace-nowrap">
                   <i className="ri-calendar-line"></i>
@@ -211,12 +213,12 @@ export default function PublicTripDetailPage() {
               </div>
 
               <h1 className="font-heading font-bold text-3xl md:text-4xl text-foreground-900 leading-tight mb-3">
-                {trip.title}
+                {tx(trip.title)}
               </h1>
 
               {trip.summary && (
                 <p className="text-foreground-600 text-base leading-relaxed mb-6">
-                  {trip.summary}
+                  {tx(trip.summary)}
                 </p>
               )}
 
@@ -268,7 +270,7 @@ export default function PublicTripDetailPage() {
                       >
                         <div className="flex items-center justify-between mb-3">
                           <h3 className="font-heading font-bold text-base text-foreground-900">
-                            Day {day.day}
+                            {t('auto_987b9ced08', "Day")}{' '}{day.day}
                           </h3>
                           {stay && (
                             <span className="inline-flex items-center gap-1 text-xs text-foreground-500 whitespace-nowrap">
@@ -285,10 +287,10 @@ export default function PublicTripDetailPage() {
                                   {a.time}
                                 </span>
                               )}
-                              <span className="text-foreground-800 font-medium">{a.title}</span>
+                              <span className="text-foreground-800 font-medium">{tx(a.title)}</span>
                               {a.description && (
                                 <span className="block text-foreground-500 text-xs mt-0.5">
-                                  {a.description}
+                                  {tx(a.description)}
                                 </span>
                               )}
                             </li>

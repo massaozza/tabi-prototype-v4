@@ -1,6 +1,7 @@
 import LocalizedLink from '@/components/feature/LocalizedLink';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useAutoT } from '@/hooks/useAutoT';
 
 interface Experience {
   id: string;
@@ -14,6 +15,7 @@ interface Experience {
 }
 
 export default function TravelerExperiencesSection() {
+  const t = useAutoT();
   const [experiences, setExperiences] = useState<Experience[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -55,13 +57,13 @@ export default function TravelerExperiencesSection() {
       <div className="max-w-7xl mx-auto">
         <div className="mb-12">
           <span className="inline-block text-xs font-semibold tracking-widest uppercase text-accent-600 mb-3">
-            Traveler Stories
+            {t('auto_2e1d481838', "Traveler Stories")}
           </span>
           <h2 className="font-heading font-bold text-3xl md:text-5xl text-foreground-900 leading-tight">
-            Latest Traveler <span className="text-primary-500">Experiences</span>
+            {t('auto_ca7ed14c47', "Latest Traveler")}{' '}<span className="text-primary-500">{t('auto_5227125821', "Experiences")}</span>
           </h2>
           <p className="text-foreground-500 text-base mt-3 max-w-xl">
-            Unfiltered voices from travelers who have actually been there.
+            {t('auto_b2b7e05463', "Unfiltered voices from travelers who have actually been there.")}
           </p>
         </div>
 
@@ -114,7 +116,7 @@ export default function TravelerExperiencesSection() {
                     {exp.whatWasGood || ''}
                   </p>
                   <span className="mt-auto text-foreground-400 text-xs whitespace-nowrap">
-                    — {exp.authorName || 'Anonymous'}
+                    — {exp.authorName || t('auto_9bed510400', "Anonymous")}
                   </span>
                 </div>
               </LocalizedLink>

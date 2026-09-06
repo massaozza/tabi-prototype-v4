@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '@/components/feature/Navbar';
 import Footer from '@/components/feature/Footer';
+import { useAutoT } from '@/hooks/useAutoT';
 
 const categoryColors: Record<string, string> = {
   Food: 'bg-accent-100 text-accent-800',
@@ -25,6 +26,7 @@ function slugify(text: string): string {
 }
 
 export default function PublicArticlesPage() {
+  const t = useAutoT();
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -66,24 +68,23 @@ export default function PublicArticlesPage() {
         <div className="max-w-7xl mx-auto px-6 md:px-10 lg:px-20 text-center">
           <nav
             className="flex items-center justify-center gap-2 text-white/50 text-xs mb-6 flex-wrap"
-            aria-label="Breadcrumb"
+            aria-label={t('auto_c766e66518', "Breadcrumb")}
           >
             <Link to="/" className="hover:text-white/80 transition-colors whitespace-nowrap">
-              Home
+              {t('auto_70f8bb9a8a', "Home")}
             </Link>
             <span className="text-white/30">/</span>
-            <span className="text-white whitespace-nowrap">Articles</span>
+            <span className="text-white whitespace-nowrap">{t('auto_7c422841b7', "Articles")}</span>
           </nav>
 
           <span className="inline-block text-xs font-semibold tracking-widest uppercase text-accent-400 mb-3">
-            Travel Knowledge
+            {t('auto_0674e9418e', "Travel Knowledge")}
           </span>
           <h1 className="font-heading font-bold text-3xl md:text-5xl text-white leading-tight mb-4">
-            All Travel <span className="text-primary-400">Articles</span>
+            {t('auto_7391b0ee4b', "All Travel")}{' '}<span className="text-primary-400">{t('auto_7c422841b7', "Articles")}</span>
           </h1>
           <p className="text-white/60 text-base max-w-xl mx-auto leading-relaxed">
-            Fresh insights, honest reviews, and practical tips written by locals and frequent
-            visitors — everything you need to explore Japan like an insider.
+            {t('auto_ed2cad8228', "Fresh insights, honest reviews, and practical tips written by locals and frequent visitors — everything you need to explore Japan like an insider.")}
           </p>
         </div>
       </section>
@@ -114,17 +115,17 @@ export default function PublicArticlesPage() {
                 <i className="ri-book-open-line text-3xl text-foreground-400"></i>
               </span>
               <h2 className="font-heading font-bold text-xl md:text-2xl text-foreground-900 mb-2">
-                No articles yet
+                {t('auto_6f72ed10ce', "No articles yet")}
               </h2>
               <p className="text-foreground-500 text-sm mb-6">
-                New travel articles are on the way — check back soon.
+                {t('auto_3d4acdac78', "New travel articles are on the way — check back soon.")}
               </p>
               <Link
                 to="/"
                 className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-6 py-3 rounded-lg transition-colors whitespace-nowrap"
               >
                 <i className="ri-arrow-left-line"></i>
-                Back to Home
+                {t('auto_ce7472d6a6', "Back to Home")}
               </Link>
             </div>
           ) : (
@@ -160,7 +161,7 @@ export default function PublicArticlesPage() {
                         {article.subtitle || ''}
                       </p>
                       <span className="mt-auto inline-flex items-center gap-1 text-primary-500 font-semibold text-sm hover:gap-2 transition-all duration-200 whitespace-nowrap">
-                        Read Full Article
+                        {t('auto_b64411a891', "Read Full Article")}
                         <i className="ri-arrow-right-line"></i>
                       </span>
                     </div>

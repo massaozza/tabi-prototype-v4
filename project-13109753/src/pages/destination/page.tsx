@@ -6,6 +6,7 @@ import Footer from '@/components/feature/Footer';
 import { destinations as fallbackDestinations } from '@/mocks/homeData';
 import { type Experience } from '@/pages/experiences/types';
 import AddToTripButton from '@/components/feature/AddToTripButton';
+import { useAutoT, useAutoText } from '@/hooks/useAutoT';
 
 interface Destination {
   id: string;
@@ -115,7 +116,8 @@ function LocationMap({ lat, lng, title }: { lat: number; lng: number; title: str
 }
 
 export default function DestinationPage() {
-  const { t } = useTranslation();
+  const tx = useAutoText();
+  const t = useAutoT();
   const { id } = useParams<{ id: string }>();
   const [destination, setDestination] = useState<Destination | null>(null);
   const [experiences, setExperiences] = useState<Experience[]>([]);
@@ -225,8 +227,8 @@ export default function DestinationPage() {
               // /api/trips?public=1 は既にスコア順（Copy数・Save数・閲覧数・
               // 新しさを加味）で返ってくるため、ここでは絞り込みのみ行う
               const matching = json.trips
-                .filter((t: RelatedTrip) =>
-                  t.days.some((d) => d.activities.some((a) => a.spotId === found.id))
+                .filter((_row) =>
+                  _row.days.some((d) => d.activities.some((a) => a.spotId === found.id))
                 )
                 .slice(0, 4);
               setTrips(matching);
@@ -288,7 +290,7 @@ export default function DestinationPage() {
             <i className="ri-map-pin-line text-3xl text-foreground-400"></i>
           </span>
           <h1 className="font-heading font-bold text-2xl md:text-4xl text-foreground-900 mb-3">
-            Destination not found
+            {t('auto_62722f5302', "Destination not found")}
           </h1>
           <p className="text-foreground-500 text-base mb-8">
             {t("dest_notFoundDesc", "We could not find the destination you are looking for.")}
@@ -298,7 +300,7 @@ export default function DestinationPage() {
             className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-6 py-3 rounded-lg transition-colors whitespace-nowrap"
           >
             <i className="ri-arrow-left-line"></i>
-            Back to Home
+            {t('auto_ce7472d6a6', "Back to Home")}
           </Link>
         </div>
       ) : (
@@ -308,20 +310,20 @@ export default function DestinationPage() {
             <div className="max-w-[1140px] mx-auto px-6 md:px-10">
               <nav
                 className="flex items-center gap-2 text-foreground-500 text-xs mb-6 flex-wrap"
-                aria-label="Breadcrumb"
+                aria-label={t('auto_c766e66518', "Breadcrumb")}
               >
                 <Link to="/" className="hover:text-foreground-800 transition-colors whitespace-nowrap">
-                  Home
+                  {t('auto_70f8bb9a8a', "Home")}
                 </Link>
                 <span className="text-foreground-300">/</span>
                 <Link
                   to="/#destinations"
                   className="hover:text-foreground-800 transition-colors whitespace-nowrap"
                 >
-                  Destinations
+                  {t('auto_0fc66bc436', "Destinations")}
                 </Link>
                 <span className="text-foreground-300">/</span>
-                <span className="text-foreground-700 line-clamp-1">{destination.title}</span>
+                <span className="text-foreground-700 line-clamp-1">{tx(destination.title)}</span>
               </nav>
 
               <span
@@ -334,7 +336,7 @@ export default function DestinationPage() {
               </span>
 
               <h1 className="font-heading font-bold text-3xl md:text-5xl text-foreground-900 leading-tight mb-4 max-w-3xl">
-                {destination.title}
+                {tx(destination.title)}
               </h1>
 
               <div className="flex items-center gap-2 text-foreground-600 text-sm mb-6 flex-wrap">
@@ -349,7 +351,7 @@ export default function DestinationPage() {
                     <span className="font-semibold">{rating.rating.toFixed(1)}</span>
                     {rating.userRatingCount !== undefined && (
                       <span className="text-foreground-400">
-                        · {formatReviewCount(rating.userRatingCount)} reviews
+                        · {formatReviewCount(rating.userRatingCount)}{' '}{t('auto_7b2c6e04fe', "reviews")}
                       </span>
                     )}
                   </a>
@@ -389,7 +391,7 @@ export default function DestinationPage() {
                         : 'text-foreground-500 border-transparent hover:text-foreground-700'
                     }`}
                   >
-                    {tab.label}
+                    {tx(tab.label)}
                     {typeof tab.count === 'number' && tab.count > 0 && (
                       <span className="ml-1 text-xs text-foreground-400">({tab.count})</span>
                     )}
@@ -405,16 +407,16 @@ export default function DestinationPage() {
               {activeTab === 'overview' && (
                 <div>
                   <h2 className="font-heading font-bold text-xl md:text-2xl text-foreground-900 mb-4">
-                    About {destination.title}
+                    {t('auto_6b21fb791a', "About")}{' '}{tx(destination.title)}
                   </h2>
                   <p className="text-foreground-600 text-base md:text-lg leading-relaxed mb-10">
-                    {destination.description}
+                    {tx(destination.description)}
                   </p>
 
                   {similarSpots.length > 0 && (
                     <section>
                       <h3 className="font-heading font-bold text-lg text-foreground-900 mb-5">
-                        Similar Spots
+                        {t('auto_1d0e6b941a', "Similar Spots")}
                       </h3>
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                         {similarSpots.map((spot) => (
@@ -426,13 +428,13 @@ export default function DestinationPage() {
                             <div className="relative w-full h-24 overflow-hidden bg-background-100">
                               <img
                                 src={spot.image}
-                                alt={spot.title}
+                                alt={tx(spot.title)}
                                 className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
                               />
                             </div>
                             <div className="p-2.5">
                               <p className="font-heading font-semibold text-xs text-foreground-900 line-clamp-2 leading-snug">
-                                {spot.title}
+                                {tx(spot.title)}
                               </p>
                             </div>
                           </Link>
@@ -447,7 +449,7 @@ export default function DestinationPage() {
                       className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm md:text-base px-6 py-3.5 rounded-lg transition-colors whitespace-nowrap cursor-pointer"
                     >
                       <i className="ri-chat-3-line text-lg"></i>
-                      Ask TABI about {destination.title}
+                      {t('auto_c48326d1fb', "Ask TABI about")}{' '}{tx(destination.title)}
                     </button>
                     <AddToTripButton
                       spotId={destination.id}
@@ -464,7 +466,7 @@ export default function DestinationPage() {
               {activeTab === 'guides' && (
                 <div>
                   <h2 className="font-heading font-bold text-xl md:text-2xl text-foreground-900 mb-6">
-                    Guides Featuring {destination.title}
+                    {t('auto_9b271cb891', "Guides Featuring")}{' '}{tx(destination.title)}
                   </h2>
                   {guides.length === 0 ? (
                     <p className="text-foreground-500 text-sm">
@@ -500,7 +502,7 @@ export default function DestinationPage() {
               {activeTab === 'reviews' && (
                 <div>
                   <h2 className="font-heading font-bold text-xl md:text-2xl text-foreground-900 mb-6">
-                    Real Experiences from Travelers
+                    {t('auto_cbafa9888c', "Real Experiences from Travelers")}
                   </h2>
                   {experiences.length === 0 ? (
                     <p className="text-foreground-500 text-sm">
@@ -519,7 +521,7 @@ export default function DestinationPage() {
                               <div className="relative w-full h-40 flex-shrink-0 overflow-hidden bg-background-100">
                                 <img
                                   src={exp.photos[0]}
-                                  alt={exp.placeName}
+                                  alt={tx(exp.placeName)}
                                   title={`${exp.placeName} — TABI`}
                                   className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
                                 />
@@ -534,22 +536,22 @@ export default function DestinationPage() {
                                     'bg-background-200 text-foreground-600'
                                   }`}
                                 >
-                                  {exp.category}
+                                  {tx(exp.category)}
                                 </span>
                                 {exp.wouldRecommend && (
                                   <span className="inline-flex items-center text-xs font-semibold text-emerald-600 whitespace-nowrap">
                                     <i className="ri-checkbox-circle-fill mr-1"></i>
-                                    Recommended
+                                    {t('auto_9ef937556e', "Recommended")}
                                   </span>
                                 )}
                               </div>
 
                               <h3 className="font-heading font-bold text-base text-foreground-900 mb-2 leading-snug">
-                                {exp.placeName}
+                                {tx(exp.placeName)}
                               </h3>
 
                               <p className="text-foreground-600 text-sm leading-relaxed line-clamp-2 mb-3">
-                                {exp.whatWasGood}
+                                {tx(exp.whatWasGood)}
                               </p>
 
                               <span className="mt-auto text-foreground-400 text-xs whitespace-nowrap">
@@ -567,7 +569,7 @@ export default function DestinationPage() {
               {activeTab === 'trips' && (
                 <div>
                   <h2 className="font-heading font-bold text-xl md:text-2xl text-foreground-900 mb-6">
-                    Trips Featuring {destination.title}
+                    {t('auto_22ef3ae85d', "Trips Featuring")}{' '}{tx(destination.title)}
                   </h2>
                   {trips.length === 0 ? (
                     <p className="text-foreground-500 text-sm">
@@ -575,40 +577,40 @@ export default function DestinationPage() {
                     </p>
                   ) : (
                     <div className="space-y-4">
-                      {trips.map((t) => (
+                      {trips.map((_row) => (
                         <Link
-                          key={t.id}
-                          to={`/trips/${t.id}`}
+                          key={_row.id}
+                          to={`/trips/${_row.id}`}
                           className="group flex items-center justify-between gap-4 bg-background-50 border border-background-200 rounded-xl p-5 hover:-translate-y-0.5 hover:border-primary-300 transition-all duration-300 cursor-pointer"
                         >
                           <div className="min-w-0">
                             <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                               <span className="inline-block text-xs font-semibold px-2 py-0.5 rounded-full bg-primary-100 text-primary-700 whitespace-nowrap">
-                                {t.tripType === 'actual' ? 'Actual Trip' : 'Recommended'}
+                                {_row.tripType === 'actual' ? t('auto_3da47ff430', "Actual Trip") : t('auto_9ef937556e', "Recommended")}
                               </span>
                               <span className="text-xs text-foreground-400 whitespace-nowrap">
-                                {t.days.length} days
+                                {_row.days.length}{' '}{t('auto_5548ae4f34', "days")}
                               </span>
                             </div>
                             <h3 className="font-semibold text-sm text-foreground-900 leading-snug">
-                              {t.title}
+                              {tx(_row.title)}
                             </h3>
-                            {t.summary && (
+                            {_row.summary && (
                               <p className="text-foreground-500 text-sm leading-relaxed line-clamp-2 mt-1">
-                                {t.summary}
+                                {tx(_row.summary)}
                               </p>
                             )}
                             <div className="flex items-center gap-3 text-xs text-foreground-400 mt-2 flex-wrap">
-                              {typeof t.saveCount === 'number' && (
+                              {typeof _row.saveCount === 'number' && (
                                 <span className="inline-flex items-center gap-1 whitespace-nowrap">
                                   <i className="ri-bookmark-line"></i>
-                                  {t.saveCount}
+                                  {_row.saveCount}
                                 </span>
                               )}
-                              {typeof t.copyCount === 'number' && (
+                              {typeof _row.copyCount === 'number' && (
                                 <span className="inline-flex items-center gap-1 whitespace-nowrap">
                                   <i className="ri-file-copy-line"></i>
-                                  {t.copyCount}
+                                  {_row.copyCount}
                                 </span>
                               )}
                             </div>
@@ -624,13 +626,13 @@ export default function DestinationPage() {
               {activeTab === 'location' && (
                 <div>
                   <h2 className="font-heading font-bold text-xl md:text-2xl text-foreground-900 mb-6">
-                    Location
+                    {t('auto_d219c68101', "Location")}
                   </h2>
                   {destination.lat !== undefined && destination.lng !== undefined ? (
                     <LocationMap
                       lat={destination.lat}
                       lng={destination.lng}
-                      title={destination.title}
+                      title={tx(destination.title)}
                     />
                   ) : (
                     <p className="text-foreground-500 text-sm">

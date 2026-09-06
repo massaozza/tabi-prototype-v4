@@ -3,6 +3,7 @@ import type { BookingStatus, Trip, TripDay, TripItem, TripMeal, TripStay, Transp
 import { formatSavedDate } from '../types';
 import ReflectionModal from './ReflectionModal';
 import TripPlanningPanel from './TripPlanningPanel';
+import { useAutoT, useAutoText } from '@/hooks/useAutoT';
 
 const TRANSPORT_ICONS: Record<TransportMode, string> = {
   walk: 'ri-walk-line',
@@ -160,6 +161,8 @@ export default function TripCard({
   onBookingStatusChange,
   onTripUpdate,
 }: TripCardProps) {
+  const tx = useAutoText();
+  const t = useAutoT();
   const dayCount = trip.days?.length || 0;
   const [pendingBookingId, setPendingBookingId] = useState<string | null>(null);
   const [bookingErrors, setBookingErrors] = useState<Record<string, string>>({});
@@ -289,7 +292,7 @@ export default function TripCard({
     if (status === 'booked') {
       return (
         <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-700 bg-green-100 rounded-full px-2.5 py-1 whitespace-nowrap">
-          <i className="ri-check-line"></i> Booked
+          <i className="ri-check-line"></i>{' '}{t('auto_13e7a657ec', "Booked")}
         </span>
       );
     }
@@ -300,7 +303,7 @@ export default function TripCard({
         disabled={isPending}
         className="border border-background-300 text-foreground-700 hover:bg-background-100 font-semibold text-xs px-3 py-1.5 rounded-md transition-colors whitespace-nowrap cursor-pointer disabled:opacity-60"
       >
-        {isPending ? 'Marking...' : 'Mark as Booked'}
+        {isPending ? t('auto_1eecd23bdf', "Marking...") : t('auto_60158d6630', "Mark as Booked")}
       </button>
     );
   };
@@ -319,7 +322,7 @@ export default function TripCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-2 flex-wrap">
             <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap ${statusBadge.className}`}>
-              {statusBadge.label}
+              {tx(statusBadge.label)}
             </span>
             {trip.status === 'published' && (
               <span
@@ -327,7 +330,7 @@ export default function TripCard({
                   TRIP_TYPE_BADGE[trip.tripType || 'actual'].className
                 }`}
               >
-                {TRIP_TYPE_BADGE[trip.tripType || 'actual'].label}
+                {tx(TRIP_TYPE_BADGE[trip.tripType || 'actual'].label)}
               </span>
             )}
             <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-primary-100 text-primary-800 whitespace-nowrap">
@@ -343,12 +346,12 @@ export default function TripCard({
           </div>
 
           <h2 className="font-heading font-bold text-base md:text-lg text-foreground-900 mb-1 leading-snug">
-            {trip.title}
+            {tx(trip.title)}
           </h2>
 
           {trip.summary && (
             <p className="text-foreground-600 text-sm leading-relaxed line-clamp-2">
-              {trip.summary}
+              {tx(trip.summary)}
             </p>
           )}
 
@@ -364,7 +367,7 @@ export default function TripCard({
               onDelete();
             }}
             className="w-9 h-9 flex items-center justify-center text-foreground-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
-            aria-label="Delete trip"
+            aria-label={t('auto_ddc8be2d86', "Delete trip")}
           >
             <i className="ri-delete-bin-line text-lg"></i>
           </button>
@@ -384,10 +387,10 @@ export default function TripCard({
             <table className="w-full text-sm border-collapse min-w-[640px]">
               <thead>
                 <tr className="text-left text-xs font-semibold text-foreground-500 uppercase tracking-wide border-b border-background-200">
-                  <th className="py-2 pr-3 w-16 align-bottom">Day</th>
-                  <th className="py-2 pr-3 w-40 align-bottom">Stay</th>
-                  <th className="py-2 pr-3 align-bottom">Schedule</th>
-                  <th className="py-2 pl-2 w-44 align-bottom">Meals</th>
+                  <th className="py-2 pr-3 w-16 align-bottom">{t('auto_987b9ced08', "Day")}</th>
+                  <th className="py-2 pr-3 w-40 align-bottom">{t('auto_ae768f766f', "Stay")}</th>
+                  <th className="py-2 pr-3 align-bottom">{t('auto_0a8adac9d6', "Schedule")}</th>
+                  <th className="py-2 pl-2 w-44 align-bottom">{t('auto_ffdd1f1a28', "Meals")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -447,19 +450,19 @@ export default function TripCard({
                     items: TripItem[];
                   }[] = [
                     {
-                      label: 'Breakfast',
+                      label: t('auto_364653cd2a', "Breakfast"),
                       short: 'B',
                       meal: (row.day.meals || {}).breakfast,
                       items: mealItemsBySlot.breakfast,
                     },
                     {
-                      label: 'Lunch',
+                      label: t('auto_585ecb7610', "Lunch"),
                       short: 'L',
                       meal: (row.day.meals || {}).lunch,
                       items: mealItemsBySlot.lunch,
                     },
                     {
-                      label: 'Dinner',
+                      label: t('auto_8cf98a5465', "Dinner"),
                       short: 'D',
                       meal: (row.day.meals || {}).dinner,
                       items: mealItemsBySlot.dinner,
@@ -469,7 +472,7 @@ export default function TripCard({
                   return (
                     <tr key={row.day.day} className="border-b border-background-100 align-top">
                       <td className="py-3 pr-3 whitespace-nowrap">
-                        <span className="font-semibold text-foreground-800">Day {row.day.day}</span>
+                        <span className="font-semibold text-foreground-800">{t('auto_987b9ced08', "Day")}{' '}{row.day.day}</span>
                         {row.day.date && (
                           <span className="block text-foreground-400 text-xs mt-0.5">
                             {row.day.date}
@@ -499,13 +502,13 @@ export default function TripCard({
                       <td className="py-3 pr-3">
                         {transportItems.length > 0 && (
                           <div className="flex flex-wrap gap-1.5 mb-2">
-                            {transportItems.map((t, i) => (
+                            {transportItems.map((_row, i) => (
                               <span
                                 key={i}
                                 className="inline-flex items-center gap-1.5 bg-background-100 text-foreground-600 text-xs rounded-full px-2.5 py-1"
                               >
-                                <i className={`${transportIcon(t.transportMode)} flex-shrink-0`}></i>
-                                {t.title}
+                                <i className={`${transportIcon(_row.transportMode)} flex-shrink-0`}></i>
+                                {tx(_row.title)}
                               </span>
                             ))}
                           </div>
@@ -550,20 +553,20 @@ export default function TripCard({
                                     </span>
                                   ) : (
                                     <span className="text-foreground-300 text-xs mr-1.5 whitespace-nowrap italic">
-                                      Want to go
+                                      {t('auto_362c2de5b7', "Want to go")}
                                     </span>
                                   )}
                                   <span className="text-foreground-800 font-semibold text-sm">
-                                    {entry.title}
+                                    {tx(entry.title)}
                                   </span>
                                   {catStyle && (
                                     <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-full inline-block mt-0.5 mb-0.5 ml-0 block w-fit ${catStyle.bg} ${catStyle.text}`}>
-                                      {catStyle.label}
+                                      {tx(catStyle.label)}
                                     </span>
                                   )}
                                   {entry.description && (
                                     <span className="block text-foreground-500 text-xs leading-relaxed mt-0.5">
-                                      {entry.description}
+                                      {tx(entry.description)}
                                     </span>
                                   )}
                                 </div>
@@ -575,7 +578,7 @@ export default function TripCard({
                                       type="button"
                                       onClick={() => moveEntry(-1)}
                                       disabled={isFirst}
-                                      aria-label="Move up"
+                                      aria-label={t('auto_b4f57cd0cd', "Move up")}
                                       className="w-8 h-8 flex items-center justify-center text-foreground-400 hover:bg-background-100 active:bg-background-200 rounded-md disabled:opacity-20 cursor-pointer"
                                     >
                                       <i className="ri-arrow-up-s-line text-base"></i>
@@ -584,7 +587,7 @@ export default function TripCard({
                                       type="button"
                                       onClick={() => moveEntry(1)}
                                       disabled={isLast}
-                                      aria-label="Move down"
+                                      aria-label={t('auto_260ff8ae71', "Move down")}
                                       className="w-8 h-8 flex items-center justify-center text-foreground-400 hover:bg-background-100 active:bg-background-200 rounded-md disabled:opacity-20 cursor-pointer"
                                     >
                                       <i className="ri-arrow-down-s-line text-base"></i>
@@ -623,9 +626,9 @@ export default function TripCard({
                                 <div key={item.id} className={`flex items-start gap-1.5 ${meal ? 'mt-1.5' : ''}`}>
                                   {!meal && <span className="font-bold text-orange-700 flex-shrink-0">{short}</span>}
                                   <div>
-                                    <span className="text-foreground-700 font-semibold">{item.title}</span>
+                                    <span className="text-foreground-700 font-semibold">{tx(item.title)}</span>
                                     {item.time && <span className="text-foreground-400 ml-1">{item.time}</span>}
-                                    {item.description && <span className="block text-foreground-500 leading-relaxed mt-0.5">{item.description}</span>}
+                                    {item.description && <span className="block text-foreground-500 leading-relaxed mt-0.5">{tx(item.description)}</span>}
                                   </div>
                                 </div>
                               ))}
@@ -657,9 +660,7 @@ export default function TripCard({
             {status === 'planning' || status === 'traveling' ? (
               <div className="flex items-center justify-between gap-3 flex-wrap">
                 <p className="text-foreground-500 text-xs max-w-xs">
-                  Been on this trip already? Add your reflection to publish it as an Actual
-                  Trip. Designing a route for others without traveling it yourself? Publish
-                  it directly as a Recommended Trip.
+                  {t('auto_b7d5d26140', "Been on this trip already? Add your reflection to publish it as an Actual Trip. Designing a route for others without traveling it yourself? Publish it directly as a Recommended Trip.")}
                 </p>
                 <div className="flex items-center gap-2">
                   <button
@@ -668,36 +669,35 @@ export default function TripCard({
                     className="border border-accent-300 text-accent-700 hover:bg-accent-50 disabled:opacity-60 font-semibold text-xs px-4 py-2 rounded-md transition-colors cursor-pointer whitespace-nowrap"
                   >
                     <i className="ri-lightbulb-line mr-1"></i>
-                    {publishing ? 'Publishing...' : 'Publish as Recommended Trip'}
+                    {publishing ? t('auto_d281c9f37a', "Publishing...") : t('auto_0d30c9ef8d', "Publish as Recommended Trip")}
                   </button>
                   <button
                     onClick={() => setShowReflectionModal(true)}
                     className="bg-background-100 hover:bg-background-200 text-foreground-800 font-semibold text-xs px-4 py-2 rounded-md transition-colors cursor-pointer whitespace-nowrap"
                   >
                     <i className="ri-quill-pen-line mr-1"></i>
-                    Add Reflection
+                    {t('auto_deb63f0675', "Add Reflection")}
                   </button>
                 </div>
               </div>
             ) : status === 'completed' ? (
               <div className="flex items-center justify-between gap-3 flex-wrap">
                 <p className="text-foreground-500 text-xs">
-                  Your reflection is saved. Publish this Trip so other travelers can find,
-                  save, and copy it.
+                  {t('auto_440e03dc34', "Your reflection is saved. Publish this Trip so other travelers can find, save, and copy it.")}
                 </p>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setShowReflectionModal(true)}
                     className="text-foreground-500 hover:text-foreground-700 font-semibold text-xs px-3 py-2 transition-colors cursor-pointer whitespace-nowrap"
                   >
-                    Edit
+                    {t('auto_5301648dcf', "Edit")}
                   </button>
                   <button
                     onClick={handlePublish}
                     disabled={publishing}
                     className="bg-primary-500 hover:bg-primary-600 disabled:opacity-60 text-white font-semibold text-xs px-4 py-2 rounded-md transition-colors cursor-pointer whitespace-nowrap"
                   >
-                    {publishing ? 'Publishing...' : 'Publish this Trip'}
+                    {publishing ? t('auto_d281c9f37a', "Publishing...") : t('auto_731ef64d30', "Publish this Trip")}
                   </button>
                 </div>
               </div>
@@ -705,11 +705,11 @@ export default function TripCard({
               <div className="flex items-center gap-4 text-xs text-foreground-500">
                 <span className="inline-flex items-center gap-1">
                   <i className="ri-bookmark-line"></i>
-                  Saved by {trip.saveCount || 0}
+                  {t('auto_2207b0f700', "Saved by")}{' '}{trip.saveCount || 0}
                 </span>
                 <span className="inline-flex items-center gap-1">
                   <i className="ri-file-copy-line"></i>
-                  Copied by {trip.copyCount || 0}
+                  {t('auto_587d08c959', "Copied by")}{' '}{trip.copyCount || 0}
                 </span>
               </div>
             )}

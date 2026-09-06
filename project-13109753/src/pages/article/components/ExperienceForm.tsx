@@ -1,6 +1,8 @@
 import { useState } from 'react';
+import { useAutoT } from '@/hooks/useAutoT';
 
 export default function ExperienceForm() {
+  const t = useAutoT();
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState(false);
 
@@ -40,10 +42,10 @@ export default function ExperienceForm() {
       <div className="max-w-[860px] mx-auto">
         <div className="bg-background-100 rounded-xl p-6 md:p-10">
           <h2 className="font-heading font-bold text-xl md:text-2xl text-foreground-900 mb-2">
-            Have You Been Here?
+            {t('auto_94800c6686', "Have You Been Here?")}
           </h2>
           <p className="text-foreground-500 text-sm md:text-base mb-8 max-w-lg">
-            Share your experience and help other travelers discover the real Japan.
+            {t('auto_8595f17263', "Share your experience and help other travelers discover the real Japan.")}
           </p>
 
           {submitted ? (
@@ -51,8 +53,8 @@ export default function ExperienceForm() {
               <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center mx-auto mb-3">
                 <i className="ri-check-line text-primary-500 text-xl"></i>
               </div>
-              <p className="text-foreground-800 font-semibold text-sm mb-1">Thank you for sharing!</p>
-              <p className="text-foreground-500 text-xs">Your experience helps fellow travelers discover the real Japan.</p>
+              <p className="text-foreground-800 font-semibold text-sm mb-1">{t('auto_ddd20f3d5a', "Thank you for sharing!")}</p>
+              <p className="text-foreground-500 text-xs">{t('auto_0e347c20ed', "Your experience helps fellow travelers discover the real Japan.")}</p>
             </div>
           ) : (
             <form
@@ -65,19 +67,19 @@ export default function ExperienceForm() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
                   <label htmlFor="exp-name" className="block text-foreground-700 text-xs font-semibold mb-1.5">
-                    Your Name <span className="text-foreground-400 font-normal">(optional)</span>
+                    {t('auto_f48db7e9d3', "Your Name")}{' '}<span className="text-foreground-400 font-normal">{t('auto_b16c7ac6fa', "(optional)")}</span>
                   </label>
                   <input
                     id="exp-name"
                     name="name"
                     type="text"
                     className="w-full bg-background-50 border border-background-200 rounded-md px-4 py-2.5 text-sm text-foreground-800 placeholder:text-foreground-400 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all"
-                    placeholder="Your name"
+                    placeholder={t('auto_ab42293e29', "Your name")}
                   />
                 </div>
                 <div>
                   <label htmlFor="exp-location" className="block text-foreground-700 text-xs font-semibold mb-1.5">
-                    Where did you go?
+                    {t('auto_2c942552f8', "Where did you go?")}
                   </label>
                   <input
                     id="exp-location"
@@ -85,14 +87,14 @@ export default function ExperienceForm() {
                     type="text"
                     required
                     className="w-full bg-background-50 border border-background-200 rounded-md px-4 py-2.5 text-sm text-foreground-800 placeholder:text-foreground-400 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all"
-                    placeholder="e.g. Kamakura, Kyoto, Osaka"
+                    placeholder={t('auto_6b97c58982', "e.g. Kamakura, Kyoto, Osaka")}
                   />
                 </div>
               </div>
 
               <div>
                 <label htmlFor="exp-why" className="block text-foreground-700 text-xs font-semibold mb-1.5">
-                  Why do you love this place?
+                  {t('auto_9c7093a37b', "Why do you love this place?")}
                 </label>
                 <textarea
                   id="exp-why"
@@ -101,26 +103,26 @@ export default function ExperienceForm() {
                   required
                   maxLength={500}
                   className="w-full bg-background-50 border border-background-200 rounded-md px-4 py-2.5 text-sm text-foreground-800 placeholder:text-foreground-400 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all resize-none"
-                  placeholder="Tell us what makes this place special..."
+                  placeholder={t('auto_a192d1681d', "Tell us what makes this place special...")}
                 />
               </div>
 
               <div>
                 <label htmlFor="exp-who" className="block text-foreground-700 text-xs font-semibold mb-1.5">
-                  Who would you bring here?
+                  {t('auto_bbca4e040e', "Who would you bring here?")}
                 </label>
                 <input
                   id="exp-who"
                   name="who_bring"
                   type="text"
                   className="w-full bg-background-50 border border-background-200 rounded-md px-4 py-2.5 text-sm text-foreground-800 placeholder:text-foreground-400 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all"
-                  placeholder="e.g. My partner, best friend, family"
+                  placeholder={t('auto_e0cd933293', "e.g. My partner, best friend, family")}
                 />
               </div>
 
               <div>
                 <label htmlFor="exp-memory" className="block text-foreground-700 text-xs font-semibold mb-1.5">
-                  What moment do you remember most?
+                  {t('auto_fb14ed1691', "What moment do you remember most?")}
                 </label>
                 <textarea
                   id="exp-memory"
@@ -128,13 +130,13 @@ export default function ExperienceForm() {
                   rows={3}
                   maxLength={500}
                   className="w-full bg-background-50 border border-background-200 rounded-md px-4 py-2.5 text-sm text-foreground-800 placeholder:text-foreground-400 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent transition-all resize-none"
-                  placeholder="Describe a moment that stayed with you..."
+                  placeholder={t('auto_ee7be8dd47', "Describe a moment that stayed with you...")}
                 />
               </div>
 
               <div>
                 <label htmlFor="exp-photo" className="block text-foreground-700 text-xs font-semibold mb-1.5">
-                  Upload a Photo <span className="text-foreground-400 font-normal">(optional)</span>
+                  {t('auto_0a135cdee5', "Upload a Photo")}{' '}<span className="text-foreground-400 font-normal">{t('auto_b16c7ac6fa', "(optional)")}</span>
                 </label>
                 <input
                   id="exp-photo"
@@ -146,12 +148,12 @@ export default function ExperienceForm() {
               </div>
 
               {error && (
-                <p className="text-red-500 text-xs">Something went wrong. Please try again.</p>
+                <p className="text-red-500 text-xs">{t('auto_9a3ea0598e', "Something went wrong. Please try again.")}</p>
               )}
 
               <div className="bg-background-50 border border-background-200 rounded-md px-4 py-3 text-center">
                 <p className="text-foreground-500 text-xs">
-                  We&apos;re upgrading this feature — submissions will reopen soon
+                  {t('auto_bcfd27ba74', "We're upgrading this feature — submissions will reopen soon")}
                 </p>
               </div>
 
@@ -160,12 +162,12 @@ export default function ExperienceForm() {
                 disabled
                 className="flex items-center justify-center gap-2 bg-primary-500 text-white font-semibold text-sm px-6 py-3 rounded-md transition-all duration-200 whitespace-nowrap cursor-not-allowed w-full sm:w-auto opacity-50"
               >
-                Share My Experience
+                {t('auto_d09d2c22e8', "Share My Experience")}
                 <i className="ri-send-plane-line"></i>
               </button>
 
               <p className="text-foreground-400 text-[11px] leading-relaxed">
-                By submitting, you agree to our Terms of Use. We may feature your experience on TABI.
+                {t('auto_1bed1968ac', "By submitting, you agree to our Terms of Use. We may feature your experience on TABI.")}
               </p>
             </form>
           )}

@@ -12,8 +12,10 @@ import RelatedArticlesGrid from './components/RelatedArticlesGrid';
 import AuthorBox from './components/AuthorBox';
 import { articleData } from '@/mocks/articleData';
 import type { ArticleData } from './types';
+import { useAutoT } from '@/hooks/useAutoT';
 
 export default function ArticlePage() {
+  const t = useAutoT();
   const { category, articleSlug } = useParams<{ category: string; articleSlug: string }>();
   const [article, setArticle] = useState<ArticleData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -107,16 +109,16 @@ export default function ArticlePage() {
         <div className="flex-1 flex items-center justify-center px-6 py-32">
           <div className="text-center">
             <i className="ri-error-warning-line text-5xl text-foreground-300 block mb-4"></i>
-            <h1 className="text-2xl font-bold text-foreground-900 font-heading mb-2">Article not found</h1>
+            <h1 className="text-2xl font-bold text-foreground-900 font-heading mb-2">{t('auto_aceab162d2', "Article not found")}</h1>
             <p className="text-foreground-500 text-sm mb-6">
-              The article you are looking for does not exist or may have been moved.
+              {t('auto_c8b5c7704f', "The article you are looking for does not exist or may have been moved.")}
             </p>
             <Link
               to="/"
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-500 hover:bg-primary-600 text-white text-sm font-semibold rounded-lg transition-colors cursor-pointer whitespace-nowrap"
             >
               <i className="ri-arrow-left-line"></i>
-              Back to Home
+              {t('auto_ce7472d6a6', "Back to Home")}
             </Link>
           </div>
         </div>
@@ -161,7 +163,7 @@ export default function ArticlePage() {
               className="inline-flex items-center gap-1.5 text-foreground-400 hover:text-foreground-600 text-xs transition-colors cursor-pointer whitespace-nowrap"
             >
               <i className="ri-printer-line text-sm"></i>
-              Print this page
+              {t('auto_d1b6f8d34a', "Print this page")}
             </button>
           </div>
 
@@ -199,9 +201,9 @@ export default function ArticlePage() {
 
       <div className="text-center pb-12 px-6">
         <p className="text-foreground-400 text-xs leading-relaxed">
-          Some links in this article are affiliate links.{' '}
+          {t('auto_6a1a56cf36', "Some links in this article are affiliate links.")}{' '}
           <a href="/affiliate-disclosure" className="text-primary-500 hover:text-primary-600 underline transition-colors cursor-pointer">
-            Read our Affiliate Disclosure
+            {t('auto_8d17b23566', "Read our Affiliate Disclosure")}
           </a>.
         </p>
       </div>
@@ -210,7 +212,7 @@ export default function ArticlePage() {
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           className="fixed bottom-8 right-8 w-10 h-10 bg-primary-500 hover:bg-primary-600 text-white rounded-full flex items-center justify-center cursor-pointer transition-all z-40"
-          aria-label="Back to top"
+          aria-label={t('auto_d9c883a905', "Back to top")}
         >
           <i className="ri-arrow-up-line"></i>
         </button>

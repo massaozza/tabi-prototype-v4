@@ -1,4 +1,3 @@
-import { useBatchTranslation, getBatchField } from '@/hooks/useBatchTranslation';
 import LocalizedLink from '@/components/feature/LocalizedLink';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
@@ -8,6 +7,7 @@ import Footer from '@/components/feature/Footer';
 import { destinations as fallbackDestinations } from '@/mocks/homeData';
 import { PREFECTURE_REGIONS } from '@/mocks/prefectureData';
 import type { Guide } from '@/pages/guides/page';
+import { useAutoT, useAutoText } from '@/hooks/useAutoT';
 
 interface Destination {
   id: string;
@@ -63,7 +63,8 @@ function DestinationImage({ dest }: { dest: Destination }) {
 }
 
 export default function PrefecturePage() {
-  const { t } = useTranslation();
+  const tx = useAutoText();
+  const t = useAutoT();
   const { name } = useParams<{ name: string }>();
   const [destinations, setDestinations] = useState<Destination[]>(fallbackDestinations);
   const [guides, setGuides] = useState<Guide[]>([]);
@@ -116,10 +117,6 @@ export default function PrefecturePage() {
   const prefDestinations = destinations.filter((d) => d.prefecture === name);
 
   // Spotコンテンツのバッチ翻訳
-  const spotIds = prefDestinations.map((d) => d.id);
-  const { translations: spotTrans } = useBatchTranslation('spot', spotIds, 'en');
-  const tb = (id: string, field: string, original: string) =>
-    getBatchField(spotTrans, id, field, original);
   const prefGuides = guides.filter((g) => g.spots.some((s) => s.prefecture === name));
 
   const handleAskAboutPrefecture = () => {
@@ -164,7 +161,7 @@ export default function PrefecturePage() {
         <div className="max-w-5xl mx-auto">
           <nav
             className="flex items-center gap-2 text-foreground-400 text-xs mb-6 flex-wrap"
-            aria-label="Breadcrumb"
+            aria-label={t('auto_c766e66518', "Breadcrumb")}
           >
             <Link to="/" className="hover:text-foreground-700 transition-colors whitespace-nowrap">
               {t("common_home", "Home")}
@@ -203,15 +200,15 @@ export default function PrefecturePage() {
                   <div className="relative w-full h-44 overflow-hidden">
                     <DestinationImage dest={dest} />
                     <span className="absolute top-3 left-3 bg-background-50/90 text-foreground-800 text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap">
-                      {dest.category}
+                      {tx(dest.category)}
                     </span>
                   </div>
                   <div className="p-4">
                     <h3 className="font-heading font-bold text-base text-foreground-900 mb-1.5">
-                      {tb(dest.id, "title", dest.title)}
+                      {tx(dest.title)}
                     </h3>
                     <p className="text-foreground-600 text-sm leading-relaxed mb-3 line-clamp-2">
-                      {tb(dest.id, "description", dest.description)}
+                      {tx(dest.description)}
                     </p>
                     <LocalizedLink
                       to={`/destinations/${dest.id}`}
@@ -228,8 +225,7 @@ export default function PrefecturePage() {
             <div className="bg-background-50 border border-background-200 rounded-xl p-10 text-center">
               <i className="ri-map-pin-line text-3xl text-foreground-300 block mb-3"></i>
               <p className="text-foreground-600 text-sm mb-4 max-w-sm mx-auto">
-                We don't have destinations posted for {name} yet, but TABI AI can still help you
-                plan a trip there.
+                {t('auto_0a2e4c31df', "We don't have destinations posted for")}{' '}{name}{' '}{t('auto_bbee9a551f', "yet, but TABI AI can still help you plan a trip there.")}
               </p>
               <button
                 type="button"
@@ -237,7 +233,7 @@ export default function PrefecturePage() {
                 className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-5 py-2.5 rounded-lg transition-colors cursor-pointer whitespace-nowrap"
               >
                 <i className="ri-chat-3-line"></i>
-                Ask TABI about {name}
+                {t('auto_c48326d1fb', "Ask TABI about")}{' '}{name}
               </button>
             </div>
           )}
@@ -245,7 +241,7 @@ export default function PrefecturePage() {
           {prefGuides.length > 0 && (
             <div className="mt-12">
               <h2 className="font-heading font-bold text-xl md:text-2xl text-foreground-900 mb-6">
-                Local Guides for {name}
+                {t('auto_7fe6448915', "Local Guides for")}{' '}{name}
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {prefGuides.map((guide) => (

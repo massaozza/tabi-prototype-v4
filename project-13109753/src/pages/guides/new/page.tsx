@@ -6,6 +6,7 @@ import PlaceAutocompleteInput from '@/components/feature/PlaceAutocompleteInput'
 import { useAuth } from '@/context/AuthContext';
 import { destinations as fallbackDestinations } from '@/mocks/homeData';
 import PhotoUploader from '@/pages/experiences/new/components/PhotoUploader';
+import { useAutoT } from '@/hooks/useAutoT';
 
 interface SpotOption {
   id: string;
@@ -43,6 +44,7 @@ function emptySpotDraft(): GuideSpotDraft {
 }
 
 export default function NewGuidePage() {
+  const t = useAutoT();
   const navigate = useNavigate();
   const { user, loading } = useAuth();
 
@@ -93,7 +95,7 @@ export default function NewGuidePage() {
       <main className="min-h-screen bg-background-50">
         <Navbar />
         <div className="flex items-center justify-center py-40">
-          <div className="text-foreground-500 text-sm">Loading...</div>
+          <div className="text-foreground-500 text-sm">{t('auto_b04ba49f84', "Loading...")}</div>
         </div>
         <Footer />
       </main>
@@ -205,8 +207,7 @@ export default function NewGuidePage() {
               投稿ありがとうございます！
             </h1>
             <p className="text-foreground-500 text-sm mb-8">
-              あなたのGuideは、AIによる英語への翻訳処理を経て、世界中の旅行者に届けられます。
-              （翻訳が完了しなかった場合、内容の見直しをお願いする場合があります）
+              {t('auto_9f9606a3d9', "あなたのGuideは、AIによる英語への翻訳処理を経て、世界中の旅行者に届けられます。 （翻訳が完了しなかった場合、内容の見直しをお願いする場合があります）")}
             </p>
             <div className="flex items-center justify-center gap-4">
               <button
@@ -220,7 +221,7 @@ export default function NewGuidePage() {
                 href="/guides"
                 className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-6 py-3 rounded-lg transition-colors cursor-pointer whitespace-nowrap"
               >
-                Guide一覧を見る
+                {t('auto_37b8718b80', "Guide一覧を見る")}
               </a>
             </div>
           </div>
@@ -238,13 +239,13 @@ export default function NewGuidePage() {
         <div className="max-w-[960px] mx-auto text-center">
           <nav
             className="flex items-center justify-center gap-2 text-white/50 text-xs mb-6"
-            aria-label="Breadcrumb"
+            aria-label={t('auto_c766e66518', "Breadcrumb")}
           >
             <a href="/" className="hover:text-white/80 transition-colors cursor-pointer">
-              Home
+              {t('auto_70f8bb9a8a', "Home")}
             </a>
             <span className="text-white/30">/</span>
-            <span className="text-white">Share your Japan</span>
+            <span className="text-white">{t('auto_40e4048bdc', "Share your Japan")}</span>
           </nav>
           <h1 className="font-heading font-bold text-3xl md:text-4xl text-white mt-3 leading-tight">
             日本のことを、世界へ届けよう
@@ -267,7 +268,7 @@ export default function NewGuidePage() {
 
               <div className="space-y-5">
                 <h4 className="font-heading font-semibold text-base text-foreground-900">
-                  Guideについて
+                  {t('auto_464d2aa8cd', "Guideについて")}
                 </h4>
                 <div>
                   <label className="block font-heading font-semibold text-sm text-foreground-700 mb-2">
@@ -345,7 +346,7 @@ export default function NewGuidePage() {
                     onChange={(e) => setBodyJa(e.target.value)}
                     rows={5}
                     maxLength={3000}
-                    placeholder="このGuideで伝えたいことを、日本語で自由に書いてください。"
+                    placeholder={t('auto_abe17eaa61', "このGuideで伝えたいことを、日本語で自由に書いてください。")}
                     required
                     className={`${inputClass} resize-none`}
                   />
@@ -409,7 +410,7 @@ export default function NewGuidePage() {
                       {spot.googlePlaceId && (
                         <p className="text-xs text-emerald-600 mt-1 flex items-center gap-1">
                           <i className="ri-checkbox-circle-fill"></i>
-                          Googleマップ上の場所と紐づきました
+                          {t('auto_33887c5d67', "Googleマップ上の場所と紐づきました")}
                           {spot.address ? `（${spot.address}）` : ''}
                         </p>
                       )}
@@ -431,13 +432,13 @@ export default function NewGuidePage() {
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <div>
                         <label className="block text-xs font-semibold text-foreground-600 mb-1.5">
-                          Local Tip（任意）
+                          {t('auto_1585c69133', "Local Tip（任意）")}
                         </label>
                         <input
                           type="text"
                           value={spot.localTip}
                           onChange={(e) => updateSpotDraft(index, { localTip: e.target.value })}
-                          placeholder="地元民ならではのTips"
+                          placeholder={t('auto_4eefdbf6a6', "地元民ならではのTips")}
                           className={`${inputClass} text-sm`}
                         />
                       </div>
@@ -486,7 +487,7 @@ export default function NewGuidePage() {
                 disabled={!canSubmit}
                 className="w-full bg-primary-500 hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-sm py-3.5 rounded-lg transition-colors cursor-pointer whitespace-nowrap"
               >
-                {submitting ? '投稿中...' : 'Guideを投稿する'}
+                {submitting ? '投稿中...' : t('auto_6e25f2f005', "Guideを投稿する")}
               </button>
             </form>
           </div>

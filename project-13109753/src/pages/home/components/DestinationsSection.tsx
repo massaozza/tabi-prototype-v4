@@ -1,9 +1,9 @@
-import { useBatchTranslation, getBatchField } from '@/hooks/useBatchTranslation';
 import { useTranslation } from 'react-i18next';
 import LocalizedLink from '@/components/feature/LocalizedLink';
 import { destinations as fallbackDestinations } from '@/mocks/homeData';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useAutoT, useAutoText } from '@/hooks/useAutoT';
 
 interface Destination {
   id: string;
@@ -61,12 +61,9 @@ function DestinationImage({ dest }: { dest: Destination }) {
 }
 
 export default function DestinationsSection() {
-  const { t } = useTranslation();
+  const tx = useAutoText();
+  const t = useAutoT();
   const [destinations, setDestinations] = useState<Destination[]>([]);
-  const destIds = destinations.map((d) => d.id);
-  const { translations: destTrans } = useBatchTranslation('spot', destIds, 'en');
-  const tb = (id: string, field: string, original: string) =>
-    getBatchField(destTrans, id, field, original);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -106,7 +103,7 @@ export default function DestinationsSection() {
             {t("dest_trending", "Trending")} <span className="text-primary-500">{t("dest_spots", "Spots")}</span>
           </h2>
           <p className="text-foreground-500 text-base mt-3 max-w-xl">
-            Go beyond the landmarks to discover the authentic rhythms, flavors, and stories of each place
+            {t('auto_187dff3847', "Go beyond the landmarks to discover the authentic rhythms, flavors, and stories of each place")}
           </p>
         </div>
 
@@ -139,15 +136,15 @@ export default function DestinationsSection() {
                 <div className="relative w-full h-56 md:h-64 overflow-hidden">
                   <DestinationImage dest={dest} />
                   <span className="absolute top-4 left-4 bg-background-50/90 text-foreground-800 text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap">
-                    {dest.category}
+                    {tx(dest.category)}
                   </span>
                 </div>
                 <div className="p-5 md:p-6">
                   <h3 className="font-heading font-bold text-xl text-foreground-900 mb-2">
-                    {tb(dest.id, "title", dest.title)}
+                    {tx(dest.title)}
                   </h3>
                   <p className="text-foreground-600 text-sm leading-relaxed mb-4 line-clamp-3">
-                    {tb(dest.id, "description", dest.description)}
+                    {tx(dest.description)}
                   </p>
                   <Link
                     to={`/destinations/${dest.id}`}

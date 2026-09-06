@@ -6,6 +6,7 @@ import Navbar from '@/components/feature/Navbar';
 import Footer from '@/components/feature/Footer';
 import { formatArea, type Experience } from './types';
 import { computeExperienceScore, MAX_EXPERIENCE_SCORE, type ExperienceEngagementStats } from './score';
+import { useAutoT, useAutoText } from '@/hooks/useAutoT';
 
 const categoryColors: Record<string, string> = {
   Temple: 'bg-accent-100 text-accent-800',
@@ -19,7 +20,8 @@ const categoryColors: Record<string, string> = {
 };
 
 export default function ExperiencesPage() {
-  const { t } = useTranslation();
+  const tx = useAutoText();
+  const t = useAutoT();
   const [experiences, setExperiences] = useState<Experience[]>([]);
   const [engagementById, setEngagementById] = useState<Record<string, ExperienceEngagementStats>>({});
   const [loading, setLoading] = useState(true);
@@ -78,24 +80,23 @@ export default function ExperiencesPage() {
         <div className="max-w-7xl mx-auto px-6 md:px-10 lg:px-20 text-center">
           <nav
             className="flex items-center justify-center gap-2 text-white/50 text-xs mb-6 flex-wrap"
-            aria-label="Breadcrumb"
+            aria-label={t('auto_c766e66518', "Breadcrumb")}
           >
             <Link to="/" className="hover:text-white/80 transition-colors whitespace-nowrap">
               {t("common_home", "Home")}
             </Link>
             <span className="text-white/30">/</span>
-            <span className="text-white whitespace-nowrap">{t("exp_title")}</span>
+            <span className="text-white whitespace-nowrap">{t("exp_title", "Experiences")}</span>
           </nav>
 
           <span className="inline-block text-xs font-semibold tracking-widest uppercase text-accent-400 mb-3">
             {t("exp_travelerStories", "Traveler Stories")}
           </span>
           <h1 className="font-heading font-bold text-3xl md:text-5xl text-white leading-tight mb-4">
-            {t("exp_realExp")} <span className="text-primary-400"></span>
+            {t("exp_realExp", "Real Experiences from Travelers")}
           </h1>
           <p className="text-white/60 text-base max-w-xl mx-auto leading-relaxed">
-            Unfiltered stories from people who have actually been there — the good moments, the
-            tough ones, and the little tips that make a trip better.
+            {t('auto_9955b67d2f', "Unfiltered stories from people who have actually been there — the good moments, the tough ones, and the little tips that make a trip better.")}
           </p>
 
           <Link
@@ -137,7 +138,7 @@ export default function ExperiencesPage() {
                 {t("exp_noExp", "No experiences yet")}
               </h2>
               <p className="text-foreground-500 text-sm mb-6">
-                {t("exp_beFirst")}
+                {t("exp_beFirst", "Be the first to share your experience.")}
               </p>
               <Link
                 to="/experiences/new"
@@ -165,7 +166,7 @@ export default function ExperiencesPage() {
                     {exp.photos && exp.photos.length > 0 ? (
                       <img
                         src={exp.photos[0]}
-                        alt={exp.placeName}
+                        alt={tx(exp.placeName)}
                         title={`${exp.placeName} — TABI`}
                         className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
                       />
@@ -190,7 +191,7 @@ export default function ExperiencesPage() {
                           categoryColors[exp.category] || 'bg-background-200 text-foreground-600'
                         }`}
                       >
-                        {exp.category}
+                        {tx(exp.category)}
                       </span>
                       {exp.wouldRecommend && (
                         <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 whitespace-nowrap">
@@ -201,7 +202,7 @@ export default function ExperiencesPage() {
                     </div>
 
                     <h2 className="font-heading font-bold text-base md:text-lg text-foreground-900 mb-1 leading-snug line-clamp-2">
-                      {exp.placeName}
+                      {tx(exp.placeName)}
                     </h2>
                     <div className="flex items-center gap-2 text-xs text-foreground-500 mb-3 flex-wrap">
                       <span className="inline-flex items-center gap-1 whitespace-nowrap">
@@ -216,7 +217,7 @@ export default function ExperiencesPage() {
                     </div>
 
                     <p className="text-foreground-600 text-sm leading-relaxed line-clamp-2 mb-4">
-                      {exp.whatWasGood}
+                      {tx(exp.whatWasGood)}
                     </p>
 
                     <span className="mt-auto text-foreground-400 text-xs whitespace-nowrap">

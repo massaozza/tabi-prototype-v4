@@ -4,9 +4,11 @@ import { Link, useParams } from 'react-router-dom';
 import Navbar from '@/components/feature/Navbar';
 import Footer from '@/components/feature/Footer';
 import type { Guide } from '../page';
+import { useAutoT, useAutoText } from '@/hooks/useAutoT';
 
 export default function GuideDetailPage() {
-  const { t } = useTranslation();
+  const tx = useAutoText();
+  const t = useAutoT();
   const { id } = useParams<{ id: string }>();
   const [guide, setGuide] = useState<Guide | null>(null);
   const [loading, setLoading] = useState(true);
@@ -176,7 +178,7 @@ export default function GuideDetailPage() {
                             to={`/destinations/${spot.spotId}`}
                             className="hover:text-primary-600 transition-colors"
                           >
-                            {spot.name}
+                            {tx(spot.name)}
                           </Link>
                         ) : (
                           spot.name
@@ -192,7 +194,7 @@ export default function GuideDetailPage() {
                         </p>
                       )}
                       <div className="flex items-center gap-3 text-xs text-foreground-400">
-                        {spot.bestTime && <span>Best time: {spot.bestTime}</span>}
+                        {spot.bestTime && <span>{t('auto_24ac30e503', "Best time:")}{' '}{spot.bestTime}</span>}
                         {spot.priceHint && <span>{spot.priceHint}</span>}
                       </div>
                     </div>
@@ -206,7 +208,7 @@ export default function GuideDetailPage() {
                 className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-5 py-2.5 rounded-lg transition-colors cursor-pointer whitespace-nowrap mb-10"
               >
                 <i className="ri-chat-3-line"></i>
-                Ask TABI about {guide.areaEn || guide.area}
+                {t('auto_c48326d1fb', "Ask TABI about")}{' '}{guide.areaEn || guide.area}
               </button>
 
               <div>

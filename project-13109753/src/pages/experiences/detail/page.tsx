@@ -6,6 +6,7 @@ import Footer from '@/components/feature/Footer';
 import { useAuth } from '@/context/AuthContext';
 import { formatArea, formatMonth, type Experience } from '../types';
 import { computeExperienceScore, MAX_EXPERIENCE_SCORE } from '../score';
+import { useAutoT, useAutoText } from '@/hooks/useAutoT';
 
 interface RelatedSpot {
   id: string;
@@ -50,7 +51,8 @@ function ScoreBar({ label, value, max }: { label: string; value: number; max: nu
 }
 
 export default function ExperienceDetailPage() {
-  const { t } = useTranslation();
+  const tx = useAutoText();
+  const t = useAutoT();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -212,7 +214,7 @@ export default function ExperienceDetailPage() {
                 <i className="ri-error-warning-line text-3xl text-foreground-400"></i>
               </span>
               <h1 className="font-heading font-bold text-2xl text-foreground-900 mb-2">
-                Experience not found
+                {t('auto_10c5b46284', "Experience not found")}
               </h1>
               <p className="text-foreground-500 text-sm mb-6">
                 {t("exp_notFoundDesc", "The experience you are looking for may have been removed.")}
@@ -280,7 +282,7 @@ export default function ExperienceDetailPage() {
                     categoryColors[experience.category] || 'bg-background-200 text-foreground-600'
                   }`}
                 >
-                  {experience.category}
+                  {tx(experience.category)}
                 </span>
                 <span className="inline-block text-xs font-semibold px-3 py-1 rounded-full bg-background-100 text-foreground-700 whitespace-nowrap">
                   {formatArea(experience.area)}
@@ -288,11 +290,11 @@ export default function ExperienceDetailPage() {
               </div>
 
               <h1 className="font-heading font-bold text-3xl md:text-4xl text-foreground-900 leading-tight mb-3">
-                {experience.placeName}
+                {tx(experience.placeName)}
               </h1>
 
               <p className="text-foreground-500 text-sm mb-8">
-                Posted by{' '}
+                {t('auto_658656073e', "Posted by")}{' '}
                 <Link
                   to={`/creator/${experience.uid}`}
                   className="text-foreground-800 font-medium hover:text-primary-600 transition-colors"
@@ -339,7 +341,7 @@ export default function ExperienceDetailPage() {
                   {t('exp_whatWasGood', 'What was good?')}
                 </h4>
                 <p className="text-foreground-700 text-base leading-relaxed whitespace-pre-wrap">
-                  {experience.whatWasGood}
+                  {tx(experience.whatWasGood)}
                 </p>
               </section>
 
@@ -351,7 +353,7 @@ export default function ExperienceDetailPage() {
                     {t('exp_whatWasHard', 'What was hard?')}
                   </h4>
                   <p className="text-amber-900 text-base leading-relaxed whitespace-pre-wrap">
-                    {experience.whatWasHard}
+                    {tx(experience.whatWasHard)}
                   </p>
                 </section>
               )}
@@ -364,7 +366,7 @@ export default function ExperienceDetailPage() {
                     {t('exp_tipForTravelers', 'Tip for travelers')}
                   </h4>
                   <p className="text-accent-900 text-base leading-relaxed whitespace-pre-wrap">
-                    {experience.tip}
+                    {tx(experience.tip)}
                   </p>
                 </section>
               )}
@@ -382,16 +384,16 @@ export default function ExperienceDetailPage() {
                     <div className="w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden bg-background-100">
                       <img
                         src={relatedSpot.image}
-                        alt={relatedSpot.title}
+                        alt={tx(relatedSpot.title)}
                         className="w-full h-full object-cover object-top"
                       />
                     </div>
                     <div>
                       <span className="inline-block text-xs font-semibold px-2 py-0.5 rounded-full bg-secondary-100 text-secondary-800 whitespace-nowrap mb-1">
-                        {relatedSpot.category}
+                        {tx(relatedSpot.category)}
                       </span>
                       <h5 className="font-heading font-bold text-sm text-foreground-900">
-                        {relatedSpot.title}
+                        {tx(relatedSpot.title)}
                       </h5>
                     </div>
                     <i className="ri-arrow-right-line text-foreground-400 ml-auto group-hover:text-primary-500 transition-colors"></i>
@@ -403,7 +405,7 @@ export default function ExperienceDetailPage() {
               {relatedTrips.length > 0 && (
                 <section className="mb-8">
                   <h4 className="font-heading font-semibold text-base text-foreground-900 mb-3">
-                    Trips Including This Spot
+                    {t('auto_ce6dd3c69f', "Trips Including This Spot")}
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {relatedTrips.map((trip) => (
@@ -422,7 +424,7 @@ export default function ExperienceDetailPage() {
                           {trip.tripType === 'recommended' ? t('exp_recommendedTrip', 'Recommended Trip') : t('exp_actualTrip', 'Actual Trip')}
                         </span>
                         <span className="font-heading font-semibold text-sm text-foreground-900">
-                          {trip.title}
+                          {tx(trip.title)}
                         </span>
                       </Link>
                     ))}
@@ -447,7 +449,7 @@ export default function ExperienceDetailPage() {
                   ) : (
                     <>
                       <i className="ri-close-circle-fill"></i>
-                      Would not recommend
+                      {t('auto_7f897aa1b0', "Would not recommend")}
                     </>
                   )}
                 </span>
@@ -463,7 +465,7 @@ export default function ExperienceDetailPage() {
                   }`}
                 >
                   <i className={helpfulByMe ? 'ri-thumb-up-fill' : 'ri-thumb-up-line'}></i>
-                  Helpful{helpfulCount > 0 ? ` (${helpfulCount})` : ''}
+                  {t('auto_45e36dd93e', "Helpful")}{helpfulCount > 0 ? ` (${helpfulCount})` : ''}
                 </button>
               </section>
 

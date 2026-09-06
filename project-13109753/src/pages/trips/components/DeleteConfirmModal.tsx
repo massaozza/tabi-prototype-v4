@@ -1,4 +1,5 @@
 import type { Trip } from '../types';
+import { useAutoT } from '@/hooks/useAutoT';
 
 interface DeleteConfirmModalProps {
   trip: Trip;
@@ -13,6 +14,7 @@ export default function DeleteConfirmModal({
   onConfirm,
   onCancel,
 }: DeleteConfirmModalProps) {
+  const t = useAutoT();
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
       <div className="absolute inset-0 bg-black/50" onClick={onCancel}></div>
@@ -23,10 +25,10 @@ export default function DeleteConfirmModal({
         </span>
 
         <h3 className="font-heading font-bold text-lg text-foreground-900 mb-2">
-          Delete this trip?
+          {t('auto_8c80f3bb5a', "Delete this trip?")}
         </h3>
         <p className="text-foreground-500 text-sm mb-6">
-          &ldquo;{trip.title}&rdquo; will be permanently removed. This action cannot be undone.
+          &ldquo;{trip.title}{t('auto_2d866a9dd2', "” will be permanently removed. This action cannot be undone.")}
         </p>
 
         <div className="flex items-center gap-3">
@@ -35,14 +37,14 @@ export default function DeleteConfirmModal({
             disabled={deleting}
             className="flex-1 border border-background-300 text-foreground-700 font-semibold text-sm px-4 py-2.5 rounded-md hover:bg-background-100 transition-colors whitespace-nowrap cursor-pointer"
           >
-            Cancel
+            {t('auto_77dfd2135f', "Cancel")}
           </button>
           <button
             onClick={onConfirm}
             disabled={deleting}
             className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold text-sm px-4 py-2.5 rounded-md transition-colors whitespace-nowrap cursor-pointer disabled:opacity-60"
           >
-            {deleting ? 'Deleting...' : 'Delete'}
+            {deleting ? t('auto_e16cac651b', "Deleting...") : t('auto_f6fdbe48dc', "Delete")}
           </button>
         </div>
       </div>

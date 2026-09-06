@@ -1,4 +1,5 @@
-interface RelatedArticle {
+
+import { useAutoT } from '@/hooks/useAutoT';interface RelatedArticle {
   id: string;
   title: string;
   category: string;
@@ -21,11 +22,12 @@ const categoryColors: Record<string, string> = {
 };
 
 export default function RelatedArticlesGrid({ articles }: RelatedArticlesGridProps) {
+  const t = useAutoT();
   return (
     <section className="py-16 md:py-24 px-6 md:px-10 lg:px-20 bg-background-100">
       <div className="max-w-[960px] mx-auto">
         <h2 className="font-heading font-bold text-2xl md:text-3xl text-foreground-900 mb-8">
-          Keep Exploring
+          {t('auto_213222d64e', "Keep Exploring")}
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -58,7 +60,7 @@ export default function RelatedArticlesGrid({ articles }: RelatedArticlesGridPro
                   href={article.href}
                   className="inline-flex items-center gap-1 text-primary-500 font-semibold text-sm hover:gap-2 transition-all duration-200 cursor-pointer whitespace-nowrap"
                 >
-                  Read More
+                  {t('auto_646061e2f3', "Read More")}
                   <i className="ri-arrow-right-line"></i>
                 </a>
               </div>

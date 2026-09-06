@@ -6,15 +6,18 @@ import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { SUPPORTED_LANGUAGES } from '@/i18n/index';
+import { useAutoT, useAutoText } from '@/hooks/useAutoT';
 
 export default function Navbar({ variant }: { variant?: 'default' | 'dark' } = {}) {
+  const tx = useAutoText();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [langMenuOpen, setLangMenuOpen] = useState(false);
   const langMenuRef = useRef<HTMLDivElement>(null);
   const { user, loading, logout } = useAuth();
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
+  const t = useAutoT();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -84,11 +87,11 @@ export default function Navbar({ variant }: { variant?: 'default' | 'dark' } = {
           日本の方はこちら →
         </a>
         <div className="flex items-center gap-4">
-          <span className="whitespace-nowrap">Follow our journey</span>
-          <a href="#" className="w-5 h-5 flex items-center justify-center hover:opacity-70 transition-opacity" aria-label="Instagram"><i className="ri-instagram-line text-sm"></i></a>
-          <a href="#" className="w-5 h-5 flex items-center justify-center hover:opacity-70 transition-opacity" aria-label="Pinterest"><i className="ri-pinterest-line text-sm"></i></a>
-          <a href="#" className="w-5 h-5 flex items-center justify-center hover:opacity-70 transition-opacity" aria-label="Reddit"><i className="ri-reddit-line text-sm"></i></a>
-          <a href="#" className="w-5 h-5 flex items-center justify-center hover:opacity-70 transition-opacity" aria-label="YouTube"><i className="ri-youtube-line text-sm"></i></a>
+          <span className="whitespace-nowrap">{t('auto_47600c648e', "Follow our journey")}</span>
+          <a href="#" className="w-5 h-5 flex items-center justify-center hover:opacity-70 transition-opacity" aria-label={t('auto_5721bbef40', "Instagram")}><i className="ri-instagram-line text-sm"></i></a>
+          <a href="#" className="w-5 h-5 flex items-center justify-center hover:opacity-70 transition-opacity" aria-label={t('auto_a45a799497', "Pinterest")}><i className="ri-pinterest-line text-sm"></i></a>
+          <a href="#" className="w-5 h-5 flex items-center justify-center hover:opacity-70 transition-opacity" aria-label={t('auto_4af26436ae', "Reddit")}><i className="ri-reddit-line text-sm"></i></a>
+          <a href="#" className="w-5 h-5 flex items-center justify-center hover:opacity-70 transition-opacity" aria-label={t('auto_558865a16f', "YouTube")}><i className="ri-youtube-line text-sm"></i></a>
         </div>
       </div>
 
@@ -98,7 +101,7 @@ export default function Navbar({ variant }: { variant?: 'default' | 'dark' } = {
           <h1 className={`font-heading font-bold text-xl md:text-2xl tracking-[0.08em] leading-none transition-colors duration-300 ${
             (isDark || !scrolled) ? 'text-white' : 'text-foreground-900'
           }`}>
-            TABI47
+            {t('auto_b6e4a2d1db', "TABI47")}
           </h1>
         </LocalizedLink>
 
@@ -113,13 +116,13 @@ export default function Navbar({ variant }: { variant?: 'default' | 'dark' } = {
                   (isDark || !scrolled) ? 'text-white' : 'text-foreground-800'
                 }`}
               >
-                {link.label}
+                {tx(link.label)}
               </button>
             ) : (
               <LocalizedLink key={link.label} to={link.href} className={`text-sm font-semibold whitespace-nowrap transition-colors duration-300 hover:opacity-70 ${
                   (isDark || !scrolled) ? 'text-white' : 'text-foreground-800'
                 }`}>
-                {link.label}
+                {tx(link.label)}
               </LocalizedLink>
             )
           )}
@@ -132,10 +135,10 @@ export default function Navbar({ variant }: { variant?: 'default' | 'dark' } = {
                 className={`flex items-center gap-1 text-sm font-medium whitespace-nowrap transition-colors duration-300 hover:opacity-70 ${
                   (isDark || !scrolled) ? 'text-white/80' : 'text-foreground-600'
                 }`}
-                aria-label={t('common.language')}
+                aria-label={t('nav_language', 'Language')}
               >
                 <i className="ri-global-line text-base"></i>
-                <span>{currentLang.label}</span>
+                <span>{tx(currentLang.label)}</span>
                 <i className={`text-xs transition-transform ${langMenuOpen ? 'ri-arrow-up-s-line' : 'ri-arrow-down-s-line'}`}></i>
               </button>
               {langMenuOpen && (
@@ -150,7 +153,7 @@ export default function Navbar({ variant }: { variant?: 'default' | 'dark' } = {
                           : 'text-foreground-700 hover:bg-background-50'
                       }`}
                     >
-                      {lang.label}
+                      {tx(lang.label)}
                     </button>
                   ))}
                 </div>
@@ -188,7 +191,7 @@ export default function Navbar({ variant }: { variant?: 'default' | 'dark' } = {
                       onClick={handleLogout}
                       className="w-full text-left px-4 py-2.5 text-sm text-foreground-700 hover:bg-background-100 hover:text-foreground-900 transition-colors whitespace-nowrap cursor-pointer border-t border-background-200"
                     >
-                      Logout
+                      {t('auto_e43d612e11', "Logout")}
                     </button>
                   </div>
                 )}
@@ -198,10 +201,10 @@ export default function Navbar({ variant }: { variant?: 'default' | 'dark' } = {
                 <a href="/login" className={`text-sm font-semibold whitespace-nowrap transition-colors duration-300 hover:opacity-70 ${
                     (isDark || !scrolled) ? 'text-white' : 'text-foreground-800'
                   }`}>
-                  Log in
+                  {t('auto_f7c400ed69', "Log in")}
                 </a>
                 <a href="/signup" className="bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-4 py-2 rounded-md transition-all duration-200 whitespace-nowrap cursor-pointer">
-                  Sign up
+                  {t('auto_0b81497c85', "Sign up")}
                 </a>
               </>
             )}
@@ -213,7 +216,7 @@ export default function Navbar({ variant }: { variant?: 'default' | 'dark' } = {
             (isDark || !scrolled) ? 'text-white' : 'text-foreground-900'
           }`}
           onClick={() => setMobileOpen(!mobileOpen)}
-          aria-label="Toggle menu"
+          aria-label={t('auto_52092247b8', "Toggle menu")}
         >
           <i className={`text-xl ${mobileOpen ? 'ri-close-line' : 'ri-menu-line'}`}></i>
         </button>
@@ -232,11 +235,11 @@ export default function Navbar({ variant }: { variant?: 'default' | 'dark' } = {
                 }}
                 className="text-left text-foreground-800 text-sm font-semibold whitespace-nowrap hover:text-primary-500 transition-colors cursor-pointer"
               >
-                {link.label}
+                {tx(link.label)}
               </button>
             ) : (
               <LocalizedLink key={link.label} to={link.href} className="text-foreground-800 text-sm font-semibold whitespace-nowrap hover:text-primary-500 transition-colors" onClick={() => setMobileOpen(false)}>
-                {link.label}
+                {tx(link.label)}
               </LocalizedLink>
             )
           )}
@@ -261,7 +264,7 @@ export default function Navbar({ variant }: { variant?: 'default' | 'dark' } = {
                       : 'text-foreground-700 hover:bg-background-100'
                   }`}
                 >
-                  {lang.label}
+                  {tx(lang.label)}
                 </button>
               ))}
             </div>
@@ -284,26 +287,26 @@ export default function Navbar({ variant }: { variant?: 'default' | 'dark' } = {
                   }}
                   className="text-left text-primary-500 hover:text-primary-600 text-sm font-semibold whitespace-nowrap transition-colors cursor-pointer"
                 >
-                  Logout
+                  {t('auto_e43d612e11', "Logout")}
                 </button>
               </>
             ) : (
               <div className="flex items-center gap-4">
                 <a href="/login" className="text-foreground-800 text-sm font-semibold whitespace-nowrap hover:text-primary-500 transition-colors" onClick={() => setMobileOpen(false)}>
-                  Log in
+                  {t('auto_f7c400ed69', "Log in")}
                 </a>
                 <a href="/signup" className="bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-4 py-2 rounded-md transition-all duration-200 whitespace-nowrap cursor-pointer" onClick={() => setMobileOpen(false)}>
-                  Sign up
+                  {t('auto_0b81497c85', "Sign up")}
                 </a>
               </div>
             )}
           </div>
 
           <div className="flex items-center gap-4 pt-2 border-t border-background-200">
-            <a href="#" className="w-6 h-6 flex items-center justify-center text-foreground-500 hover:text-primary-500 transition-colors" aria-label="Instagram"><i className="ri-instagram-line"></i></a>
-            <a href="#" className="w-6 h-6 flex items-center justify-center text-foreground-500 hover:text-primary-500 transition-colors" aria-label="Pinterest"><i className="ri-pinterest-line"></i></a>
-            <a href="#" className="w-6 h-6 flex items-center justify-center text-foreground-500 hover:text-primary-500 transition-colors" aria-label="Reddit"><i className="ri-reddit-line"></i></a>
-            <a href="#" className="w-6 h-6 flex items-center justify-center text-foreground-500 hover:text-primary-500 transition-colors" aria-label="YouTube"><i className="ri-youtube-line"></i></a>
+            <a href="#" className="w-6 h-6 flex items-center justify-center text-foreground-500 hover:text-primary-500 transition-colors" aria-label={t('auto_5721bbef40', "Instagram")}><i className="ri-instagram-line"></i></a>
+            <a href="#" className="w-6 h-6 flex items-center justify-center text-foreground-500 hover:text-primary-500 transition-colors" aria-label={t('auto_a45a799497', "Pinterest")}><i className="ri-pinterest-line"></i></a>
+            <a href="#" className="w-6 h-6 flex items-center justify-center text-foreground-500 hover:text-primary-500 transition-colors" aria-label={t('auto_4af26436ae', "Reddit")}><i className="ri-reddit-line"></i></a>
+            <a href="#" className="w-6 h-6 flex items-center justify-center text-foreground-500 hover:text-primary-500 transition-colors" aria-label={t('auto_558865a16f', "YouTube")}><i className="ri-youtube-line"></i></a>
           </div>
         </div>
       )}

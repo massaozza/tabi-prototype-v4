@@ -5,6 +5,7 @@ import Footer from '@/components/feature/Footer';
 import { useAuth } from '@/context/AuthContext';
 import type { Trip } from './types';
 import DeleteConfirmModal from './components/DeleteConfirmModal';
+import { useAutoT, useAutoText } from '@/hooks/useAutoT';
 
 // TABI47：My Tripページ（/my-trip）
 // 自分のTripをカード一覧で表示。カードをタップすると詳細ページ（/my-trip/:id）へ。
@@ -17,6 +18,8 @@ const STATUS_BADGE: Record<string, { label: string; color: string }> = {
 };
 
 function TripSummaryCard({ trip, onDelete }: { trip: Trip; onDelete: () => void }) {
+  const tx = useAutoText();
+  const t = useAutoT();
   const navigate = useNavigate();
   const dayCount = trip.totalDays ?? trip.days?.length ?? 0;
   const statusBadge = STATUS_BADGE[trip.status || 'planning'] || STATUS_BADGE.planning;
@@ -34,7 +37,7 @@ function TripSummaryCard({ trip, onDelete }: { trip: Trip; onDelete: () => void 
         <div className="flex items-start justify-between gap-3 mb-2">
           <div className="flex flex-wrap gap-1.5">
             <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${statusBadge.color}`}>
-              {statusBadge.label}
+              {tx(statusBadge.label)}
             </span>
             {dayCount > 0 && (
               <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-primary-50 text-primary-700">
@@ -51,24 +54,24 @@ function TripSummaryCard({ trip, onDelete }: { trip: Trip; onDelete: () => void 
           <button
             onClick={(e) => { e.stopPropagation(); onDelete(); }}
             className="w-8 h-8 flex items-center justify-center text-foreground-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer flex-shrink-0"
-            aria-label="Delete trip"
+            aria-label={t('auto_ddc8be2d86', "Delete trip")}
           >
             <i className="ri-delete-bin-line text-sm"></i>
           </button>
         </div>
 
         <h3 className="font-heading font-bold text-base text-foreground-900 leading-snug mb-1">
-          {trip.title}
+          {tx(trip.title)}
         </h3>
 
         {trip.summary && (
           <p className="text-xs text-foreground-500 leading-relaxed line-clamp-2 mb-2">
-            {trip.summary}
+            {tx(trip.summary)}
           </p>
         )}
 
         <div className="flex items-center justify-between">
-          <p className="text-xs text-foreground-400">Saved {savedDate}</p>
+          <p className="text-xs text-foreground-400">{t('auto_c0ae8f6ea8', "Saved")}{' '}{savedDate}</p>
           <div className="flex items-center gap-3 text-xs text-foreground-400">
             {trip.saveCount !== undefined && (
               <span className="flex items-center gap-1">
@@ -87,7 +90,7 @@ function TripSummaryCard({ trip, onDelete }: { trip: Trip; onDelete: () => void 
       {/* フッター：クリックを促す */}
       <div className="border-t border-background-100 px-4 py-2.5 flex items-center justify-between bg-background-50">
         <span className="text-xs text-primary-600 font-semibold flex items-center gap-1">
-          <i className="ri-eye-line"></i>View itinerary
+          <i className="ri-eye-line"></i>{t('auto_b48cc72598', "View itinerary")}
         </span>
         <i className="ri-arrow-right-line text-foreground-300 text-sm"></i>
       </div>
@@ -96,6 +99,7 @@ function TripSummaryCard({ trip, onDelete }: { trip: Trip; onDelete: () => void 
 }
 
 export default function MyTripListPage() {
+  const t = useAutoT();
   const { user, loading: authLoading } = useAuth();
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
@@ -164,15 +168,15 @@ export default function MyTripListPage() {
       <section className="bg-foreground-900 pt-24 md:pt-32 pb-12">
         <div className="max-w-7xl mx-auto px-6 md:px-10 text-center">
           <nav className="flex items-center justify-center gap-2 text-white/50 text-xs mb-6 flex-wrap">
-            <Link to="/" className="hover:text-white/80 transition-colors">Home</Link>
+            <Link to="/" className="hover:text-white/80 transition-colors">{t('auto_70f8bb9a8a', "Home")}</Link>
             <span className="text-white/30">/</span>
-            <span className="text-white">My Trips</span>
+            <span className="text-white">{t('auto_5b1dd69437', "My Trips")}</span>
           </nav>
           <h1 className="font-heading font-bold text-3xl md:text-5xl text-white leading-tight mb-3">
-            My Trips
+            {t('auto_5b1dd69437', "My Trips")}
           </h1>
           <p className="text-white/60 text-base max-w-xl mx-auto leading-relaxed mb-6">
-            Your saved itineraries, ready whenever you need them.
+            {t('auto_4a6c944b06', "Your saved itineraries, ready whenever you need them.")}
           </p>
           <button
             type="button"
@@ -180,7 +184,7 @@ export default function MyTripListPage() {
             className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-6 py-3 rounded-xl transition-colors cursor-pointer"
           >
             <i className="ri-add-line"></i>
-            Plan a new trip
+            {t('auto_2940253eb0', "Plan a new trip")}
           </button>
         </div>
       </section>
@@ -207,19 +211,19 @@ export default function MyTripListPage() {
               <div className="w-16 h-16 rounded-full bg-background-100 flex items-center justify-center mx-auto mb-6">
                 <i className="ri-map-pin-line text-3xl text-foreground-400"></i>
               </div>
-              <h2 className="font-heading font-bold text-xl text-foreground-900 mb-2">No trips saved yet</h2>
+              <h2 className="font-heading font-bold text-xl text-foreground-900 mb-2">{t('auto_ac1be3514d', "No trips saved yet")}</h2>
               <p className="text-foreground-500 text-sm mb-6 max-w-md mx-auto">
-                Start planning with AI or copy a trip from Explore to get started.
+                {t('auto_eb02c5ed83', "Start planning with AI or copy a trip from Explore to get started.")}
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <button
                   onClick={() => window.dispatchEvent(new CustomEvent('tabi:open-chat'))}
                   className="inline-flex items-center justify-center gap-2 bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-6 py-3 rounded-xl transition-colors cursor-pointer"
                 >
-                  <i className="ri-sparkling-line"></i>Plan with AI
+                  <i className="ri-sparkling-line"></i>{t('auto_b93eb2cfb0', "Plan with AI")}
                 </button>
                 <Link to="/explore" className="inline-flex items-center justify-center gap-2 bg-white border border-background-200 hover:bg-background-50 text-foreground-700 font-semibold text-sm px-6 py-3 rounded-xl transition-colors">
-                  <i className="ri-compass-line"></i>Explore trips
+                  <i className="ri-compass-line"></i>{t('auto_220f483088', "Explore trips")}
                 </Link>
               </div>
             </div>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useAutoT } from '@/hooks/useAutoT';
 
 interface Guide {
   id: string;
@@ -16,6 +17,7 @@ interface Guide {
 }
 
 export default function LatestGuidesSection() {
+  const t = useAutoT();
   const [guides, setGuides] = useState<Guide[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -50,14 +52,13 @@ export default function LatestGuidesSection() {
       <div className="max-w-7xl mx-auto">
         <div className="mb-12">
           <span className="inline-block text-xs font-semibold tracking-widest uppercase text-accent-600 mb-3">
-            Local Voices
+            {t('auto_79d3af216b', "Local Voices")}
           </span>
           <h2 className="font-heading font-bold text-3xl md:text-5xl text-foreground-900 leading-tight">
-            From Japanese <span className="text-primary-500">Locals</span>
+            {t('auto_20908f8452', "From Japanese")}{' '}<span className="text-primary-500">{t('auto_406b8b3b73', "Locals")}</span>
           </h2>
           <p className="text-foreground-500 text-base mt-3 max-w-xl">
-            Real local knowledge, written in Japanese by Japanese creators and delivered to the
-            world by AI.
+            {t('auto_05b94cbdfe', "Real local knowledge, written in Japanese by Japanese creators and delivered to the world by AI.")}
           </p>
         </div>
 
@@ -85,20 +86,20 @@ export default function LatestGuidesSection() {
               <i className="ri-book-open-line text-3xl text-foreground-400"></i>
             </span>
             <p className="text-foreground-700 text-base mb-6">
-              まだGuideがありません。最初の投稿者になりましょう
+              {t('auto_12f931eda5', "まだGuideがありません。最初の投稿者になりましょう")}
             </p>
             <Link
               to="/guides/new"
               className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-8 py-3.5 rounded-md transition-all duration-200 cursor-pointer whitespace-nowrap"
             >
               <i className="ri-add-line"></i>
-              Share your Japan
+              {t('auto_40e4048bdc', "Share your Japan")}
             </Link>
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
             {guides.map((guide) => {
-              const title = guide.titleEn || guide.title || 'Untitled Guide';
+              const title = guide.titleEn || guide.title || t('auto_12d88f2c24', "Untitled Guide");
               const area = guide.areaEn || guide.area || '';
               const snippet = guide.bodyEn || guide.bodyJa || '';
               return (
@@ -138,10 +139,10 @@ export default function LatestGuidesSection() {
                     </div>
                     <div className="flex items-center justify-between mt-3">
                       <span className="text-foreground-400 text-xs whitespace-nowrap">
-                        — {guide.authorName || 'Anonymous'}
+                        — {guide.authorName || t('auto_9bed510400', "Anonymous")}
                       </span>
                       <span className="inline-flex items-center gap-1 text-primary-500 font-semibold text-sm hover:gap-2 transition-all duration-200 cursor-pointer whitespace-nowrap">
-                        Read Guide
+                        {t('auto_51d57e0f89', "Read Guide")}
                         <i className="ri-arrow-right-line"></i>
                       </span>
                     </div>
@@ -158,7 +159,7 @@ export default function LatestGuidesSection() {
               to="/guides"
               className="inline-flex items-center gap-2 bg-foreground-900 hover:bg-foreground-800 text-white font-semibold text-sm px-8 py-3.5 rounded-md transition-all duration-200 cursor-pointer whitespace-nowrap"
             >
-              View All Guides
+              {t('auto_bc95538f62', "View All Guides")}
               <i className="ri-arrow-right-line"></i>
             </Link>
           </div>

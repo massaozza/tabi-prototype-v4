@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useAutoT, useAutoText } from '@/hooks/useAutoT';
 
 // TABI 3.0：My Trip中心の循環の基盤となる、計画パネル。
 // 「まだ日程未定（saved）」→「日だけ決めた（day_assigned）」→
@@ -79,6 +80,8 @@ export default function TripPlanningPanel({
   tripStatus,
   onTripUpdate,
 }: TripPlanningPanelProps) {
+  const tx = useAutoText();
+  const t = useAutoT();
   const [newItemTitle, setNewItemTitle] = useState('');
   const [newItemType, setNewItemType] = useState<TripItem['itemType']>('sightseeing');
   const [adding, setAdding] = useState(false);
@@ -258,12 +261,12 @@ export default function TripPlanningPanel({
                 {item.time}
               </span>
             )}
-            <span className="text-sm text-foreground-900 truncate">{item.title}</span>
+            <span className="text-sm text-foreground-900 truncate">{tx(item.title)}</span>
             <select
               value={item.status}
               onChange={(e) => handleSetStatus(item, e.target.value as ItemStatus)}
               disabled={busy || isTraveling}
-              title="Fixed = booked, can't change. Planned = tentative. Option = one of a few choices."
+              title={t('auto_9ae6a68b20', "Fixed = booked, can't change. Planned = tentative. Option = one of a few choices.")}
               className={`text-xs font-semibold pl-2 pr-1 py-0.5 rounded-full whitespace-nowrap cursor-pointer disabled:opacity-50 border-0 focus:outline-none focus:ring-1 focus:ring-primary-400 ${STATUS_COLORS[item.status]}`}
             >
               {(Object.keys(STATUS_LABELS) as ItemStatus[]).map((s) => (
@@ -275,7 +278,7 @@ export default function TripPlanningPanel({
             {visited && (
               <span className="text-xs text-emerald-600 font-semibold whitespace-nowrap">
                 <i className="ri-checkbox-circle-fill mr-0.5"></i>
-                Visited
+                {t('auto_293a9d5465', "Visited")}
               </span>
             )}
           </div>
@@ -286,7 +289,7 @@ export default function TripPlanningPanel({
                 disabled={busy}
                 className="text-xs font-semibold text-primary-600 hover:text-primary-700 whitespace-nowrap cursor-pointer disabled:opacity-50 px-2 py-1"
               >
-                Mark visited
+                {t('auto_d0598d02fe', "Mark visited")}
               </button>
             )}
             {!isTraveling && (
@@ -295,9 +298,9 @@ export default function TripPlanningPanel({
                 disabled={busy}
                 className="text-xs font-semibold text-foreground-600 hover:text-foreground-900 whitespace-nowrap cursor-pointer disabled:opacity-50 px-2 py-1 flex items-center gap-1"
               >
-                {item.planLevel === 'saved' && 'Assign day'}
-                {item.planLevel === 'day_assigned' && 'Add time'}
-                {item.planLevel === 'scheduled' && 'Edit'}
+                {item.planLevel === 'saved' && t('auto_a423b3bd4c', "Assign day")}
+                {item.planLevel === 'day_assigned' && t('auto_55a8a6b01a', "Add time")}
+                {item.planLevel === 'scheduled' && t('auto_5301648dcf', "Edit")}
                 <i className={`text-sm ${expanded ? 'ri-arrow-up-s-line' : 'ri-arrow-down-s-line'}`}></i>
               </button>
             )}
@@ -306,7 +309,7 @@ export default function TripPlanningPanel({
                 onClick={() => handleRemove(item)}
                 disabled={busy}
                 className="w-7 h-7 flex items-center justify-center text-foreground-300 hover:text-red-500 transition-colors cursor-pointer disabled:opacity-50"
-                aria-label="Remove"
+                aria-label={t('auto_e963907dac', "Remove")}
               >
                 <i className="ri-close-line"></i>
               </button>
@@ -318,7 +321,7 @@ export default function TripPlanningPanel({
         {expanded && !isTraveling && (
           <div className="px-3.5 pb-3 pt-1 border-t border-background-200 flex flex-wrap items-center gap-3">
             <label className="flex items-center gap-2 text-xs text-foreground-500">
-              Day
+              {t('auto_987b9ced08', "Day")}
               <select
                 value={item.day || ''}
                 onChange={(e) => handleAssignDay(item, Number(e.target.value))}
@@ -326,11 +329,11 @@ export default function TripPlanningPanel({
                 className="bg-background-100 border border-background-200 rounded-md px-2 py-1.5 text-sm text-foreground-900 focus:outline-none focus:ring-2 focus:ring-primary-400 cursor-pointer"
               >
                 <option value="" disabled>
-                  Choose a day
+                  {t('auto_2057df6632', "Choose a day")}
                 </option>
                 {dayChoices.map((d) => (
                   <option key={d} value={d}>
-                    Day {d}
+                    {t('auto_987b9ced08', "Day")}{' '}{d}
                     {!existingDayNumbers.includes(d) ? ' (new)' : ''}
                   </option>
                 ))}
@@ -339,7 +342,7 @@ export default function TripPlanningPanel({
 
             {(item.planLevel === 'day_assigned' || item.planLevel === 'scheduled') && (
               <label className="flex items-center gap-2 text-xs text-foreground-500">
-                Time
+                {t('auto_6c82e6dd86', "Time")}
                 <input
                   type="time"
                   value={item.time || ''}
@@ -356,13 +359,13 @@ export default function TripPlanningPanel({
                 disabled={busy}
                 className="text-xs font-semibold text-foreground-500 hover:text-foreground-800 whitespace-nowrap cursor-pointer underline"
               >
-                Make this day flexible (remove time)
+                {t('auto_da8e98c04a', "Make this day flexible (remove time)")}
               </button>
             )}
 
             {item.itemType === 'restaurant' && (
               <label className="flex items-center gap-2 text-xs text-foreground-500">
-                Meal
+                {t('auto_0c0b3ce402', "Meal")}
                 <select
                   value={item.mealSlot || 'none'}
                   onChange={(e) =>
@@ -372,13 +375,13 @@ export default function TripPlanningPanel({
                     )
                   }
                   disabled={busy}
-                  title="Show this in the Meals (B/L/D) column instead of the Schedule column"
+                  title={t('auto_5b7b4a1648', "Show this in the Meals (B/L/D) column instead of the Schedule column")}
                   className="bg-background-100 border border-background-200 rounded-md px-2 py-1.5 text-sm text-foreground-900 focus:outline-none focus:ring-2 focus:ring-primary-400 cursor-pointer"
                 >
-                  <option value="none">Not a meal</option>
-                  <option value="breakfast">Breakfast</option>
-                  <option value="lunch">Lunch</option>
-                  <option value="dinner">Dinner</option>
+                  <option value="none">{t('auto_d44e53a71c', "Not a meal")}</option>
+                  <option value="breakfast">{t('auto_364653cd2a', "Breakfast")}</option>
+                  <option value="lunch">{t('auto_585ecb7610', "Lunch")}</option>
+                  <option value="dinner">{t('auto_8cf98a5465', "Dinner")}</option>
                 </select>
               </label>
             )}
@@ -405,7 +408,7 @@ export default function TripPlanningPanel({
           {item.imageUrl ? (
             <img
               src={item.imageUrl}
-              alt={item.title}
+              alt={tx(item.title)}
               className="w-20 h-20 sm:w-24 sm:h-24 rounded-md object-cover flex-shrink-0 bg-background-200"
             />
           ) : (
@@ -420,22 +423,22 @@ export default function TripPlanningPanel({
           <div className="flex-1 min-w-0 flex flex-col">
             <div className="flex items-start justify-between gap-2">
               <span className="text-sm font-semibold text-foreground-900 line-clamp-1">
-                {item.title}
+                {tx(item.title)}
               </span>
               <button
                 onClick={() => handleRemove(item)}
                 disabled={busy}
                 className="w-6 h-6 flex items-center justify-center text-foreground-300 hover:text-red-500 transition-colors cursor-pointer disabled:opacity-50 flex-shrink-0"
-                aria-label="Remove"
+                aria-label={t('auto_e963907dac', "Remove")}
               >
                 <i className="ri-close-line"></i>
               </button>
             </div>
 
             {item.description ? (
-              <p className="text-xs text-foreground-500 line-clamp-2 mt-0.5">{item.description}</p>
+              <p className="text-xs text-foreground-500 line-clamp-2 mt-0.5">{tx(item.description)}</p>
             ) : (
-              <p className="text-xs text-foreground-300 italic mt-0.5">No description available</p>
+              <p className="text-xs text-foreground-300 italic mt-0.5">{t('auto_c017d28582', "No description available")}</p>
             )}
 
             <div className="flex items-center gap-2 mt-auto pt-2 flex-wrap">
@@ -443,7 +446,7 @@ export default function TripPlanningPanel({
                 value={item.status}
                 onChange={(e) => handleSetStatus(item, e.target.value as ItemStatus)}
                 disabled={busy || isTraveling}
-                title="Fixed = booked, can't change. Planned = tentative. Option = one of a few choices."
+                title={t('auto_9ae6a68b20', "Fixed = booked, can't change. Planned = tentative. Option = one of a few choices.")}
                 className={`text-xs font-semibold pl-2 pr-1 py-0.5 rounded-full whitespace-nowrap cursor-pointer disabled:opacity-50 border-0 focus:outline-none focus:ring-1 focus:ring-primary-400 ${STATUS_COLORS[item.status]}`}
               >
                 {(Object.keys(STATUS_LABELS) as ItemStatus[]).map((s) => (
@@ -458,7 +461,7 @@ export default function TripPlanningPanel({
                   disabled={busy}
                   className="text-xs font-semibold text-primary-600 hover:text-primary-700 whitespace-nowrap cursor-pointer disabled:opacity-50 flex items-center gap-1"
                 >
-                  Assign day
+                  {t('auto_a423b3bd4c', "Assign day")}
                   <i className={`text-sm ${expanded ? 'ri-arrow-up-s-line' : 'ri-arrow-down-s-line'}`}></i>
                 </button>
               )}
@@ -469,7 +472,7 @@ export default function TripPlanningPanel({
         {expanded && !isTraveling && (
           <div className="px-3 pb-3 pt-1 border-t border-background-200 flex flex-wrap items-center gap-3">
             <label className="flex items-center gap-2 text-xs text-foreground-500">
-              Day
+              {t('auto_987b9ced08', "Day")}
               <select
                 value=""
                 onChange={(e) => handleAssignDay(item, Number(e.target.value))}
@@ -477,11 +480,11 @@ export default function TripPlanningPanel({
                 className="bg-background-100 border border-background-200 rounded-md px-2 py-1.5 text-sm text-foreground-900 focus:outline-none focus:ring-2 focus:ring-primary-400 cursor-pointer"
               >
                 <option value="" disabled>
-                  Choose a day
+                  {t('auto_2057df6632', "Choose a day")}
                 </option>
                 {dayChoices.map((d) => (
                   <option key={d} value={d}>
-                    Day {d}
+                    {t('auto_987b9ced08', "Day")}{' '}{d}
                     {!existingDayNumbers.includes(d) ? ' (new)' : ''}
                   </option>
                 ))}
@@ -496,29 +499,27 @@ export default function TripPlanningPanel({
   return (
     <div className="mt-6 pt-6 border-t border-background-200">
       <div className="flex items-center justify-between mb-1.5 flex-wrap gap-2">
-        <h3 className="font-heading font-bold text-sm text-foreground-900">Trip Planner</h3>
+        <h3 className="font-heading font-bold text-sm text-foreground-900">{t('auto_da74cb6bab', "Trip Planner")}</h3>
         {!isTraveling && tripStatus === 'planning' && items.length > 0 && (
           <button
             onClick={handleStartTravel}
             className="inline-flex items-center gap-1.5 bg-foreground-900 hover:bg-foreground-800 text-white font-semibold text-xs px-3 py-1.5 rounded-md transition-colors whitespace-nowrap cursor-pointer"
           >
             <i className="ri-flight-takeoff-line"></i>
-            Start Travel
+            {t('auto_5779ee5f20', "Start Travel")}
           </button>
         )}
         {isTraveling && (
           <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary-600 whitespace-nowrap">
             <i className="ri-map-pin-user-line"></i>
-            Traveling now
+            {t('auto_548cb22264', "Traveling now")}
           </span>
         )}
       </div>
 
       {!isTraveling && (
         <p className="text-foreground-400 text-xs mb-4">
-          Add places below, then tap a place to assign it to a day and (optionally) a time.
-          The status dropdown (Fixed / Planned / Option) shows how certain each plan is —
-          Fixed means booked and can't change, Option means it's one of a few choices.
+          {t('auto_fc9ddeb419', "Add places below, then tap a place to assign it to a day and (optionally) a time. The status dropdown (Fixed / Planned / Option) shows how certain each plan is — Fixed means booked and can't change, Option means it's one of a few choices.")}
         </p>
       )}
 
@@ -528,7 +529,7 @@ export default function TripPlanningPanel({
       {savedItems.length > 0 && (
         <div className="mb-5">
           <span className="block text-xs font-semibold text-foreground-500 uppercase tracking-wide mb-2">
-            Saved for Trip
+            {t('auto_ef87bf69a9', "Saved for Trip")}
           </span>
           <div className="space-y-2">{savedItems.map(renderSavedItemCard)}</div>
         </div>
@@ -547,7 +548,7 @@ export default function TripPlanningPanel({
         return (
           <div key={dayNum} className="mb-5">
             <span className="block text-xs font-semibold text-foreground-500 uppercase tracking-wide mb-2">
-              Day {dayNum}
+              {t('auto_987b9ced08', "Day")}{' '}{dayNum}
             </span>
             <div className="space-y-2">{dayItems.map(renderItemRow)}</div>
           </div>
@@ -561,7 +562,7 @@ export default function TripPlanningPanel({
             type="text"
             value={unplannedTitle}
             onChange={(e) => setUnplannedTitle(e.target.value)}
-            placeholder="Add a place you visited (not planned)..."
+            placeholder={t('auto_1e0e9a8b73', "Add a place you visited (not planned)...")}
             className="flex-1 bg-background-50 border border-background-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
           />
           <button
@@ -569,7 +570,7 @@ export default function TripPlanningPanel({
             disabled={adding || !unplannedTitle.trim()}
             className="bg-primary-500 hover:bg-primary-600 disabled:opacity-50 text-white text-xs font-semibold px-3 py-2 rounded-md transition-colors whitespace-nowrap cursor-pointer"
           >
-            Add & Mark Visited
+            {t('auto_e6d2800039', "Add & Mark Visited")}
           </button>
         </div>
       )}
@@ -580,16 +581,16 @@ export default function TripPlanningPanel({
           <select
             value={newItemType}
             onChange={(e) => setNewItemType(e.target.value as TripItem['itemType'])}
-            title="Category — pick Restaurant / Café if you'll want to assign it to a meal (B/L/D) later"
+            title={t('auto_91f9681cc1', "Category — pick Restaurant / Café if you'll want to assign it to a meal (B/L/D) later")}
             className="bg-background-50 border border-background-200 rounded-md px-2 py-2 text-sm text-foreground-700 focus:outline-none focus:ring-2 focus:ring-primary-400 cursor-pointer flex-shrink-0"
           >
-            <option value="sightseeing">Sightseeing</option>
-            <option value="restaurant">Restaurant / Café</option>
-            <option value="shopping">Shopping</option>
-            <option value="accommodation">Accommodation</option>
-            <option value="activity">Activity</option>
-            <option value="transport">Transport</option>
-            <option value="other">Other</option>
+            <option value="sightseeing">{t('auto_b0f96c68f4', "Sightseeing")}</option>
+            <option value="restaurant">{t('auto_f65e55c3e6', "Restaurant / Café")}</option>
+            <option value="shopping">{t('auto_96a0dc481b', "Shopping")}</option>
+            <option value="accommodation">{t('auto_b2ca1cb457', "Accommodation")}</option>
+            <option value="activity">{t('auto_81c0d915fa', "Activity")}</option>
+            <option value="transport">{t('auto_c10d76c9a4', "Transport")}</option>
+            <option value="other">{t('auto_6e6a6f2086', "Other")}</option>
           </select>
           <input
             type="text"
@@ -601,7 +602,7 @@ export default function TripPlanningPanel({
                 handleAddItem();
               }
             }}
-            placeholder="Add a place, restaurant, or experience..."
+            placeholder={t('auto_7c9d103826', "Add a place, restaurant, or experience...")}
             className="flex-1 bg-background-50 border border-background-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
           />
           <button
@@ -609,14 +610,14 @@ export default function TripPlanningPanel({
             disabled={adding || !newItemTitle.trim()}
             className="bg-background-100 hover:bg-background-200 disabled:opacity-50 text-foreground-800 text-xs font-semibold px-3 py-2 rounded-md transition-colors whitespace-nowrap cursor-pointer"
           >
-            + Add
+            {t('auto_109b936ad4', "+ Add")}
           </button>
         </div>
       )}
 
       {items.length === 0 && (
         <p className="text-foreground-400 text-xs">
-          No items yet. Add a place above to start planning.
+          {t('auto_cfb6b954ff', "No items yet. Add a place above to start planning.")}
         </p>
       )}
     </div>

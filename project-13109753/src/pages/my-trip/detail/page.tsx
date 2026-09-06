@@ -4,6 +4,7 @@ import Navbar from '@/components/feature/Navbar';
 import Footer from '@/components/feature/Footer';
 import { useAuth } from '@/context/AuthContext';
 import type { Trip, TripItem } from '../types';
+import { useAutoT, useAutoText } from '@/hooks/useAutoT';
 
 interface TripMeal { id: string; suggestion: string; status?: string; }
 interface TripActivity { type?: 'activity' | 'transport'; time?: string; title: string; description?: string; spotId?: string; category?: string; }
@@ -102,6 +103,8 @@ async function callTripAction(tripId: string, action: string, body: Record<strin
 }
 
 export default function MyTripDetailPage() {
+  const tx = useAutoText();
+  const t = useAutoT();
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -365,7 +368,7 @@ export default function MyTripDetailPage() {
     if (status === 'booked') {
       return (
         <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 rounded-full px-2.5 py-1 whitespace-nowrap flex-shrink-0">
-          <i className="ri-check-line"></i>Booked
+          <i className="ri-check-line"></i>{t('auto_13e7a657ec', "Booked")}
         </span>
       );
     }
@@ -376,7 +379,7 @@ export default function MyTripDetailPage() {
         disabled={isPending}
         className="text-xs font-semibold border border-background-200 text-foreground-600 hover:bg-background-100 px-2.5 py-1 rounded-lg transition-colors cursor-pointer disabled:opacity-60 whitespace-nowrap flex-shrink-0"
       >
-        {isPending ? 'Saving...' : 'Mark booked'}
+        {isPending ? t('auto_ae7e887517', "Saving...") : t('auto_65f332e4aa', "Mark booked")}
       </button>
     );
   };
@@ -423,8 +426,8 @@ export default function MyTripDetailPage() {
       <main className="min-h-screen bg-background-50">
         <Navbar />
         <div className="pt-28 pb-16 px-6 text-center">
-          <p className="text-foreground-500">Trip not found.</p>
-          <Link to="/my-trip" className="text-primary-500 text-sm font-semibold mt-4 inline-block">← Back to My Trips</Link>
+          <p className="text-foreground-500">{t('auto_1dcfe11c46', "Trip not found.")}</p>
+          <Link to="/my-trip" className="text-primary-500 text-sm font-semibold mt-4 inline-block">{t('auto_cb188128f6', "← Back to My Trips")}</Link>
         </div>
         <Footer />
       </main>
@@ -444,36 +447,36 @@ export default function MyTripDetailPage() {
         {/* Hero */}
         <div style={{ position: 'relative', height: '280px', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'grid', gridTemplateColumns: '2fr 1fr', gridTemplateRows: '140px 140px', gap: '3px' }}>
-            <img src={headerImages[0]} alt={trip.title} style={{ gridRow: '1 / 3', width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+            <img src={headerImages[0]} alt={tx(trip.title)} style={{ gridRow: '1 / 3', width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
             <img src={headerImages[1]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
             <img src={headerImages[2]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
           </div>
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(10,18,40,0.55) 0%, rgba(10,18,40,0.0) 30%, rgba(10,18,40,0.0) 45%, rgba(10,18,40,0.88) 100%)' }}></div>
           <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '0 20px 20px', maxWidth: '768px', margin: '0 auto' }}>
             <div className="flex flex-wrap gap-1.5 mb-2">
-              <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${statusBadge.color}`}>{statusBadge.label}</span>
+              <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${statusBadge.color}`}>{tx(statusBadge.label)}</span>
               <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-white/15 text-white">{dayCount} {dayCount === 1 ? 'day' : 'days'}</span>
               {budgetText && <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full text-amber-300" style={{ background: 'rgba(200,155,60,0.25)' }}>{budgetText}</span>}
             </div>
-            <h1 className="font-heading font-bold text-xl text-white leading-snug">{trip.title}</h1>
+            <h1 className="font-heading font-bold text-xl text-white leading-snug">{tx(trip.title)}</h1>
           </div>
         </div>
 
         <div className="max-w-3xl mx-auto px-4 md:px-6 py-5">
           {/* パンくず */}
           <nav className="flex items-center gap-1.5 text-foreground-400 text-xs mb-4 flex-wrap">
-            <Link to="/" className="hover:text-foreground-700">Home</Link>
+            <Link to="/" className="hover:text-foreground-700">{t('auto_70f8bb9a8a', "Home")}</Link>
             <span>/</span>
-            <Link to="/my-trip" className="hover:text-foreground-700">My Trips</Link>
+            <Link to="/my-trip" className="hover:text-foreground-700">{t('auto_5b1dd69437', "My Trips")}</Link>
             <span>/</span>
-            <span className="text-foreground-600 line-clamp-1">{trip.title}</span>
+            <span className="text-foreground-600 line-clamp-1">{tx(trip.title)}</span>
           </nav>
 
           {/* アクションボタン */}
           <div className="flex gap-2 mb-5 flex-wrap">
             {trip.status === 'planning' && (
               <button onClick={handleStartTravel} className="inline-flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white font-semibold text-sm px-4 py-2 rounded-xl cursor-pointer">
-                <i className="ri-map-pin-line"></i>Start Travel
+                <i className="ri-map-pin-line"></i>{t('auto_5779ee5f20', "Start Travel")}
               </button>
             )}
             {trip.status === 'traveling' && (
@@ -482,7 +485,7 @@ export default function MyTripDetailPage() {
                 className={`inline-flex items-center gap-1.5 font-semibold text-sm px-4 py-2 rounded-xl cursor-pointer ${travelMode ? 'bg-foreground-900 text-white' : 'bg-green-600 hover:bg-green-700 text-white'}`}
               >
                 <i className={travelMode ? 'ri-close-line' : 'ri-navigation-line'}></i>
-                {travelMode ? 'Exit Travel Mode' : 'Travel Mode'}
+                {travelMode ? t('auto_2a5bc5c39b', "Exit Travel Mode") : t('auto_33935eff73', "Travel Mode")}
               </button>
             )}
             {isEditable(trip.status) && !travelMode && (
@@ -491,7 +494,7 @@ export default function MyTripDetailPage() {
                 className={`inline-flex items-center gap-1.5 font-semibold text-sm px-4 py-2 rounded-xl cursor-pointer ${editMode ? 'bg-foreground-900 text-white' : 'bg-primary-600 hover:bg-primary-700 text-white'}`}
               >
                 <i className={editMode ? 'ri-check-line' : 'ri-edit-line'}></i>
-                {editMode ? 'Done editing' : 'Edit'}
+                {editMode ? t('auto_b49384564f', "Done editing") : t('auto_5301648dcf', "Edit")}
               </button>
             )}
             {editMode && (
@@ -501,12 +504,12 @@ export default function MyTripDetailPage() {
                 <button onClick={() => coverInputRef.current?.click()} disabled={coverUploading}
                   className="inline-flex items-center gap-1.5 bg-white border border-background-200 hover:bg-background-50 disabled:opacity-60 text-foreground-700 font-semibold text-sm px-4 py-2 rounded-xl cursor-pointer">
                   <i className={coverUploading ? 'ri-loader-4-line animate-spin' : 'ri-camera-line'}></i>
-                  {coverUploading ? 'Uploading...' : 'Change cover photo'}
+                  {coverUploading ? t('auto_070e328ec8', "Uploading...") : t('auto_87328054a9', "Change cover photo")}
                 </button>
               </>
             )}
             <Link to={`/trips/${trip.id}`} className="inline-flex items-center gap-1.5 bg-white border border-background-200 hover:bg-background-50 text-foreground-700 font-semibold text-sm px-4 py-2 rounded-xl">
-              <i className="ri-eye-line"></i>Preview
+              <i className="ri-eye-line"></i>{t('auto_f1fbb2b43d', "Preview")}
             </Link>
           </div>
 
@@ -523,20 +526,20 @@ export default function MyTripDetailPage() {
                   {days.map((d) => (
                     <button key={d.day} onClick={() => setCurrentTravelDay(d.day)}
                       className={`flex-shrink-0 px-4 py-2 rounded-xl text-sm font-semibold cursor-pointer ${currentTravelDay === d.day ? 'bg-foreground-900 text-white' : 'bg-white border border-background-200 text-foreground-600'}`}>
-                      Day {d.day}
+                      {t('auto_987b9ced08', "Day")}{' '}{d.day}
                     </button>
                   ))}
                 </div>
 
                 <div className="bg-white border border-background-200 rounded-2xl overflow-hidden">
                   <div className="bg-foreground-900 px-4 py-3">
-                    <p className="text-xs font-bold tracking-wider text-primary-300">DAY {currentTravelDay}</p>
+                    <p className="text-xs font-bold tracking-wider text-primary-300">{t('auto_9d1fece7b6', "DAY")}{' '}{currentTravelDay}</p>
                     {currentDay && <p className="text-xs text-foreground-500 mt-0.5">{getDayRoute(currentDay as TripDay)}</p>}
                   </div>
 
                   <div className="divide-y divide-background-100">
                     {travelItems.length === 0 && (
-                      <p className="text-xs text-foreground-300 italic px-4 py-4 text-center">No spots for this day</p>
+                      <p className="text-xs text-foreground-300 italic px-4 py-4 text-center">{t('auto_84df5e25bc', "No spots for this day")}</p>
                     )}
                     {travelItems.map((item, idx) => {
                       const visited = visitedIds.has(item.id);
@@ -549,7 +552,7 @@ export default function MyTripDetailPage() {
                         return (
                           <div key={item.id} className="flex items-center gap-2.5 px-4 py-2.5 bg-background-50">
                             <i className={`${transitIcon(item.description, item.title)} text-foreground-400 text-sm flex-shrink-0`}></i>
-                            <p className="text-xs font-medium text-foreground-600 truncate">{item.title}</p>
+                            <p className="text-xs font-medium text-foreground-600 truncate">{tx(item.title)}</p>
                           </div>
                         );
                       }
@@ -566,9 +569,9 @@ export default function MyTripDetailPage() {
                               {isBusy && <i className="ri-loader-4-line animate-spin text-foreground-400 text-sm"></i>}
                             </button>
                             <div className="flex-1 min-w-0">
-                              <p className={`text-sm font-semibold ${visited ? 'text-foreground-400 line-through' : 'text-foreground-900'}`}>{item.title}</p>
+                              <p className={`text-sm font-semibold ${visited ? 'text-foreground-400 line-through' : 'text-foreground-900'}`}>{tx(item.title)}</p>
                               {item.time && <p className="text-xs text-foreground-400 mt-0.5">{item.time}</p>}
-                              {item.description && !visited && <p className="text-xs text-foreground-500 mt-0.5 line-clamp-2">{item.description}</p>}
+                              {item.description && !visited && <p className="text-xs text-foreground-500 mt-0.5 line-clamp-2">{tx(item.description)}</p>}
                             </div>
                             <a href={`https://www.google.com/maps/search/${encodeURIComponent(item.title)}`} target="_blank" rel="noopener noreferrer"
                               className="w-9 h-9 flex items-center justify-center bg-background-50 border border-background-200 rounded-xl text-foreground-500 hover:bg-primary-50 hover:text-primary-600 flex-shrink-0">
@@ -583,23 +586,23 @@ export default function MyTripDetailPage() {
                                 className="w-full flex items-center gap-2.5 px-4 py-2 bg-background-50 border-t border-background-100 hover:bg-background-100 cursor-pointer"
                               >
                                 <i className="ri-arrow-down-line text-foreground-400 text-sm flex-shrink-0"></i>
-                                <span className="text-xs text-foreground-500 flex-1 text-left">Move to next stop</span>
+                                <span className="text-xs text-foreground-500 flex-1 text-left">{t('auto_ac1ce63c18', "Move to next stop")}</span>
                                 <i className="ri-pencil-line text-foreground-300 text-xs"></i>
                               </button>
                               {editingTransitIdx === item.id && (
                                 <div className="bg-white border-b border-background-200 px-4 py-3">
-                                  <p className="text-xs font-bold text-foreground-500 uppercase tracking-wider mb-2">Choose transport</p>
+                                  <p className="text-xs font-bold text-foreground-500 uppercase tracking-wider mb-2">{t('auto_aaecb95440', "Choose transport")}</p>
                                   <div className="grid grid-cols-3 gap-2">
                                     {TRANSIT_OPTIONS.map((opt) => (
                                       <button key={opt.mode}
                                         onClick={() => handleSetTransit(item.id, opt.mode, currentTravelDay, item.order ?? idx)}
                                         className="flex flex-col items-center gap-1 py-2.5 px-2 bg-background-50 border border-background-200 rounded-xl hover:border-primary-400 hover:bg-primary-50 cursor-pointer">
                                         <i className={`${opt.icon} text-lg text-foreground-500`}></i>
-                                        <span className="text-xs font-medium text-foreground-600 text-center leading-tight">{opt.label}</span>
+                                        <span className="text-xs font-medium text-foreground-600 text-center leading-tight">{tx(opt.label)}</span>
                                       </button>
                                     ))}
                                   </div>
-                                  <button onClick={() => setEditingTransitIdx(null)} className="mt-2 text-xs text-foreground-400 cursor-pointer w-full text-center py-1">Cancel</button>
+                                  <button onClick={() => setEditingTransitIdx(null)} className="mt-2 text-xs text-foreground-400 cursor-pointer w-full text-center py-1">{t('auto_77dfd2135f', "Cancel")}</button>
                                 </div>
                               )}
                             </div>
@@ -613,7 +616,7 @@ export default function MyTripDetailPage() {
                     <div className="border-t border-background-200 px-4 py-3 flex items-center gap-3 bg-background-50">
                       <i className="ri-hotel-line text-foreground-400"></i>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs text-foreground-400">Tonight's stay</p>
+                        <p className="text-xs text-foreground-400">{t('auto_50ce632e81', "Tonight's stay")}</p>
                         <p className="text-sm font-semibold text-foreground-900 truncate">{stay.hotelName}</p>
                       </div>
                       {renderBookingControl(stay.status, stay.id)}
@@ -623,7 +626,7 @@ export default function MyTripDetailPage() {
                   {currentDay && (currentDay.meals?.breakfast || currentDay.meals?.lunch || currentDay.meals?.dinner) && (
                     <div className="border-t border-background-200 px-4 py-3 bg-background-50">
                       <p className="text-xs font-bold tracking-widest uppercase text-foreground-400 mb-2 flex items-center gap-1.5">
-                        <i className="ri-restaurant-line"></i>Meals
+                        <i className="ri-restaurant-line"></i>{t('auto_ffdd1f1a28', "Meals")}
                       </p>
                       <div className="space-y-1.5">
                         {currentDay.meals.breakfast && (
@@ -653,7 +656,7 @@ export default function MyTripDetailPage() {
                 </div>
 
                 <div className="mt-3 text-center text-xs text-foreground-400">
-                  {visitedIds.size} of {(trip.items || []).filter((it) => it.planLevel !== 'saved' && it.itemType !== 'transport').length} spots visited
+                  {visitedIds.size} of {(trip.items || []).filter((it) => it.planLevel !== 'saved' && it.itemType !== 'transport').length}{' '}{t('auto_ceea78ee82', "spots visited")}
                 </div>
               </div>
             );
@@ -669,7 +672,7 @@ export default function MyTripDetailPage() {
                 return (
                   <div className="mb-5 bg-white border border-background-200 rounded-2xl overflow-hidden">
                     <div className="bg-background-100 px-4 py-2.5 border-b border-background-200">
-                      <p className="text-xs font-bold tracking-widest uppercase text-foreground-500">Saved for Trip — not yet assigned to a day</p>
+                      <p className="text-xs font-bold tracking-widest uppercase text-foreground-500">{t('auto_54897f1cf9', "Saved for Trip — not yet assigned to a day")}</p>
                     </div>
                     <div className="divide-y divide-background-100">
                       {savedItems.map((item) => {
@@ -680,19 +683,19 @@ export default function MyTripDetailPage() {
                           <div key={item.id} className="px-4 py-3">
                             <div className="flex items-center gap-3">
                               {item.imageUrl ? (
-                                <img src={item.imageUrl} alt={item.title} className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
+                                <img src={item.imageUrl} alt={tx(item.title)} className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
                               ) : (
                                 <div className="w-10 h-10 rounded-lg bg-background-100 flex items-center justify-center flex-shrink-0">
                                   <i className="ri-map-pin-line text-foreground-400 text-sm"></i>
                                 </div>
                               )}
                               <div className="flex-1 min-w-0">
-                                <p className="text-sm font-semibold text-foreground-900 truncate">{item.title}</p>
-                                {catStyle && <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-full inline-block mt-0.5 ${catStyle.bg} ${catStyle.text}`}>{catStyle.label}</span>}
+                                <p className="text-sm font-semibold text-foreground-900 truncate">{tx(item.title)}</p>
+                                {catStyle && <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-full inline-block mt-0.5 ${catStyle.bg} ${catStyle.text}`}>{tx(catStyle.label)}</span>}
                               </div>
                               <button onClick={() => setAssigningItemId(isAssigning ? null : item.id)} disabled={isBusy}
                                 className="text-xs font-semibold text-primary-600 bg-primary-50 hover:bg-primary-100 border border-primary-200 px-2.5 py-1.5 rounded-lg cursor-pointer flex-shrink-0 flex items-center gap-1">
-                                <i className="ri-calendar-line text-xs"></i>Add to day
+                                <i className="ri-calendar-line text-xs"></i>{t('auto_ed8235d64f', "Add to day")}
                               </button>
                               {editMode && (
                                 <button onClick={() => handleRemoveItem(item)} disabled={isBusy}
@@ -703,14 +706,14 @@ export default function MyTripDetailPage() {
                             </div>
                             {isAssigning && (
                               <div className="flex items-center gap-2 mt-2 flex-wrap">
-                                <span className="text-xs text-foreground-500">Assign to:</span>
+                                <span className="text-xs text-foreground-500">{t('auto_cc4ebec009', "Assign to:")}</span>
                                 {Array.from({ length: (trip.days || []).length }, (_, i) => i + 1).map((d) => (
                                   <button key={d} onClick={() => { handleAssignToDay(item, d); setAssigningItemId(null); }} disabled={isBusy}
                                     className="text-xs font-semibold px-2.5 py-1 bg-white border border-background-200 hover:border-primary-400 hover:bg-primary-50 rounded-lg cursor-pointer">
-                                    Day {d}
+                                    {t('auto_987b9ced08', "Day")}{' '}{d}
                                   </button>
                                 ))}
-                                <button onClick={() => setAssigningItemId(null)} className="text-xs text-foreground-400 cursor-pointer ml-1">Cancel</button>
+                                <button onClick={() => setAssigningItemId(null)} className="text-xs text-foreground-400 cursor-pointer ml-1">{t('auto_77dfd2135f', "Cancel")}</button>
                               </div>
                             )}
                           </div>
@@ -738,17 +741,17 @@ export default function MyTripDetailPage() {
                   const mealEntries: any[] = [];
                   if (day.meals?.breakfast) mealEntries.push({
                     id: `meal-b-${day.day}`, title: day.meals.breakfast.suggestion,
-                    mealType: 'breakfast', mealLabel: 'Breakfast', mealId: day.meals.breakfast.id,
+                    mealType: 'breakfast', mealLabel: t('auto_364653cd2a', "Breakfast"), mealId: day.meals.breakfast.id,
                     mealStatus: (day.meals.breakfast as any).status, isMeal: true, time: '08:00',
                   });
                   if (day.meals?.lunch) mealEntries.push({
                     id: `meal-l-${day.day}`, title: day.meals.lunch.suggestion,
-                    mealType: 'lunch', mealLabel: 'Lunch', mealId: day.meals.lunch.id,
+                    mealType: 'lunch', mealLabel: t('auto_585ecb7610', "Lunch"), mealId: day.meals.lunch.id,
                     mealStatus: (day.meals.lunch as any).status, isMeal: true, time: '12:00',
                   });
                   if (day.meals?.dinner) mealEntries.push({
                     id: `meal-d-${day.day}`, title: day.meals.dinner.suggestion,
-                    mealType: 'dinner', mealLabel: 'Dinner', mealId: day.meals.dinner.id,
+                    mealType: 'dinner', mealLabel: t('auto_8cf98a5465', "Dinner"), mealId: day.meals.dinner.id,
                     mealStatus: (day.meals.dinner as any).status, isMeal: true, time: '19:00',
                   });
 
@@ -766,17 +769,17 @@ export default function MyTripDetailPage() {
                   return (
                     <div key={day.day} className="bg-white border border-background-200 rounded-2xl overflow-hidden">
                       <div className="bg-foreground-900 px-4 py-2.5 flex items-center gap-3">
-                        <span className="text-xs font-bold tracking-wider text-primary-300">DAY {day.day}</span>
+                        <span className="text-xs font-bold tracking-wider text-primary-300">{t('auto_9d1fece7b6', "DAY")}{' '}{day.day}</span>
                         {dayRoute && <span className="text-xs text-foreground-500 truncate">{dayRoute}</span>}
                       </div>
 
                       {/* Schedule */}
                       <div className="px-4 py-3 border-b border-background-100">
                         <p className="text-xs font-bold tracking-widest uppercase text-foreground-400 mb-3 flex items-center gap-1.5">
-                          <i className="ri-map-pin-line"></i>Schedule
+                          <i className="ri-map-pin-line"></i>{t('auto_0a8adac9d6', "Schedule")}
                         </p>
                         {scheduleEntries.length === 0 && (
-                          <p className="text-xs text-foreground-300 italic mb-3">No spots yet</p>
+                          <p className="text-xs text-foreground-300 italic mb-3">{t('auto_18c578dbd4', "No spots yet")}</p>
                         )}
                         {scheduleEntries.map((entry: any, idx: number) => {
                           const isLast = idx === scheduleEntries.length - 1;
@@ -809,7 +812,7 @@ export default function MyTripDetailPage() {
                                       <p className="text-xs text-foreground-400 mb-0.5">{entry.time} · {entry.mealLabel}</p>
                                       <div className="flex items-center gap-1.5">
                                         <i className={`${mealIcon} ${mealColor} text-sm flex-shrink-0`}></i>
-                                        <p className="text-sm font-semibold text-foreground-900 truncate">{entry.title}</p>
+                                        <p className="text-sm font-semibold text-foreground-900 truncate">{tx(entry.title)}</p>
                                       </div>
                                     </div>
                                     {renderBookingControl(entry.mealStatus, entry.mealId)}
@@ -829,23 +832,23 @@ export default function MyTripDetailPage() {
                                       className="w-full flex items-center gap-2 bg-background-50 border border-background-100 rounded-lg px-3 py-1.5 hover:bg-background-100 cursor-pointer text-left"
                                     >
                                       <i className={`${transitIcon(nextTransport?.description, nextTransport?.title)} text-xs text-foreground-400 flex-shrink-0`}></i>
-                                      <span className="text-xs text-foreground-400 truncate flex-1">{nextTransport?.title || 'Move to next stop'}</span>
+                                      <span className="text-xs text-foreground-400 truncate flex-1">{nextTransport?.title || t('auto_ac1ce63c18', "Move to next stop")}</span>
                                       <i className="ri-pencil-line text-foreground-300 text-xs flex-shrink-0"></i>
                                     </button>
                                     {editingTransitIdx === `normal-${entry.id}` && (
                                       <div className="bg-white border border-background-200 rounded-xl p-3 mt-1.5">
-                                        <p className="text-xs font-bold text-foreground-500 uppercase tracking-wider mb-2">Choose transport</p>
+                                        <p className="text-xs font-bold text-foreground-500 uppercase tracking-wider mb-2">{t('auto_aaecb95440', "Choose transport")}</p>
                                         <div className="grid grid-cols-3 gap-2">
                                           {TRANSIT_OPTIONS.map((opt) => (
                                             <button key={opt.mode}
                                               onClick={() => { setEditingTransitIdx(null); }}
                                               className="flex flex-col items-center gap-1 py-2 px-2 bg-background-50 border border-background-200 rounded-xl hover:border-primary-400 hover:bg-primary-50 cursor-pointer">
                                               <i className={`${opt.icon} text-base text-foreground-500`}></i>
-                                              <span className="text-xs font-medium text-foreground-600 text-center leading-tight">{opt.label}</span>
+                                              <span className="text-xs font-medium text-foreground-600 text-center leading-tight">{tx(opt.label)}</span>
                                             </button>
                                           ))}
                                         </div>
-                                        <button onClick={() => setEditingTransitIdx(null)} className="mt-2 text-xs text-foreground-400 cursor-pointer w-full text-center py-1">Cancel</button>
+                                        <button onClick={() => setEditingTransitIdx(null)} className="mt-2 text-xs text-foreground-400 cursor-pointer w-full text-center py-1">{t('auto_77dfd2135f', "Cancel")}</button>
                                       </div>
                                     )}
                                   </div>
@@ -870,7 +873,7 @@ export default function MyTripDetailPage() {
                                         <input type="time" value={editingTimeValue} onChange={(e) => setEditingTimeValue(e.target.value)}
                                           onKeyDown={(e) => { if (e.key === 'Enter') handleUpdateTime(entry); if (e.key === 'Escape') { setEditingTimeItemId(null); setEditingTimeValue(''); } }}
                                           className="bg-background-50 border border-primary-300 rounded-lg px-2 py-1 text-xs focus:outline-none" autoFocus />
-                                        <button onClick={() => handleUpdateTime(entry)} className="text-xs text-primary-600 font-semibold cursor-pointer">Save</button>
+                                        <button onClick={() => handleUpdateTime(entry)} className="text-xs text-primary-600 font-semibold cursor-pointer">{t('auto_efc007a393', "Save")}</button>
                                         <button onClick={() => { setEditingTimeItemId(null); setEditingTimeValue(''); }} className="text-xs text-foreground-400 cursor-pointer">✕</button>
                                       </div>
                                     ) : (
@@ -879,16 +882,16 @@ export default function MyTripDetailPage() {
                                         {entry.time ? (
                                           <p className="text-xs text-foreground-400">{entry.time}</p>
                                         ) : (
-                                          <p className="text-xs text-foreground-300 italic">Want to go</p>
+                                          <p className="text-xs text-foreground-300 italic">{t('auto_362c2de5b7', "Want to go")}</p>
                                         )}
                                         {isItem && editMode && <i className="ri-pencil-line text-xs text-foreground-300 opacity-0 group-hover:opacity-100"></i>}
                                       </div>
                                     )}
-                                    <p className="text-sm font-semibold text-foreground-900">{entry.title}</p>
-                                    {catStyle && <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-full inline-block mt-1 ${catStyle.bg} ${catStyle.text}`}>{catStyle.label}</span>}
-                                    {entry.description && <p className="text-xs text-foreground-500 leading-relaxed mt-1">{entry.description}</p>}
+                                    <p className="text-sm font-semibold text-foreground-900">{tx(entry.title)}</p>
+                                    {catStyle && <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-full inline-block mt-1 ${catStyle.bg} ${catStyle.text}`}>{tx(catStyle.label)}</span>}
+                                    {entry.description && <p className="text-xs text-foreground-500 leading-relaxed mt-1">{tx(entry.description)}</p>}
                                   </div>
-                                  {imgUrl && <img src={imgUrl} alt={entry.title} className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />}
+                                  {imgUrl && <img src={imgUrl} alt={tx(entry.title)} className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />}
                                 </div>
                                 {/* 編集ボタン */}
                                 {editMode && isItem && (
@@ -917,24 +920,24 @@ export default function MyTripDetailPage() {
                                   >
                                     <i className={`${transitIcon(nextTransport?.description, nextTransport?.title)} text-xs text-foreground-400 flex-shrink-0`}></i>
                                     <span className="text-xs text-foreground-400 truncate flex-1">
-                                      {nextTransport?.title || 'Move to next stop'}
+                                      {nextTransport?.title || t('auto_ac1ce63c18', "Move to next stop")}
                                     </span>
                                     <i className="ri-pencil-line text-foreground-300 text-xs flex-shrink-0"></i>
                                   </button>
                                   {editingTransitIdx === `normal-${entry.id || idx}` && (
                                     <div className="bg-white border border-background-200 rounded-xl p-3 mt-1.5 shadow-sm">
-                                      <p className="text-xs font-bold text-foreground-500 uppercase tracking-wider mb-2">Choose transport</p>
+                                      <p className="text-xs font-bold text-foreground-500 uppercase tracking-wider mb-2">{t('auto_aaecb95440', "Choose transport")}</p>
                                       <div className="grid grid-cols-3 gap-2">
                                         {TRANSIT_OPTIONS.map((opt) => (
                                           <button key={opt.mode}
                                             onClick={() => isItem && handleSetTransit(entry.id, opt.mode, day.day, currentOrder)}
                                             className="flex flex-col items-center gap-1 py-2 px-2 bg-background-50 border border-background-200 rounded-xl hover:border-primary-400 hover:bg-primary-50 cursor-pointer">
                                             <i className={`${opt.icon} text-base text-foreground-500`}></i>
-                                            <span className="text-xs font-medium text-foreground-600 text-center leading-tight">{opt.label}</span>
+                                            <span className="text-xs font-medium text-foreground-600 text-center leading-tight">{tx(opt.label)}</span>
                                           </button>
                                         ))}
                                       </div>
-                                      <button onClick={() => setEditingTransitIdx(null)} className="mt-2 text-xs text-foreground-400 cursor-pointer w-full text-center py-1">Cancel</button>
+                                      <button onClick={() => setEditingTransitIdx(null)} className="mt-2 text-xs text-foreground-400 cursor-pointer w-full text-center py-1">{t('auto_77dfd2135f', "Cancel")}</button>
                                     </div>
                                   )}
                                 </div>
@@ -948,17 +951,17 @@ export default function MyTripDetailPage() {
                           <div className="flex gap-2 mt-3">
                             <input ref={addInputRef} type="text" value={newSpotTitle} onChange={(e) => setNewSpotTitle(e.target.value)}
                               onKeyDown={(e) => { if (e.key === 'Enter') handleAddSpot(day.day); if (e.key === 'Escape') { setAddingToDay(null); setNewSpotTitle(''); } }}
-                              placeholder="Spot name..." autoFocus
+                              placeholder={t('auto_7b5ed2f5b2', "Spot name...")} autoFocus
                               className="flex-1 bg-background-50 border border-background-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400" />
                             <button onClick={() => handleAddSpot(day.day)} disabled={!newSpotTitle.trim()}
-                              className="px-3 py-2 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white text-xs font-semibold rounded-lg cursor-pointer">Add</button>
+                              className="px-3 py-2 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white text-xs font-semibold rounded-lg cursor-pointer">{t('auto_61cc55aa04', "Add")}</button>
                             <button onClick={() => { setAddingToDay(null); setNewSpotTitle(''); }}
-                              className="px-3 py-2 bg-background-100 hover:bg-background-200 text-foreground-600 text-xs font-semibold rounded-lg cursor-pointer">Cancel</button>
+                              className="px-3 py-2 bg-background-100 hover:bg-background-200 text-foreground-600 text-xs font-semibold rounded-lg cursor-pointer">{t('auto_77dfd2135f', "Cancel")}</button>
                           </div>
                         ) : (
                           <button onClick={() => setAddingToDay(day.day)}
                             className="flex items-center gap-2 w-full mt-3 px-3 py-2 border border-dashed border-background-300 hover:border-primary-400 hover:bg-primary-50 rounded-lg text-foreground-400 hover:text-primary-600 text-xs font-semibold cursor-pointer">
-                            <i className="ri-add-line text-sm"></i>Add a spot
+                            <i className="ri-add-line text-sm"></i>{t('auto_16ea3a5a5b', "Add a spot")}
                           </button>
                         ))}
                       </div>
@@ -969,16 +972,16 @@ export default function MyTripDetailPage() {
                       {stay && (
                         <div className="px-4 py-3">
                           <p className="text-xs font-bold tracking-widest uppercase text-foreground-400 mb-3 flex items-center gap-1.5">
-                            <i className="ri-hotel-line"></i>Stay
+                            <i className="ri-hotel-line"></i>{t('auto_ae768f766f', "Stay")}
                           </p>
                           {editingStayDay === day.day && editMode ? (
                             <div className="flex gap-2">
                               <input type="text" value={editingStayValue} onChange={(e) => setEditingStayValue(e.target.value)}
                                 onKeyDown={(e) => { if (e.key === 'Enter') handleUpdateStay(stay); if (e.key === 'Escape') { setEditingStayDay(null); setEditingStayValue(''); } }}
-                                placeholder="Hotel name..." autoFocus
+                                placeholder={t('auto_1acd4ccb1f', "Hotel name...")} autoFocus
                                 className="flex-1 bg-background-50 border border-primary-300 rounded-lg px-3 py-2 text-sm focus:outline-none" />
-                              <button onClick={() => handleUpdateStay(stay)} className="px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold rounded-lg cursor-pointer">Save</button>
-                              <button onClick={() => { setEditingStayDay(null); setEditingStayValue(''); }} className="px-3 py-2 bg-background-100 text-foreground-600 text-xs font-semibold rounded-lg cursor-pointer">Cancel</button>
+                              <button onClick={() => handleUpdateStay(stay)} className="px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold rounded-lg cursor-pointer">{t('auto_efc007a393', "Save")}</button>
+                              <button onClick={() => { setEditingStayDay(null); setEditingStayValue(''); }} className="px-3 py-2 bg-background-100 text-foreground-600 text-xs font-semibold rounded-lg cursor-pointer">{t('auto_77dfd2135f', "Cancel")}</button>
                             </div>
                           ) : (
                             <div className="flex items-center gap-3">
@@ -987,7 +990,7 @@ export default function MyTripDetailPage() {
                               </div>
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm font-semibold text-foreground-900 truncate">{stay.hotelName}</p>
-                                {isSameStay && <p className="text-xs text-foreground-400">Same hotel — no check-in today</p>}
+                                {isSameStay && <p className="text-xs text-foreground-400">{t('auto_f8db9d02ba', "Same hotel — no check-in today")}</p>}
                               </div>
                               <div className="flex items-center gap-2 flex-shrink-0">
                                 <span className="text-xs font-semibold text-primary-600 bg-primary-50 px-2.5 py-1 rounded-full">{getStayNightLabel(stay, day.day)}</span>
@@ -1012,7 +1015,7 @@ export default function MyTripDetailPage() {
 
           <div className="mt-6">
             <Link to="/my-trip" className="inline-flex items-center gap-2 text-primary-500 hover:text-primary-600 font-semibold text-sm">
-              <i className="ri-arrow-left-line"></i>Back to My Trips
+              <i className="ri-arrow-left-line"></i>{t('auto_2687e6ace9', "Back to My Trips")}
             </Link>
           </div>
         </div>

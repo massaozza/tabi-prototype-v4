@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import ChatMapPanel from './ChatMapPanel';
+import { useAutoT } from '@/hooks/useAutoT';
 
 type ChatRole = 'user' | 'assistant';
 
@@ -69,6 +70,7 @@ const ERROR_MESSAGE =
   "Sorry, I'm having trouble right now. Please try again in a moment.";
 
 export default function FloatingChatButton() {
+  const t = useAutoT();
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -323,9 +325,9 @@ export default function FloatingChatButton() {
               </span>
               <div>
                 <h2 className="font-heading font-semibold text-base leading-tight">
-                  Ask TABI
+                  {t('auto_0136283f57', "Ask TABI")}
                 </h2>
-                <span className="text-xs text-white/80">Your local guide</span>
+                <span className="text-xs text-white/80">{t('auto_f6713ce072', "Your local guide")}</span>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -333,7 +335,7 @@ export default function FloatingChatButton() {
                 <button
                   onClick={handleSaveAsTrip}
                   disabled={structuring}
-                  aria-label="View or save this trip"
+                  aria-label={t('auto_ddbdd0a614', "View or save this trip")}
                   className="h-8 px-3 rounded-full bg-white/20 hover:bg-white/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 text-xs font-medium text-white transition-colors cursor-pointer whitespace-nowrap"
                 >
                   {structuring ? (
@@ -341,12 +343,12 @@ export default function FloatingChatButton() {
                   ) : (
                     <i className="ri-bookmark-line text-sm"></i>
                   )}
-                  {tripPreview ? 'View Trip' : 'Save as Trip'}
+                  {tripPreview ? t('auto_54d2d24745', "View Trip") : t('auto_c380dcfbd8', "Save as Trip")}
                 </button>
               )}
               <button
                 onClick={() => setIsOpen(false)}
-                aria-label="Close chat"
+                aria-label={t('auto_eb37618434', "Close chat")}
                 className="w-8 h-8 rounded-full flex items-center justify-center text-white/90 hover:bg-white/20 transition-colors cursor-pointer"
               >
                 <i className="ri-close-line text-lg"></i>
@@ -405,7 +407,7 @@ export default function FloatingChatButton() {
                                 {exp.category}
                               </span>
                               <span className="text-[9px] uppercase tracking-wide text-accent-700 font-semibold whitespace-nowrap">
-                                Real experience
+                                {t('auto_5525317ec2', "Real experience")}
                               </span>
                             </div>
                             {exp.whatWasGood && (
@@ -457,13 +459,13 @@ export default function FloatingChatButton() {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask about your trip to Japan…"
+              placeholder={t('auto_c50c8149d3', "Ask about your trip to Japan…")}
               className="flex-1 text-sm px-4 py-2.5 rounded-full bg-background-100 text-foreground-900 placeholder:text-foreground-400 focus:outline-none focus:ring-2 focus:ring-primary-300"
             />
             <button
               type="submit"
               disabled={!input.trim() || loading}
-              aria-label="Send message"
+              aria-label={t('auto_c70a890d14', "Send message")}
               className="w-10 h-10 rounded-full bg-primary-500 hover:bg-primary-600 disabled:opacity-40 disabled:cursor-not-allowed text-white flex items-center justify-center cursor-pointer transition-colors"
             >
               <i className="ri-send-plane-2-fill text-lg"></i>
@@ -486,7 +488,7 @@ export default function FloatingChatButton() {
           <div className="relative w-full max-w-lg max-h-[85vh] flex flex-col bg-background-50 rounded-2xl overflow-hidden shadow-lg">
             <div className="flex items-center justify-between px-5 py-4 border-b border-background-200">
               <h3 className="font-heading font-semibold text-base text-foreground-950">
-                Review Your Trip
+                {t('auto_1f2665a752', "Review Your Trip")}
               </h3>
               <button
                 onClick={() => {
@@ -494,7 +496,7 @@ export default function FloatingChatButton() {
                     setShowTripModal(false);
                   }
                 }}
-                aria-label="Close preview"
+                aria-label={t('auto_baa5503537', "Close preview")}
                 className="w-8 h-8 rounded-full flex items-center justify-center text-foreground-500 hover:bg-background-100 transition-colors cursor-pointer"
               >
                 <i className="ri-close-line text-lg"></i>
@@ -507,7 +509,7 @@ export default function FloatingChatButton() {
                   htmlFor="trip-title"
                   className="block text-xs font-medium text-foreground-500 mb-1.5"
                 >
-                  Trip Title
+                  {t('auto_7f3415a51c', "Trip Title")}
                 </label>
                 <input
                   id="trip-title"
@@ -527,7 +529,7 @@ export default function FloatingChatButton() {
               {tripPreview.stays && tripPreview.stays.length > 0 && (
                 <div className="rounded-lg border border-background-200 bg-background-50 p-4">
                   <h4 className="font-heading font-semibold text-sm text-foreground-950 mb-2">
-                    Accommodation
+                    {t('auto_b2ca1cb457', "Accommodation")}
                   </h4>
                   <ul className="flex flex-col gap-1.5">
                     {tripPreview.stays.map((stay, idx) => (
@@ -538,7 +540,7 @@ export default function FloatingChatButton() {
                         <span className="font-medium">{stay.hotelName}</span>
                         <span className="text-foreground-500">
                           {' '}
-                          (Day {stay.checkInDay} - Day {stay.checkOutDay})
+                          {t('auto_85f8df8d11', "(Day")}{' '}{stay.checkInDay}{' '}{t('auto_e3e94b9467', "- Day")}{' '}{stay.checkOutDay})
                         </span>
                       </li>
                     ))}
@@ -553,7 +555,7 @@ export default function FloatingChatButton() {
                     className="rounded-lg border border-background-200 bg-background-50 p-4"
                   >
                     <h4 className="font-heading font-semibold text-sm text-foreground-950 mb-2">
-                      Day {day.day}
+                      {t('auto_987b9ced08', "Day")}{' '}{day.day}
                     </h4>
                     <ul className="flex flex-col gap-1.5">
                       {day.activities.map((item, idx) => (
@@ -583,24 +585,24 @@ export default function FloatingChatButton() {
                         day.meals.dinner) && (
                         <div className="mt-3 pt-3 border-t border-background-200">
                           <h5 className="text-xs font-semibold text-foreground-500 uppercase tracking-wide mb-1.5">
-                            Meals
+                            {t('auto_ffdd1f1a28', "Meals")}
                           </h5>
                           <ul className="flex flex-col gap-1">
                             {day.meals.breakfast && (
                               <li className="text-sm text-foreground-700 leading-relaxed">
-                                <span className="font-medium">Breakfast:</span>{' '}
+                                <span className="font-medium">{t('auto_d0fb39109e', "Breakfast:")}</span>{' '}
                                 {day.meals.breakfast.suggestion}
                               </li>
                             )}
                             {day.meals.lunch && (
                               <li className="text-sm text-foreground-700 leading-relaxed">
-                                <span className="font-medium">Lunch:</span>{' '}
+                                <span className="font-medium">{t('auto_1ede49e28a', "Lunch:")}</span>{' '}
                                 {day.meals.lunch.suggestion}
                               </li>
                             )}
                             {day.meals.dinner && (
                               <li className="text-sm text-foreground-700 leading-relaxed">
-                                <span className="font-medium">Dinner:</span>{' '}
+                                <span className="font-medium">{t('auto_b84ef89282', "Dinner:")}</span>{' '}
                                 {day.meals.dinner.suggestion}
                               </li>
                             )}
@@ -626,14 +628,14 @@ export default function FloatingChatButton() {
                 disabled={tripSaving}
                 className="flex-1 h-10 rounded-md border border-background-300 text-foreground-700 hover:bg-background-100 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium transition-colors cursor-pointer whitespace-nowrap"
               >
-                Cancel
+                {t('auto_77dfd2135f', "Cancel")}
               </button>
               <button
                 onClick={handleSaveTrip}
                 disabled={tripSaving || !tripTitle.trim()}
                 className="flex-1 h-10 rounded-md bg-primary-500 hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium transition-colors cursor-pointer whitespace-nowrap"
               >
-                {tripSaving ? 'Saving...' : 'Save Trip'}
+                {tripSaving ? t('auto_ae7e887517', "Saving...") : t('auto_a2beb5e9e8', "Save Trip")}
               </button>
             </div>
           </div>
@@ -642,7 +644,7 @@ export default function FloatingChatButton() {
 
       <button
         onClick={() => setIsOpen((prev) => !prev)}
-        aria-label="Ask TABI AI"
+        aria-label={t('auto_84f39f1d72', "Ask TABI AI")}
         className="fixed bottom-6 right-4 md:right-6 z-[60] w-14 h-14 rounded-full bg-primary-500 hover:bg-primary-600 text-white flex items-center justify-center cursor-pointer transition-all duration-200"
       >
         <i className={`${isOpen ? 'ri-close-line' : 'ri-chat-3-line'} text-2xl`}></i>

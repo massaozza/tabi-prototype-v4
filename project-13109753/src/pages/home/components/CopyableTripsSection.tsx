@@ -1,9 +1,9 @@
-import { useContentTranslation, getTranslatedField } from '@/hooks/useContentTranslation';
 import { useTranslation } from 'react-i18next';
 import LocalizedLink from '@/components/feature/LocalizedLink';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { useAutoT, useAutoText } from '@/hooks/useAutoT';
 
 // TABI47：TOPページ「Trips You Can Copy」セクション。
 // カードはティーザーに徹する。写真・タグ・タイトル・概要・予算・CTAのみ。
@@ -64,10 +64,8 @@ const PLACEHOLDER_COLORS = [
 ];
 
 function TripCard({ trip, spotImages }: { trip: PublicTrip; spotImages: Map<string, string> }) {
-  const { t } = useTranslation();
-  const { translatedFields: cardTrans } = useContentTranslation('trip', trip.id, 'en');
-  const tb = (_id: string, field: string, original: string) =>
-    getTranslatedField(cardTrans, field, original);
+  const tx = useAutoText();
+  const t = useAutoT();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [copying, setCopying] = useState(false);
@@ -109,7 +107,7 @@ function TripCard({ trip, spotImages }: { trip: PublicTrip; spotImages: Map<stri
           {coverImages[0] ? (
             <img
               src={coverImages[0]}
-              alt={trip.title}
+              alt={tx(trip.title)}
               className="w-full h-full object-cover"
               style={{ gridRow: coverImages.length >= 2 ? '1 / 3' : '1' }}
             />
@@ -161,13 +159,13 @@ function TripCard({ trip, spotImages }: { trip: PublicTrip; spotImages: Map<stri
 
         {/* タイトル */}
         <LocalizedLink to={`/trips/${trip.id}`} className="font-heading font-bold text-base text-foreground-900 hover:text-primary-600 transition-colors leading-snug mb-1 block">
-          {tb(trip.id, "title", trip.title)}
+          {tx(trip.title)}
         </LocalizedLink>
 
         {/* 概要 */}
         {trip.summary && (
           <p className="text-xs text-foreground-500 leading-relaxed mb-3 line-clamp-2 flex-1">
-            {tb(trip.id, "summary", trip.summary || "")}
+            {tx(trip.summary || "")}
           </p>
         )}
 
@@ -182,11 +180,11 @@ function TripCard({ trip, spotImages }: { trip: PublicTrip; spotImages: Map<stri
             disabled={copying}
             className="w-full bg-primary-600 hover:bg-primary-700 disabled:opacity-60 text-white font-semibold text-sm px-4 py-2.5 rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-2"
           >
-            {copying ? 'Copying...' : <><i className="ri-add-line"></i>{t("copy_copyToMyTrip", "Copy to My Trip")}</>}
+            {copying ? t('auto_fb01738ac6', "Copying...") : <><i className="ri-add-line"></i>{t("copy_copyToMyTrip", "Copy to My Trip")}</>}
           </button>
           {error && <p className="text-xs text-red-600 mt-1.5">{error}</p>}
           <p className="text-xs text-foreground-400 mt-1.5 text-center">
-            See full itinerary before copying →{' '}
+            {t('auto_30ec984163', "See full itinerary before copying →")}{' '}
             <LocalizedLink to={`/trips/${trip.id}`} className="underline hover:text-foreground-600">{t("copy_viewTrip", "View trip")}</LocalizedLink>
           </p>
         </div>
@@ -196,7 +194,7 @@ function TripCard({ trip, spotImages }: { trip: PublicTrip; spotImages: Map<stri
 }
 
 export default function CopyableTripsSection() {
-  const { t } = useTranslation();
+  const t = useAutoT();
   const [trips, setTrips] = useState<PublicTrip[]>([]);
   const [spotImages, setSpotImages] = useState<Map<string, string>>(new Map());
   const [loading, setLoading] = useState(true);
@@ -248,7 +246,7 @@ export default function CopyableTripsSection() {
             </h2>
           </div>
           <p className="text-foreground-500 text-base mt-4 lg:mt-0 lg:max-w-sm">
-            Real itineraries from Japanese locals and travelers. Copy one, then make it yours.
+            {t('auto_d2bc2e9634', "Real itineraries from Japanese locals and travelers. Copy one, then make it yours.")}
           </p>
         </div>
 

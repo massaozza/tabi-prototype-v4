@@ -1,7 +1,8 @@
 import { useTranslation } from 'react-i18next';
+import { useAutoT } from '@/hooks/useAutoT';
 
 export default function HeroSection() {
-  const { t } = useTranslation();
+  const t = useAutoT();
 
   const handleOpenChat = () => {
     window.dispatchEvent(new CustomEvent('tabi:open-chat'));
@@ -11,8 +12,8 @@ export default function HeroSection() {
     <section className="relative w-full h-[600px] md:h-[700px] flex items-center overflow-hidden">
       <img
         src="https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=1600&q=80"
-        alt="Discover Japan beyond the guidebooks — TABI47"
-        title="TABI47 — Discover Japan Beyond the Guidebooks"
+        alt={t('auto_38bb1ba0cb', "Discover Japan beyond the guidebooks — TABI47")}
+        title={t('auto_4379bd3b67', "TABI47 — Discover Japan Beyond the Guidebooks")}
         className="absolute inset-0 w-full h-full object-cover object-center"
       />
       <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/35 to-black/55"></div>

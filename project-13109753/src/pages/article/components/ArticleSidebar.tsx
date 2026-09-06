@@ -1,4 +1,5 @@
-interface QuickFact {
+
+import { useAutoT } from '@/hooks/useAutoT';interface QuickFact {
   label: string;
   value: string;
 }
@@ -29,6 +30,7 @@ interface ArticleSidebarProps {
 }
 
 export default function ArticleSidebar({ quickFacts, topPick, relatedArticles }: ArticleSidebarProps) {
+  const t = useAutoT();
   return (
     <aside className="w-full lg:w-[320px] flex-shrink-0">
       <div className="lg:sticky lg:top-24 space-y-6">
@@ -83,7 +85,7 @@ export default function ArticleSidebar({ quickFacts, topPick, relatedArticles }:
         {relatedArticles && relatedArticles.length > 0 && (
           <div className="bg-background-50 border border-background-200 rounded-lg p-5">
             <h4 className="font-heading font-bold text-sm text-foreground-900 mb-4">
-              You Might Also Like
+              {t('auto_730fa9faf4', "You Might Also Like")}
             </h4>
             <div className="space-y-4">
               {relatedArticles.map((article, idx) => (

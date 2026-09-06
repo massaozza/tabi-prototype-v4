@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '@/components/feature/Navbar';
 import Footer from '@/components/feature/Footer';
+import { useAutoT, useAutoText } from '@/hooks/useAutoT';
 
 interface GuideSpot {
   spotId?: string;
@@ -34,7 +35,8 @@ export interface Guide {
 }
 
 export default function GuidesPage() {
-  const { t } = useTranslation();
+  const tx = useAutoText();
+  const t = useAutoT();
   const [guides, setGuides] = useState<Guide[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -72,24 +74,23 @@ export default function GuidesPage() {
         <div className="max-w-7xl mx-auto px-6 md:px-10 lg:px-20 text-center">
           <nav
             className="flex items-center justify-center gap-2 text-white/50 text-xs mb-6 flex-wrap"
-            aria-label="Breadcrumb"
+            aria-label={t('auto_c766e66518', "Breadcrumb")}
           >
             <Link to="/" className="hover:text-white/80 transition-colors whitespace-nowrap">
-              Home
+              {t('auto_70f8bb9a8a', "Home")}
             </Link>
             <span className="text-white/30">/</span>
-            <span className="text-white whitespace-nowrap">{t("guides_title")}</span>
+            <span className="text-white whitespace-nowrap">{t("guides_title", "Guides")}</span>
           </nav>
 
           <span className="inline-block text-xs font-semibold tracking-widest uppercase text-accent-400 mb-3">
-            From Japanese Locals
+            {t('auto_ac7a5f3df0', "From Japanese Locals")}
           </span>
           <h1 className="font-heading font-bold text-3xl md:text-5xl text-white leading-tight mb-4">
-            {t("guides_localKnowledge", "Local Knowledge")}, <span className="text-primary-400">{t("guides_sharedBy")}</span>
+            {t("guides_localKnowledge", "Local Knowledge")}, <span className="text-primary-400">{t("guides_sharedBy", "Shared by Locals")}</span>
           </h1>
           <p className="text-white/60 text-base max-w-xl mx-auto leading-relaxed">
-            Written in Japanese by people who actually know the area, and brought to you in
-            English by TABI AI.
+            {t('auto_2fa54e396c', "Written in Japanese by people who actually know the area, and brought to you in English by TABI AI.")}
           </p>
 
           <Link
@@ -97,7 +98,7 @@ export default function GuidesPage() {
             className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-6 py-3 rounded-lg transition-colors mt-8 whitespace-nowrap"
           >
             <i className="ri-add-line"></i>
-            Share your Japan
+            {t('auto_40e4048bdc', "Share your Japan")}
           </Link>
         </div>
       </section>
@@ -127,17 +128,17 @@ export default function GuidesPage() {
                 <i className="ri-heart-line text-3xl text-foreground-400"></i>
               </span>
               <h2 className="font-heading font-bold text-xl md:text-2xl text-foreground-900 mb-2">
-                No guides yet
+                {t('auto_02aaa7acaf', "No guides yet")}
               </h2>
               <p className="text-foreground-500 text-sm mb-6">
-                Be the first Japanese local to share your knowledge with the world.
+                {t('auto_b8f6306872', "Be the first Japanese local to share your knowledge with the world.")}
               </p>
               <Link
                 to="/guides/new"
                 className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-6 py-3 rounded-lg transition-colors whitespace-nowrap"
               >
                 <i className="ri-add-line"></i>
-                Share your Japan
+                {t('auto_40e4048bdc', "Share your Japan")}
               </Link>
             </div>
           ) : (
@@ -152,7 +153,7 @@ export default function GuidesPage() {
                     {guide.photos && guide.photos.length > 0 ? (
                       <img
                         src={guide.photos[0]}
-                        alt={guide.title}
+                        alt={tx(guide.title)}
                         className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
                       />
                     ) : (
@@ -169,12 +170,12 @@ export default function GuidesPage() {
                       </span>
                       <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-background-100 text-foreground-600 whitespace-nowrap">
                         <i className="ri-map-pin-line"></i>
-                        {guide.area}
+                        {tx(guide.area)}
                       </span>
                     </div>
 
                     <h2 className="font-heading font-bold text-base md:text-lg text-foreground-900 mb-1 leading-snug line-clamp-2">
-                      {guide.title}
+                      {tx(guide.title)}
                     </h2>
 
                     <p className="text-foreground-600 text-sm leading-relaxed line-clamp-2 mb-4">

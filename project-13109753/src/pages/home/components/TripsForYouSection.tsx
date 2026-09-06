@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useAutoT } from '@/hooks/useAutoT';
 
 interface PublicTrip {
   id: string;
@@ -10,6 +11,7 @@ interface PublicTrip {
 }
 
 export default function TripsForYouSection() {
+  const t = useAutoT();
   const [trips, setTrips] = useState<PublicTrip[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -44,14 +46,13 @@ export default function TripsForYouSection() {
       <div className="max-w-7xl mx-auto">
         <div className="mb-12">
           <span className="inline-block text-xs font-semibold tracking-widest uppercase text-accent-600 mb-3">
-            Real Itineraries
+            {t('auto_94e33f4416', "Real Itineraries")}
           </span>
           <h2 className="font-heading font-bold text-3xl md:text-5xl text-foreground-900 leading-tight">
-            Trips for <span className="text-primary-500">You</span>
+            {t('auto_3eb0246009', "Trips for")}{' '}<span className="text-primary-500">{t('auto_905cb326c7', "You")}</span>
           </h2>
           <p className="text-foreground-500 text-base mt-3 max-w-xl">
-            Real trips planned and completed by actual travelers — copy them, remix them, or make
-            them yours.
+            {t('auto_e10b8ea6a4', "Real trips planned and completed by actual travelers — copy them, remix them, or make them yours.")}
           </p>
         </div>
 
@@ -74,14 +75,14 @@ export default function TripsForYouSection() {
               <i className="ri-route-line text-3xl text-foreground-400"></i>
             </span>
             <p className="text-foreground-700 text-base mb-6">
-              まだ公開されたTripはありません。自分のTripを共有してみましょう
+              {t('auto_9fc09d03d4', "まだ公開されたTripはありません。自分のTripを共有してみましょう")}
             </p>
             <Link
               to="/share"
               className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-8 py-3.5 rounded-md transition-all duration-200 cursor-pointer whitespace-nowrap"
             >
               <i className="ri-share-line"></i>
-              Share your Trip
+              {t('auto_2f56eddb11', "Share your Trip")}
             </Link>
           </div>
         ) : (
@@ -109,11 +110,11 @@ export default function TripsForYouSection() {
                     <div className="flex items-center gap-4 text-sm text-foreground-500">
                       <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
                         <i className="ri-moon-line text-foreground-400"></i>
-                        {nights} night{nights === 1 ? '' : 's'}
+                        {nights}{' '}{t('auto_1be2a44cb5', "night")}{nights === 1 ? '' : 's'}
                       </span>
                       <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
                         <i className="ri-calendar-line text-foreground-400"></i>
-                        {days} day{days === 1 ? '' : 's'}
+                        {days}{' '}{t('auto_a2620cbc10', "day")}{days === 1 ? '' : 's'}
                       </span>
                     </div>
                   </div>

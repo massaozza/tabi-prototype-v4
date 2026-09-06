@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useAutoT } from '@/hooks/useAutoT';
 
 interface TocItem {
   number: string;
@@ -34,7 +35,7 @@ interface ArticleContentProps {
   sections?: ContentBlock[];
 }
 
-function renderContentBlock(block: ContentBlock, index: number) {
+function renderContentBlock(block: ContentBlock, index: number, t: (k: string, d?: string) => string) {
   switch (block.type) {
     case 'h2':
       return (
@@ -71,7 +72,7 @@ function renderContentBlock(block: ContentBlock, index: number) {
       return (
         <div key={index} className="bg-primary-50 border-l-4 border-primary-500 rounded-r-lg p-4 md:p-5 mb-6">
           <span className="text-xs font-bold tracking-wider uppercase text-primary-500 mb-2 block">
-            Pro Tip
+            {t('auto_072727fc22', "Pro Tip")}
           </span>
           <p className="text-foreground-700 text-sm leading-relaxed">
             {block.text}
@@ -83,7 +84,7 @@ function renderContentBlock(block: ContentBlock, index: number) {
       return (
         <div key={index} className="bg-accent-50 border-l-4 border-accent-500 rounded-r-lg p-4 md:p-5 mb-6">
           <span className="text-xs font-bold tracking-wider uppercase text-accent-600 mb-2 block">
-            Heads Up
+            {t('auto_006229a236', "Heads Up")}
           </span>
           <p className="text-foreground-700 text-sm leading-relaxed">
             {block.text}
@@ -154,6 +155,7 @@ function renderContentBlock(block: ContentBlock, index: number) {
 }
 
 export default function ArticleContent({ tocItems, sections }: ArticleContentProps) {
+  const t = useAutoT();
   const [activeId, setActiveId] = useState<string>('');
   const observerRef = useRef<IntersectionObserver | null>(null);
 
@@ -188,7 +190,7 @@ export default function ArticleContent({ tocItems, sections }: ArticleContentPro
       {tocItems && tocItems.length > 0 && (
         <div className="bg-background-50 border border-background-200 rounded-lg p-5 mb-10">
           <h4 className="font-heading font-bold text-sm text-foreground-900 mb-4">
-            In This Guide
+            {t('auto_92a14d297d', "In This Guide")}
           </h4>
           <nav className="space-y-2">
             {tocItems.map((item) => (
@@ -212,7 +214,7 @@ export default function ArticleContent({ tocItems, sections }: ArticleContentPro
       )}
 
       <div id="review">
-        {sections?.map((block, index) => renderContentBlock(block, index))}
+        {sections?.map((block, index) => renderContentBlock(block, index, t))}
       </div>
     </div>
   );

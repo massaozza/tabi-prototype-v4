@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import PhotoUploader from './components/PhotoUploader';
 import VideoUploader from './components/VideoUploader';
 import { destinations as fallbackDestinations } from '@/mocks/homeData';
+import { useAutoT } from '@/hooks/useAutoT';
 
 const CATEGORY_OPTIONS = [
   'Temple',
@@ -68,6 +69,7 @@ function ReviewField({
 }
 
 export default function NewExperiencePage() {
+  const t = useAutoT();
   const navigate = useNavigate();
   const { user, loading } = useAuth();
 
@@ -131,7 +133,7 @@ export default function NewExperiencePage() {
       <main className="min-h-screen bg-background-50">
         <Navbar />
         <div className="flex items-center justify-center py-40">
-          <div className="text-foreground-500 text-sm">Loading...</div>
+          <div className="text-foreground-500 text-sm">{t('auto_b04ba49f84', "Loading...")}</div>
         </div>
         <Footer />
       </main>
@@ -230,19 +232,19 @@ export default function NewExperiencePage() {
         <div className="max-w-[960px] mx-auto text-center">
           <nav
             className="flex items-center justify-center gap-2 text-white/50 text-xs mb-6"
-            aria-label="Breadcrumb"
+            aria-label={t('auto_c766e66518', "Breadcrumb")}
           >
             <a href="/" className="hover:text-white/80 transition-colors cursor-pointer">
-              Home
+              {t('auto_70f8bb9a8a', "Home")}
             </a>
             <span className="text-white/30">/</span>
-            <span className="text-white">Share Experience</span>
+            <span className="text-white">{t('auto_ed45fe1001', "Share Experience")}</span>
           </nav>
           <h1 className="font-heading font-bold text-3xl md:text-4xl text-white mt-3 leading-tight">
-            Share Your Experience
+            {t('auto_b6d04e43e4', "Share Your Experience")}
           </h1>
           <p className="text-white/60 text-sm md:text-base mt-3 max-w-md mx-auto">
-            Tell fellow travelers what it was really like — the good, the hard, and the unexpected.
+            {t('auto_57a2073714', "Tell fellow travelers what it was really like — the good, the hard, and the unexpected.")}
           </p>
         </div>
       </section>
@@ -266,14 +268,14 @@ export default function NewExperiencePage() {
               {/* Place */}
               <div className="space-y-5">
                 <h4 className="font-heading font-semibold text-base text-foreground-900">
-                  The Place
+                  {t('auto_c600056ee6', "The Place")}
                 </h4>
                 <div>
                   <label
                     htmlFor="placeName"
                     className="block font-heading font-semibold text-sm text-foreground-700 mb-2"
                   >
-                    Place Name <span className="text-red-500">*</span>
+                    {t('auto_93260c48af', "Place Name")}{' '}<span className="text-red-500">*</span>
                   </label>
                   <input
                     id="placeName"
@@ -286,7 +288,7 @@ export default function NewExperiencePage() {
                       setPlaceName(e.target.value);
                       setSpotId(matched?.id);
                     }}
-                    placeholder="e.g., Tsurugaoka Hachimangu Shrine"
+                    placeholder={t('auto_5001184590', "e.g., Tsurugaoka Hachimangu Shrine")}
                     required
                     className={inputClass}
                   />
@@ -298,7 +300,7 @@ export default function NewExperiencePage() {
                   {spotId && (
                     <p className="text-xs text-emerald-600 mt-1 flex items-center gap-1">
                       <i className="ri-checkbox-circle-fill"></i>
-                      Linked to an existing Spot on TABI
+                      {t('auto_5f174c30fb', "Linked to an existing Spot on TABI")}
                     </p>
                   )}
                 </div>
@@ -309,7 +311,7 @@ export default function NewExperiencePage() {
                       htmlFor="area"
                       className="block font-heading font-semibold text-sm text-foreground-700 mb-2"
                     >
-                      Area
+                      {t('auto_2745debaa6', "Area")}
                     </label>
                     <input
                       id="area"
@@ -317,7 +319,7 @@ export default function NewExperiencePage() {
                       type="text"
                       value={area}
                       onChange={(e) => setArea(e.target.value)}
-                      placeholder="e.g., Kamakura, Kanagawa"
+                      placeholder={t('auto_c126d6ba3d', "e.g., Kamakura, Kanagawa")}
                       className={inputClass}
                     />
                   </div>
@@ -327,7 +329,7 @@ export default function NewExperiencePage() {
                       htmlFor="category"
                       className="block font-heading font-semibold text-sm text-foreground-700 mb-2"
                     >
-                      Category <span className="text-red-500">*</span>
+                      {t('auto_a3c686e711', "Category")}{' '}<span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
                       <select
@@ -352,7 +354,7 @@ export default function NewExperiencePage() {
               {/* Trip details */}
               <div className="space-y-5 pt-6 border-t border-background-200">
                 <h4 className="font-heading font-semibold text-base text-foreground-900">
-                  Your Trip
+                  {t('auto_49d325a04c', "Your Trip")}
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   <div>
@@ -360,7 +362,7 @@ export default function NewExperiencePage() {
                       htmlFor="visitedMonth"
                       className="block font-heading font-semibold text-sm text-foreground-700 mb-2"
                     >
-                      Visited Month <span className="text-red-500">*</span>
+                      {t('auto_e0381e347a', "Visited Month")}{' '}<span className="text-red-500">*</span>
                     </label>
                     <input
                       id="visitedMonth"
@@ -378,7 +380,7 @@ export default function NewExperiencePage() {
                       htmlFor="travelStyle"
                       className="block font-heading font-semibold text-sm text-foreground-700 mb-2"
                     >
-                      Travel Style <span className="text-red-500">*</span>
+                      {t('auto_0a84fb83b3', "Travel Style")}{' '}<span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
                       <select
@@ -405,7 +407,7 @@ export default function NewExperiencePage() {
                       htmlFor="companions"
                       className="block font-heading font-semibold text-sm text-foreground-700 mb-2"
                     >
-                      Companions
+                      {t('auto_759f9cdcb4', "Companions")}
                     </label>
                     <input
                       id="companions"
@@ -413,7 +415,7 @@ export default function NewExperiencePage() {
                       type="text"
                       value={companions}
                       onChange={(e) => setCompanions(e.target.value)}
-                      placeholder="e.g., partner and 2 kids (ages 4, 7)"
+                      placeholder={t('auto_e1c717cbc1', "e.g., partner and 2 kids (ages 4, 7)")}
                       className={inputClass}
                     />
                   </div>
@@ -423,7 +425,7 @@ export default function NewExperiencePage() {
                       htmlFor="budgetLevel"
                       className="block font-heading font-semibold text-sm text-foreground-700 mb-2"
                     >
-                      Budget Level
+                      {t('auto_e9c10e8cc6', "Budget Level")}
                     </label>
                     <div className="relative">
                       <select
@@ -435,7 +437,7 @@ export default function NewExperiencePage() {
                       >
                         {BUDGET_OPTIONS.map((opt) => (
                           <option key={opt || 'empty'} value={opt}>
-                            {opt || 'Not specified'}
+                            {opt || t('auto_60f1e913db', "Not specified")}
                           </option>
                         ))}
                       </select>
@@ -448,7 +450,7 @@ export default function NewExperiencePage() {
               {/* Impressions */}
               <div className="space-y-5 pt-6 border-t border-background-200">
                 <h4 className="font-heading font-semibold text-base text-foreground-900">
-                  Your Impressions
+                  {t('auto_52db6ca9c6', "Your Impressions")}
                 </h4>
                 <div>
                   <div className="flex items-center justify-between mb-2">
@@ -456,7 +458,7 @@ export default function NewExperiencePage() {
                       htmlFor="whatWasGood"
                       className="block font-heading font-semibold text-sm text-foreground-700"
                     >
-                      What was good? <span className="text-red-500">*</span>
+                      {t('auto_b14e7ae057', "What was good?")}{' '}<span className="text-red-500">*</span>
                     </label>
                     <span className="text-xs text-foreground-400">
                       {whatWasGood.length} / {MAX_TEXT_LENGTH}
@@ -467,7 +469,7 @@ export default function NewExperiencePage() {
                     name="whatWasGood"
                     value={whatWasGood}
                     onChange={(e) => setWhatWasGood(e.target.value)}
-                    placeholder="Share what you loved about it..."
+                    placeholder={t('auto_84d6a8c633', "Share what you loved about it...")}
                     required
                     maxLength={MAX_TEXT_LENGTH}
                     rows={4}
@@ -481,7 +483,7 @@ export default function NewExperiencePage() {
                       htmlFor="whatWasHard"
                       className="block font-heading font-semibold text-sm text-foreground-700"
                     >
-                      What was hard? / What surprised you?
+                      {t('auto_8112cd3575', "What was hard? / What surprised you?")}
                     </label>
                     <span className="text-xs text-foreground-400">
                       {whatWasHard.length} / {MAX_TEXT_LENGTH}
@@ -492,7 +494,7 @@ export default function NewExperiencePage() {
                     name="whatWasHard"
                     value={whatWasHard}
                     onChange={(e) => setWhatWasHard(e.target.value)}
-                    placeholder="Anything difficult, unexpected, or worth knowing?"
+                    placeholder={t('auto_538307f4fe', "Anything difficult, unexpected, or worth knowing?")}
                     maxLength={MAX_TEXT_LENGTH}
                     rows={4}
                     className={`${inputClass} resize-y`}
@@ -505,7 +507,7 @@ export default function NewExperiencePage() {
                       htmlFor="tip"
                       className="block font-heading font-semibold text-sm text-foreground-700"
                     >
-                      Tip for other travelers
+                      {t('auto_dd62209a10', "Tip for other travelers")}
                     </label>
                     <span className="text-xs text-foreground-400">
                       {tip.length} / {MAX_TEXT_LENGTH}
@@ -516,7 +518,7 @@ export default function NewExperiencePage() {
                     name="tip"
                     value={tip}
                     onChange={(e) => setTip(e.target.value)}
-                    placeholder="A little advice to make their visit smoother..."
+                    placeholder={t('auto_d8ca5b122b', "A little advice to make their visit smoother...")}
                     maxLength={MAX_TEXT_LENGTH}
                     rows={3}
                     className={`${inputClass} resize-y`}
@@ -527,7 +529,7 @@ export default function NewExperiencePage() {
               {/* Recommendation */}
               <div className="pt-6 border-t border-background-200">
                 <span className="block font-heading font-semibold text-sm text-foreground-700 mb-3">
-                  Would you recommend this?
+                  {t('auto_c4a41a6907', "Would you recommend this?")}
                 </span>
                 <div className="inline-flex rounded-full bg-background-100 p-1">
                   <button
@@ -539,7 +541,7 @@ export default function NewExperiencePage() {
                         : 'text-foreground-600 hover:text-foreground-900'
                     }`}
                   >
-                    Yes
+                    {t('auto_5397e0583f', "Yes")}
                   </button>
                   <button
                     type="button"
@@ -561,7 +563,7 @@ export default function NewExperiencePage() {
                   htmlFor="experience-photos"
                   className="block font-heading font-semibold text-sm text-foreground-700 mb-3"
                 >
-                  Photos
+                  {t('auto_c8b2e864ec', "Photos")}
                 </label>
                 <PhotoUploader
                   key={uploaderKey}
@@ -573,7 +575,7 @@ export default function NewExperiencePage() {
               {/* Videos */}
               <div className="pt-6 border-t border-background-200">
                 <label className="block font-heading font-semibold text-sm text-foreground-700 mb-3">
-                  Videos (optional)
+                  {t('auto_c48ac2cd64', "Videos (optional)")}
                 </label>
                 <VideoUploader
                   key={uploaderKey}
@@ -587,7 +589,7 @@ export default function NewExperiencePage() {
                 disabled={!canReview}
                 className="w-full bg-primary-500 hover:bg-primary-600 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold text-sm px-6 py-3 rounded-md transition-all duration-200 whitespace-nowrap cursor-pointer"
               >
-                {photosUploading || videosUploading ? 'Uploading...' : 'Review Your Experience'}
+                {photosUploading || videosUploading ? t('auto_070e328ec8', "Uploading...") : t('auto_22506d6ddb', "Review Your Experience")}
               </button>
             </form>
           </div>
@@ -596,10 +598,10 @@ export default function NewExperiencePage() {
           {step === 'review' && (
             <div className="bg-background-50 border border-background-200 rounded-lg p-6 md:p-10">
               <h2 className="font-heading font-bold text-2xl text-foreground-900">
-                Review Your Experience
+                {t('auto_22506d6ddb', "Review Your Experience")}
               </h2>
               <p className="text-sm text-foreground-500 mt-2 mb-6">
-                Please check your details before posting.
+                {t('auto_d0e047e78d', "Please check your details before posting.")}
               </p>
 
               {error && (
@@ -609,39 +611,39 @@ export default function NewExperiencePage() {
               )}
 
               <div className="bg-background-50 border border-background-200 rounded-md px-5 py-2">
-                <ReviewField label="Place Name" value={placeName.trim()} />
-                {areaLabel !== '' && <ReviewField label="Area" value={areaLabel} />}
-                <ReviewField label="Category" value={category} />
-                <ReviewField label="Visited Month" value={visitedMonth} />
-                <ReviewField label="Travel Style" value={travelStyle} />
+                <ReviewField label={t('auto_93260c48af', "Place Name")} value={placeName.trim()} />
+                {areaLabel !== '' && <ReviewField label={t('auto_2745debaa6', "Area")} value={areaLabel} />}
+                <ReviewField label={t('auto_a3c686e711', "Category")} value={category} />
+                <ReviewField label={t('auto_e0381e347a', "Visited Month")} value={visitedMonth} />
+                <ReviewField label={t('auto_0a84fb83b3', "Travel Style")} value={travelStyle} />
                 {companions.trim() !== '' && (
-                  <ReviewField label="Companions" value={companions.trim()} />
+                  <ReviewField label={t('auto_759f9cdcb4', "Companions")} value={companions.trim()} />
                 )}
-                {budgetLevel !== '' && <ReviewField label="Budget Level" value={budgetLevel} />}
-                <ReviewField label="What was good?" value={whatWasGood.trim()} multiline />
+                {budgetLevel !== '' && <ReviewField label={t('auto_e9c10e8cc6', "Budget Level")} value={budgetLevel} />}
+                <ReviewField label={t('auto_b14e7ae057', "What was good?")} value={whatWasGood.trim()} multiline />
                 {whatWasHard.trim() !== '' && (
-                  <ReviewField label="What was hard?" value={whatWasHard.trim()} multiline />
+                  <ReviewField label={t('auto_db8d543c39', "What was hard?")} value={whatWasHard.trim()} multiline />
                 )}
                 {tip.trim() !== '' && (
-                  <ReviewField label="Tip" value={tip.trim()} multiline />
+                  <ReviewField label={t('auto_d19ceca501', "Tip")} value={tip.trim()} multiline />
                 )}
                 <ReviewField
-                  label="Would you recommend?"
-                  value={wouldRecommend ? 'Yes' : 'No'}
+                  label={t('auto_24ec09f7c5', "Would you recommend?")}
+                  value={wouldRecommend ? t('auto_5397e0583f', "Yes") : t('auto_816c52fd2b', "No")}
                 />
               </div>
 
               {photoUrls.length > 0 && (
                 <div className="mt-6">
                   <span className="block font-heading font-semibold text-sm text-foreground-700 mb-3">
-                    Photos ({photoUrls.length})
+                    {t('auto_9d5a0c6035', "Photos (")}{photoUrls.length})
                   </span>
                   <div className="flex flex-wrap gap-3">
                     {photoUrls.map((url) => (
                       <img
                         key={url}
                         src={url}
-                        alt="Uploaded photo"
+                        alt={t('auto_766150b78f', "Uploaded photo")}
                         className="w-24 h-24 rounded-md object-cover border border-background-200"
                       />
                     ))}
@@ -656,7 +658,7 @@ export default function NewExperiencePage() {
                   disabled={submitting}
                   className="w-full sm:w-auto px-6 py-3 rounded-md border border-background-300 text-foreground-700 font-semibold text-sm hover:bg-background-100 transition-colors duration-200 whitespace-nowrap cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  ← Edit
+                  {t('auto_da0a6cef02', "← Edit")}
                 </button>
                 <button
                   type="button"
@@ -664,7 +666,7 @@ export default function NewExperiencePage() {
                   disabled={submitting}
                   className="w-full sm:w-auto flex-1 bg-primary-500 hover:bg-primary-600 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold text-sm px-6 py-3 rounded-md transition-all duration-200 whitespace-nowrap cursor-pointer"
                 >
-                  {submitting ? 'Posting...' : 'Confirm & Post'}
+                  {submitting ? t('auto_987e82e939', "Posting...") : t('auto_0c4e07dfdc', "Confirm & Post")}
                 </button>
               </div>
             </div>
@@ -677,10 +679,10 @@ export default function NewExperiencePage() {
                 <i className="ri-checkbox-circle-line text-4xl"></i>
               </div>
               <h2 className="font-heading font-bold text-2xl md:text-3xl text-foreground-900 mt-6">
-                Your experience has been posted!
+                {t('auto_c590501013', "Your experience has been posted!")}
               </h2>
               <p className="text-sm text-foreground-500 mt-3 max-w-sm mx-auto">
-                Thank you for sharing your experience with other travelers.
+                {t('auto_0a1736ffb0', "Thank you for sharing your experience with other travelers.")}
               </p>
 
               <div className="flex flex-col sm:flex-row gap-3 mt-8 justify-center">
@@ -689,14 +691,14 @@ export default function NewExperiencePage() {
                   onClick={resetForm}
                   className="w-full sm:w-auto px-6 py-3 rounded-md border border-background-300 text-foreground-700 font-semibold text-sm hover:bg-background-100 transition-colors duration-200 whitespace-nowrap cursor-pointer"
                 >
-                  Share Another Experience
+                  {t('auto_94ae38f3f8', "Share Another Experience")}
                 </button>
                 <button
                   type="button"
                   onClick={() => navigate('/')}
                   className="w-full sm:w-auto bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-6 py-3 rounded-md transition-all duration-200 whitespace-nowrap cursor-pointer"
                 >
-                  Back to Home
+                  {t('auto_ce7472d6a6', "Back to Home")}
                 </button>
               </div>
             </div>

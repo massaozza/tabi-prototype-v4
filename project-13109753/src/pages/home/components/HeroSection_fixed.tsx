@@ -1,4 +1,6 @@
-export default function HeroSection() {
+
+import { useAutoT } from '@/hooks/useAutoT';export default function HeroSection() {
+  const t = useAutoT();
   const handleOpenChat = () => {
     window.dispatchEvent(new CustomEvent('tabi:open-chat'));
   };
@@ -7,8 +9,8 @@ export default function HeroSection() {
     <section className="relative w-full h-[600px] md:h-[700px] flex items-center overflow-hidden">
       <img
         src="https://readdy.ai/api/search-image?query=Stunning%20Japanese%20landscape%20with%20Mount%20Fuji%20in%20the%20distance%20visible%20across%20a%20calm%20ocean%20bay%2C%20traditional%20wooden%20temple%20roof%20silhouette%20in%20foreground%2C%20golden%20hour%20warm%20sunlight%20washing%20over%20the%20scene%2C%20cherry%20blossom%20branches%20framing%20the%20edges%2C%20soft%20atmospheric%20haze%2C%20moody%20and%20inviting%20travel%20photography%20aesthetic&width=1600&height=900&seq=hero-japan-01&orientation=landscape"
-        alt="Discover Japan beyond the guidebooks — TABI"
-        title="TABI — Discover Japan Beyond the Guidebooks"
+        alt={t('auto_01e32e3310', "Discover Japan beyond the guidebooks — TABI")}
+        title={t('auto_db0d19b657', "TABI — Discover Japan Beyond the Guidebooks")}
         className="absolute inset-0 w-full h-full object-cover object-top"
       />
       <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/35 to-black/55"></div>
@@ -27,15 +29,15 @@ export default function HeroSection() {
                 <img src="https://readdy.ai/api/search-image?query=Friendly%20female%20traveler%20portrait%20young%20woman%20with%20glasses%20smiling%2C%20clean%20white%20background%2C%20professional%20headshot%20style%2C%20natural%20lighting&width=72&height=72&seq=avatar-03&orientation=squarish" alt="" className="w-full h-full object-cover" />
               </div>
             </div>
-            <span className="text-white/90 text-sm">Trusted by travelers and locals across Japan</span>
+            <span className="text-white/90 text-sm">{t('auto_fbba5b543e', "Trusted by travelers and locals across Japan")}</span>
           </div>
 
           <h2 className="font-heading font-bold text-4xl md:text-6xl lg:text-7xl text-white leading-tight mb-6">
-            Discover Japan<br className="hidden sm:block" /> your way.
+            {t('auto_97b3499de8', "Discover Japan")}<br className="hidden sm:block" />{' '}{t('auto_944785c204', "your way.")}
           </h2>
 
           <p className="text-white/85 text-base md:text-lg leading-relaxed max-w-xl mx-auto mb-10">
-            Powered by AI, real travelers, and the people who know Japan best.
+            {t('auto_9a9868853f', "Powered by AI, real travelers, and the people who know Japan best.")}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -46,10 +48,10 @@ export default function HeroSection() {
             >
               <span className="flex items-center gap-2 text-base">
                 <i className="ri-sparkling-2-line"></i>
-                Plan with AI
+                {t('auto_b93eb2cfb0', "Plan with AI")}
               </span>
               <span className="text-white/80 text-xs font-normal">
-                Create a Japan trip made for you
+                {t('auto_7d069c5c9f', "Create a Japan trip made for you")}
               </span>
             </button>
 
@@ -59,10 +61,10 @@ export default function HeroSection() {
             >
               <span className="flex items-center gap-2 text-base">
                 <i className="ri-compass-3-line"></i>
-                Discover Japan
+                {t('auto_97b3499de8', "Discover Japan")}
               </span>
               <span className="text-white/70 text-xs font-normal">
-                Explore real trips and local knowledge
+                {t('auto_c4a9d6cbc8', "Explore real trips and local knowledge")}
               </span>
             </a>
           </div>

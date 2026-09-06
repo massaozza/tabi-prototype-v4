@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import PhotoUploader from '@/pages/experiences/new/components/PhotoUploader';
 import VideoUploader from '@/pages/experiences/new/components/VideoUploader';
 import { destinations as fallbackDestinations } from '@/mocks/homeData';
+import { useAutoT } from '@/hooks/useAutoT';
 
 // TABI 3.0：日本人クリエイター向けの、体験投稿フォーム（日本語版）。
 // 既存の /experiences/new（英語・外国人向け）と、ロジック・API呼び出しは
@@ -77,6 +78,7 @@ function ReviewField({
 }
 
 export default function NewExperiencePageJa() {
+  const t = useAutoT();
   const navigate = useNavigate();
   const { user, loading } = useAuth();
 
@@ -239,7 +241,7 @@ export default function NewExperiencePageJa() {
         <div className="max-w-[960px] mx-auto text-center">
           <nav
             className="flex items-center justify-center gap-2 text-white/50 text-xs mb-6"
-            aria-label="Breadcrumb"
+            aria-label={t('auto_c766e66518', "Breadcrumb")}
           >
             <a href="/creators" className="hover:text-white/80 transition-colors cursor-pointer">
               ホーム
@@ -308,7 +310,7 @@ export default function NewExperiencePageJa() {
                   {spotId && (
                     <p className="text-xs text-emerald-600 mt-1 flex items-center gap-1">
                       <i className="ri-checkbox-circle-fill"></i>
-                      TABIの既存SPOTと紐づきました
+                      {t('auto_9f08e92095', "TABIの既存SPOTと紐づきました")}
                     </p>
                   )}
                 </div>

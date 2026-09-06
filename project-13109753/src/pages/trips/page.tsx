@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/feature/Navbar';
 import Footer from '@/components/feature/Footer';
 import { useAuth } from '@/context/AuthContext';
+import { useAutoT, useAutoText } from '@/hooks/useAutoT';
 
 interface PublicTrip {
   id: string;
@@ -19,6 +20,8 @@ interface PublicTrip {
 }
 
 function PublicTripCard({ trip }: { trip: PublicTrip }) {
+  const t = useAutoT();
+  const tx = useAutoText();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
@@ -75,7 +78,7 @@ function PublicTripCard({ trip }: { trip: PublicTrip }) {
         to={`/trips/${trip.id}`}
         className="font-heading font-bold text-lg text-foreground-900 mb-2 hover:text-primary-600 transition-colors block"
       >
-        {trip.title}
+        {tx(trip.title)}
       </Link>
       <p className="text-foreground-600 text-sm leading-relaxed mb-4 line-clamp-3 flex-1">
         {trip.summary || ''}
@@ -103,7 +106,7 @@ function PublicTripCard({ trip }: { trip: PublicTrip }) {
           className="flex-1 inline-flex items-center justify-center gap-1.5 bg-background-100 hover:bg-background-200 disabled:opacity-60 text-foreground-800 font-semibold text-xs px-3 py-2 rounded-md transition-colors cursor-pointer whitespace-nowrap"
         >
           <i className={saved ? 'ri-bookmark-fill' : 'ri-bookmark-line'}></i>
-          {saved ? 'Saved' : saving ? 'Saving...' : 'Save'}
+          {saved ? t('auto_c0ae8f6ea8', "Saved") : saving ? t('auto_ae7e887517', "Saving...") : t('auto_efc007a393', "Save")}
         </button>
         <button
           onClick={handleCopy}
@@ -111,7 +114,7 @@ function PublicTripCard({ trip }: { trip: PublicTrip }) {
           className="flex-1 inline-flex items-center justify-center gap-1.5 bg-primary-500 hover:bg-primary-600 disabled:opacity-60 text-white font-semibold text-xs px-3 py-2 rounded-md transition-colors cursor-pointer whitespace-nowrap"
         >
           <i className="ri-file-copy-line"></i>
-          {copying ? 'Copying...' : 'Copy to My Trip'}
+          {copying ? t('auto_fb01738ac6', "Copying...") : t('auto_320810138f', "Copy to My Trip")}
         </button>
       </div>
     </div>
@@ -119,7 +122,7 @@ function PublicTripCard({ trip }: { trip: PublicTrip }) {
 }
 
 export default function PublicTripsPage() {
-  const { t } = useTranslation();
+  const t = useAutoT();
   const [trips, setTrips] = useState<PublicTrip[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -153,24 +156,23 @@ export default function PublicTripsPage() {
         <div className="max-w-7xl mx-auto px-6 md:px-10 lg:px-20 text-center">
           <nav
             className="flex items-center justify-center gap-2 text-white/50 text-xs mb-6 flex-wrap"
-            aria-label="Breadcrumb"
+            aria-label={t('auto_c766e66518', "Breadcrumb")}
           >
             <Link to="/" className="hover:text-white/80 transition-colors whitespace-nowrap">
               {t("common_home", "Home")}
             </Link>
             <span className="text-white/30">/</span>
-            <span className="text-white whitespace-nowrap">{t("trips_title")}</span>
+            <span className="text-white whitespace-nowrap">{t("trips_title", "Trips")}</span>
           </nav>
 
           <span className="inline-block text-xs font-semibold tracking-widest uppercase text-accent-400 mb-3">
             {t("trips_realTrips", "Real Trips, Real Travelers")}
           </span>
           <h1 className="font-heading font-bold text-3xl md:text-5xl text-white leading-tight mb-4">
-            Trips <span className="text-primary-400">{t("trips_sharedBy")}</span>
+            {t('auto_d82b7e45c1', "Trips")}{' '}<span className="text-primary-400">{t("trips_sharedBy", "from Real Travelers")}</span>
           </h1>
           <p className="text-white/60 text-base max-w-xl mx-auto leading-relaxed">
-            Real itineraries from travelers who have actually been to Japan. Save one,
-            or copy it to your own My Trip and customize it with AI.
+            {t('auto_c3da11466f', "Real itineraries from travelers who have actually been to Japan. Save one, or copy it to your own My Trip and customize it with AI.")}
           </p>
         </div>
       </section>
@@ -195,7 +197,7 @@ export default function PublicTripsPage() {
                 {t("trips_noTrips", "No trips shared yet")}
               </h2>
               <p className="text-foreground-500 text-sm mb-6 max-w-sm mx-auto">
-                Be the first traveler to share your Japan trip and help others plan theirs.
+                {t('auto_9e74e8e2c9', "Be the first traveler to share your Japan trip and help others plan theirs.")}
               </p>
               <Link
                 to="/share"

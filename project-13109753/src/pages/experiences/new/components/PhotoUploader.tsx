@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useAutoT } from '@/hooks/useAutoT';
 
 export const MAX_PHOTOS = 10;
 
@@ -19,6 +20,7 @@ export default function PhotoUploader({
   onPhotosChange,
   onUploadingChange,
 }: PhotoUploaderProps) {
+  const t = useAutoT();
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const [tooManyError, setTooManyError] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -152,7 +154,7 @@ export default function PhotoUploader({
           >
             <img
               src={photo.previewUrl}
-              alt="Upload preview"
+              alt={t('auto_0917d214c1', "Upload preview")}
               className="w-full h-full object-cover"
             />
             {photo.status === 'uploading' && (
@@ -170,7 +172,7 @@ export default function PhotoUploader({
                 type="button"
                 onClick={() => removePhoto(photo.id)}
                 className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 transition-colors cursor-pointer"
-                aria-label="Remove photo"
+                aria-label={t('auto_c8f5eda8ac', "Remove photo")}
               >
                 <i className="ri-close-line text-sm"></i>
               </button>
@@ -184,7 +186,7 @@ export default function PhotoUploader({
             className="w-24 h-24 rounded-md border-2 border-dashed border-background-300 flex flex-col items-center justify-center gap-1 text-foreground-400 hover:border-primary-400 hover:text-primary-500 transition-colors cursor-pointer"
           >
             <i className="ri-image-add-line text-2xl"></i>
-            <span className="text-xs whitespace-nowrap">Add photos</span>
+            <span className="text-xs whitespace-nowrap">{t('auto_a59893579b', "Add photos")}</span>
           </label>
         )}
       </div>
@@ -194,7 +196,7 @@ export default function PhotoUploader({
       )}
 
       <p className="text-foreground-400 text-xs mt-2">
-        Up to {MAX_PHOTOS} photos ({photos.length}/{MAX_PHOTOS})
+        Up to {MAX_PHOTOS}{' '}{t('auto_8b8b6cca72', "photos (")}{photos.length}/{MAX_PHOTOS})
       </p>
     </div>
   );

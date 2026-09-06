@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useAutoT } from '@/hooks/useAutoT';
 
 interface Guide {
   id: string;
@@ -16,6 +17,7 @@ interface Creator {
 }
 
 export default function MeetCreatorsSection() {
+  const t = useAutoT();
   const [creators, setCreators] = useState<Creator[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -68,13 +70,13 @@ export default function MeetCreatorsSection() {
       <div className="max-w-7xl mx-auto">
         <div className="mb-12">
           <span className="inline-block text-xs font-semibold tracking-widest uppercase text-accent-600 mb-3">
-            The People Behind
+            {t('auto_13dd7dea56', "The People Behind")}
           </span>
           <h2 className="font-heading font-bold text-3xl md:text-5xl text-foreground-900 leading-tight">
-            Meet Japanese <span className="text-primary-500">Creators</span>
+            {t('auto_ddea830023', "Meet Japanese")}{' '}<span className="text-primary-500">{t('auto_029d528885', "Creators")}</span>
           </h2>
           <p className="text-foreground-500 text-base mt-3 max-w-xl">
-            Real creators sharing their knowledge of Japan with the world.
+            {t('auto_5c4db45c31', "Real creators sharing their knowledge of Japan with the world.")}
           </p>
         </div>
 
@@ -101,7 +103,7 @@ export default function MeetCreatorsSection() {
               className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-8 py-3.5 rounded-md transition-all duration-200 cursor-pointer whitespace-nowrap"
             >
               <i className="ri-add-line"></i>
-              Become a Creator
+              {t('auto_3183be0fbd', "Become a Creator")}
             </Link>
           </div>
         ) : (
@@ -126,7 +128,7 @@ export default function MeetCreatorsSection() {
                   )}
                   <span className="inline-flex items-center gap-1 text-accent-600 text-xs font-semibold mt-2 whitespace-nowrap">
                     <i className="ri-book-open-line"></i>
-                    {creator.guideCount} guide{creator.guideCount === 1 ? '' : 's'}
+                    {creator.guideCount}{' '}{t('auto_4956faddb7', "guide")}{creator.guideCount === 1 ? '' : 's'}
                   </span>
                 </div>
                 <i className="ri-arrow-right-s-line text-foreground-300 group-hover:text-primary-500 group-hover:translate-x-1 transition-all duration-200 text-xl flex-shrink-0"></i>

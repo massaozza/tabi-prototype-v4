@@ -3,8 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/feature/Navbar';
 import Footer from '@/components/feature/Footer';
 import { useAuth } from '@/context/AuthContext';
+import { useAutoT } from '@/hooks/useAutoT';
 
 export default function SignupPage() {
+  const t = useAutoT();
   const navigate = useNavigate();
   const { signup } = useAuth();
   const [displayName, setDisplayName] = useState('');
@@ -37,19 +39,19 @@ export default function SignupPage() {
         <div className="max-w-[960px] mx-auto text-center">
           <nav
             className="flex items-center justify-center gap-2 text-white/50 text-xs mb-6"
-            aria-label="Breadcrumb"
+            aria-label={t('auto_c766e66518', "Breadcrumb")}
           >
             <a href="/" className="hover:text-white/80 transition-colors cursor-pointer">
-              Home
+              {t('auto_70f8bb9a8a', "Home")}
             </a>
             <span className="text-white/30">/</span>
-            <span className="text-white">Sign up</span>
+            <span className="text-white">{t('auto_0b81497c85', "Sign up")}</span>
           </nav>
           <h1 className="font-heading font-bold text-3xl md:text-4xl text-white mt-3 leading-tight">
-            Join TABI
+            {t('auto_e648ee6470', "Join TABI")}
           </h1>
           <p className="text-white/60 text-sm md:text-base mt-3 max-w-md mx-auto">
-            Create an account to save your favorite destinations and plan your Japan trip.
+            {t('auto_c6d59ee137', "Create an account to save your favorite destinations and plan your Japan trip.")}
           </p>
         </div>
       </section>
@@ -63,7 +65,7 @@ export default function SignupPage() {
                   htmlFor="displayName"
                   className="block font-heading font-semibold text-sm text-foreground-700 mb-2"
                 >
-                  Display Name
+                  {t('auto_8d6b34815b', "Display Name")}
                 </label>
                 <input
                   id="displayName"
@@ -71,7 +73,7 @@ export default function SignupPage() {
                   type="text"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="Your name"
+                  placeholder={t('auto_ab42293e29', "Your name")}
                   required
                   className={inputClass}
                 />
@@ -82,7 +84,7 @@ export default function SignupPage() {
                   htmlFor="email"
                   className="block font-heading font-semibold text-sm text-foreground-700 mb-2"
                 >
-                  Email
+                  {t('auto_84add5b295', "Email")}
                 </label>
                 <input
                   id="email"
@@ -90,7 +92,7 @@ export default function SignupPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
+                  placeholder={t('auto_50e2b46ef8', "you@example.com")}
                   required
                   className={inputClass}
                 />
@@ -101,7 +103,7 @@ export default function SignupPage() {
                   htmlFor="password"
                   className="block font-heading font-semibold text-sm text-foreground-700 mb-2"
                 >
-                  Password
+                  {t('auto_8be3c943b1', "Password")}
                 </label>
                 <input
                   id="password"
@@ -109,13 +111,13 @@ export default function SignupPage() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="At least 8 characters"
+                  placeholder={t('auto_1fe494b252', "At least 8 characters")}
                   required
                   minLength={8}
                   className={inputClass}
                 />
                 <p className="text-foreground-400 text-xs mt-2">
-                  Must be at least 8 characters.
+                  {t('auto_cc3d5773c9', "Must be at least 8 characters.")}
                 </p>
               </div>
 
@@ -130,15 +132,15 @@ export default function SignupPage() {
                 disabled={submitting}
                 className="w-full bg-primary-500 hover:bg-primary-600 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold text-sm px-6 py-3 rounded-md transition-all duration-200 whitespace-nowrap cursor-pointer"
               >
-                {submitting ? 'Creating account...' : 'Create account'}
+                {submitting ? t('auto_27b8a2d710', "Creating account...") : t('auto_aaf3744797', "Create account")}
               </button>
             </form>
           </div>
 
           <p className="text-center text-sm text-foreground-500 mt-6">
-            Already have an account?{' '}
+            {t('auto_8559034a07', "Already have an account?")}{' '}
             <a href="/login" className="text-primary-500 hover:text-primary-600 font-semibold transition-colors cursor-pointer">
-              Log in
+              {t('auto_f7c400ed69', "Log in")}
             </a>
           </p>
         </div>

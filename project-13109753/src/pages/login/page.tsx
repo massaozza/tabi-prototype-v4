@@ -3,8 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/feature/Navbar';
 import Footer from '@/components/feature/Footer';
 import { useAuth } from '@/context/AuthContext';
+import { useAutoT } from '@/hooks/useAutoT';
 
 export default function LoginPage() {
+  const t = useAutoT();
   const navigate = useNavigate();
   const { login } = useAuth();
   const [email, setEmail] = useState('');
@@ -36,19 +38,19 @@ export default function LoginPage() {
         <div className="max-w-[960px] mx-auto text-center">
           <nav
             className="flex items-center justify-center gap-2 text-white/50 text-xs mb-6"
-            aria-label="Breadcrumb"
+            aria-label={t('auto_c766e66518', "Breadcrumb")}
           >
             <a href="/" className="hover:text-white/80 transition-colors cursor-pointer">
-              Home
+              {t('auto_70f8bb9a8a', "Home")}
             </a>
             <span className="text-white/30">/</span>
-            <span className="text-white">Log in</span>
+            <span className="text-white">{t('auto_f7c400ed69', "Log in")}</span>
           </nav>
           <h1 className="font-heading font-bold text-3xl md:text-4xl text-white mt-3 leading-tight">
-            Welcome back
+            {t('auto_b807833efc', "Welcome back")}
           </h1>
           <p className="text-white/60 text-sm md:text-base mt-3 max-w-md mx-auto">
-            Log in to continue planning your Japan trip.
+            {t('auto_52a5f4ecd6', "Log in to continue planning your Japan trip.")}
           </p>
         </div>
       </section>
@@ -62,7 +64,7 @@ export default function LoginPage() {
                   htmlFor="email"
                   className="block font-heading font-semibold text-sm text-foreground-700 mb-2"
                 >
-                  Email
+                  {t('auto_84add5b295', "Email")}
                 </label>
                 <input
                   id="email"
@@ -70,7 +72,7 @@ export default function LoginPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
+                  placeholder={t('auto_50e2b46ef8', "you@example.com")}
                   required
                   className={inputClass}
                 />
@@ -81,7 +83,7 @@ export default function LoginPage() {
                   htmlFor="password"
                   className="block font-heading font-semibold text-sm text-foreground-700 mb-2"
                 >
-                  Password
+                  {t('auto_8be3c943b1', "Password")}
                 </label>
                 <input
                   id="password"
@@ -89,7 +91,7 @@ export default function LoginPage() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Your password"
+                  placeholder={t('auto_26d745d486', "Your password")}
                   required
                   className={inputClass}
                 />
@@ -106,15 +108,15 @@ export default function LoginPage() {
                 disabled={submitting}
                 className="w-full bg-primary-500 hover:bg-primary-600 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold text-sm px-6 py-3 rounded-md transition-all duration-200 whitespace-nowrap cursor-pointer"
               >
-                {submitting ? 'Logging in...' : 'Log in'}
+                {submitting ? t('auto_2b01abd3fe', "Logging in...") : t('auto_f7c400ed69', "Log in")}
               </button>
             </form>
           </div>
 
           <p className="text-center text-sm text-foreground-500 mt-6">
-            Don&apos;t have an account?{' '}
+            {t('auto_f838dc11db', "Don't have an account?")}{' '}
             <a href="/signup" className="text-primary-500 hover:text-primary-600 font-semibold transition-colors cursor-pointer">
-              Sign up
+              {t('auto_0b81497c85', "Sign up")}
             </a>
           </p>
         </div>

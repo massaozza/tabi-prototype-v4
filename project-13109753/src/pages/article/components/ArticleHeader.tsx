@@ -1,4 +1,5 @@
-interface ArticleHeaderProps {
+
+import { useAutoT } from '@/hooks/useAutoT';interface ArticleHeaderProps {
   category: string;
   title: string;
   subtitle: string;
@@ -19,13 +20,14 @@ export default function ArticleHeader({
   heroImage,
   heroCaption,
 }: ArticleHeaderProps) {
+  const t = useAutoT();
   const categorySlug = category.toLowerCase().replace(/\s+/g, '-');
 
   return (
     <section className="bg-background-900 pt-24 md:pt-28 pb-0">
       <div className="max-w-[960px] mx-auto px-6 md:px-10">
-        <nav className="flex items-center gap-2 text-white/50 text-xs mb-6 flex-wrap" aria-label="Breadcrumb">
-          <a href="/" className="hover:text-white/80 transition-colors cursor-pointer whitespace-nowrap">Home</a>
+        <nav className="flex items-center gap-2 text-white/50 text-xs mb-6 flex-wrap" aria-label={t('auto_c766e66518', "Breadcrumb")}>
+          <a href="/" className="hover:text-white/80 transition-colors cursor-pointer whitespace-nowrap">{t('auto_70f8bb9a8a', "Home")}</a>
           <span className="text-white/30">/</span>
           <a href={`/${categorySlug}`} className="hover:text-white/80 transition-colors cursor-pointer whitespace-nowrap">{category}</a>
           <span className="text-white/30">/</span>

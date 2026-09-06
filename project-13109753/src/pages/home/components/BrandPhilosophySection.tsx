@@ -1,4 +1,6 @@
-export default function BrandPhilosophySection() {
+
+import { useAutoT } from '@/hooks/useAutoT';export default function BrandPhilosophySection() {
+  const t = useAutoT();
   return (
     <section className="relative w-full py-24 md:py-36 px-6 md:px-10 lg:px-20 bg-background-100 overflow-hidden">
       <div className="absolute inset-0 pointer-events-none">
@@ -12,26 +14,26 @@ export default function BrandPhilosophySection() {
             <div className="flex items-center gap-6 mb-14 md:mb-20">
               <div className="hidden md:block w-12 h-px bg-accent-400"></div>
               <span className="text-xs font-semibold tracking-[0.25em] uppercase text-accent-600">
-                Our Philosophy
+                {t('auto_46983c80fb', "Our Philosophy")}
               </span>
             </div>
 
             <h2 className="font-heading font-bold text-6xl md:text-8xl lg:text-9xl text-foreground-900 leading-[0.9] mb-10 md:mb-14 tracking-tight">
-              Beyond<br />Sightseeing<span className="text-accent-500">.</span>
+              {t('auto_68055b05a7', "Beyond")}<br />{t('auto_b0f96c68f4', "Sightseeing")}<span className="text-accent-500">.</span>
             </h2>
 
             <div className="w-20 h-px bg-foreground-300 mb-10 md:mb-14"></div>
 
             <p className="font-heading font-semibold text-xl md:text-2xl lg:text-3xl text-foreground-800 leading-snug mb-10 max-w-xl">
-              Most travelers see Japan. We help you feel it.
+              {t('auto_6d18f5ac8f', "Most travelers see Japan. We help you feel it.")}
             </p>
 
             <div className="space-y-6 text-base md:text-lg text-foreground-600 leading-relaxed max-w-xl">
               <p>
-                The most memorable journeys begin when you slow down, explore deeper, and discover the stories, traditions, people, and moments that guidebooks often miss.
+                {t('auto_27501ffd68', "The most memorable journeys begin when you slow down, explore deeper, and discover the stories, traditions, people, and moments that guidebooks often miss.")}
               </p>
               <p>
-                At TABI, we believe the real Japan is found beyond sightseeing.
+                {t('auto_0e2ac117f3', "At TABI, we believe the real Japan is found beyond sightseeing.")}
               </p>
             </div>
           </div>
@@ -41,8 +43,8 @@ export default function BrandPhilosophySection() {
               <div className="w-full aspect-[3/4] rounded-lg overflow-hidden">
                 <img
                   src="https://readdy.ai/api/search-image?query=Abstract%20minimalist%20Japanese%20aesthetic%20composition%20with%20subtle%20ink%20wash%20texture%2C%20soft%20misty%20atmosphere%2C%20delicate%20negative%20space%2C%20warm%20off%20white%20and%20subtle%20charcoal%20tones%2C%20zen%20inspired%20editorial%20art%20photography%2C%20poetic%20quiet%20mood%20with%20natural%20light&width=600&height=800&seq=philosophy-visual-01&orientation=portrait"
-                  alt="Beyond Sightseeing"
-                  title="Beyond Sightseeing — TABI"
+                  alt={t('auto_817b230bbc', "Beyond Sightseeing")}
+                  title={t('auto_6aa79168aa', "Beyond Sightseeing — TABI")}
                   className="w-full h-full object-cover"
                 />
               </div>

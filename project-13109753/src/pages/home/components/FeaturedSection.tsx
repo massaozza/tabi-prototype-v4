@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useAutoT } from '@/hooks/useAutoT';
 
 const categoryColors: Record<string, string> = {
   Food: 'bg-accent-100 text-accent-800',
@@ -23,6 +24,7 @@ function slugify(text: string): string {
 }
 
 export default function FeaturedSection() {
+  const t = useAutoT();
   const [articles, setArticles] = useState<Article[]>([]);
   const [featuredIds, setFeaturedIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -76,13 +78,13 @@ export default function FeaturedSection() {
       <div className="max-w-7xl mx-auto">
         <div className="mb-12">
           <span className="inline-block text-xs font-semibold tracking-widest uppercase text-accent-600 mb-3">
-            Featured
+            {t('auto_ae31ad5d6f', "Featured")}
           </span>
           <h2 className="font-heading font-bold text-3xl md:text-5xl text-foreground-900 leading-tight">
-            Editor&apos;s <span className="text-primary-500">Picks</span>
+            {t('auto_7bdfa4d704', "Editor's")}{' '}<span className="text-primary-500">{t('auto_f5f61efb04', "Picks")}</span>
           </h2>
           <p className="text-foreground-500 text-base mt-3 max-w-xl">
-            Hand-picked guides our editors think you should read first
+            {t('auto_587b593ae9', "Hand-picked guides our editors think you should read first")}
           </p>
         </div>
 
@@ -116,7 +118,7 @@ export default function FeaturedSection() {
                     to={href}
                     className="inline-flex items-center gap-1 text-primary-500 font-semibold text-sm hover:gap-2 transition-all duration-200 cursor-pointer whitespace-nowrap"
                   >
-                    Read Guide
+                    {t('auto_51d57e0f89', "Read Guide")}
                     <i className="ri-arrow-right-line"></i>
                   </Link>
                 </div>

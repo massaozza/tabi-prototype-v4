@@ -1,9 +1,9 @@
-import { useBatchTranslation, getBatchField } from '@/hooks/useBatchTranslation';
 import { useTranslation } from 'react-i18next';
 import LocalizedLink from '@/components/feature/LocalizedLink';
 import { localsPlaces as fallbackLocalsPlaces } from '@/mocks/homeData';
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import { useAutoT, useAutoText } from '@/hooks/useAutoT';
 
 interface Place {
   id: string;
@@ -27,15 +27,12 @@ interface Guide {
 }
 
 export default function LocalsRecommendSection() {
-  const { t } = useTranslation();
+  const tx = useAutoText();
+  const t = useAutoT();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
   const [places, setPlaces] = useState<Place[]>([]);
-  const placeIds = places.map((p) => p.id);
-  const { translations: placeTrans } = useBatchTranslation('spot', placeIds, 'en');
-  const tb = (id: string, field: string, original: string) =>
-    getBatchField(placeTrans, id, field, original);
   const [guides, setGuides] = useState<Guide[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -116,7 +113,7 @@ export default function LocalsRecommendSection() {
             </h2>
           </div>
           <p className="text-foreground-500 text-base md:max-w-xs">
-            Discover recommendations inspired by the places people genuinely love.
+            {t('auto_91317066c6', "Discover recommendations inspired by the places people genuinely love.")}
           </p>
         </div>
 
@@ -124,7 +121,7 @@ export default function LocalsRecommendSection() {
           <button
             onClick={() => scroll('left')}
             className={`absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 md:w-12 md:h-12 rounded-full bg-background-50 border border-background-200 flex items-center justify-center shadow-sm transition-all duration-200 cursor-pointer ${canScrollLeft ? 'opacity-100' : 'opacity-0 pointer-events-none'} -ml-3 md:-ml-5`}
-            aria-label="Scroll left"
+            aria-label={t('auto_2c9e5a60ed', "Scroll left")}
           >
             <i className="ri-arrow-left-s-line text-foreground-700 text-lg"></i>
           </button>
@@ -161,24 +158,24 @@ export default function LocalsRecommendSection() {
                     <div className="relative w-full h-56 md:h-64 overflow-hidden">
                       <img
                         src={place.image}
-                        alt={tb(place.id, "title", place.title)}
-                        title={`${tb(place.id, "title", place.title)} — TABI local recommendation`}
+                        alt={tx(place.title)}
+                        title={`${tx(place.title)} — TABI local recommendation`}
                         className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
                       />
                     </div>
                     <div className="p-5 md:p-6">
                       <h3 className="font-heading font-bold text-lg text-foreground-900 mb-3">
-                        {tb(place.id, "title", place.title)}
+                        {tx(place.title)}
                       </h3>
                       <p className="text-foreground-600 text-sm leading-relaxed line-clamp-4">
-                        {tb(place.id, "story", place.story)}
+                        {tx(place.story)}
                       </p>
                     </div>
                   </article>
                 ))}
 
                 {guides.map((guide) => {
-                  const title = guide.titleEn || guide.title || 'Untitled Guide';
+                  const title = guide.titleEn || guide.title || t('auto_12d88f2c24', "Untitled Guide");
                   const area = guide.areaEn || guide.area || '';
                   const snippet = guide.bodyEn || guide.bodyJa || '';
                   const image = guide.photos && guide.photos.length > 0 ? guide.photos[0] : undefined;
@@ -216,7 +213,7 @@ export default function LocalsRecommendSection() {
                           {snippet}
                         </p>
                         <p className="text-foreground-400 text-xs mt-3 whitespace-nowrap">
-                          — {guide.authorName || 'Anonymous'}
+                          — {guide.authorName || t('auto_9bed510400', "Anonymous")}
                         </p>
                       </div>
                     </Link>
@@ -229,7 +226,7 @@ export default function LocalsRecommendSection() {
           <button
             onClick={() => scroll('right')}
             className={`absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 md:w-12 md:h-12 rounded-full bg-background-50 border border-background-200 flex items-center justify-center shadow-sm transition-all duration-200 cursor-pointer ${canScrollRight ? 'opacity-100' : 'opacity-0 pointer-events-none'} -mr-3 md:-mr-5`}
-            aria-label="Scroll right"
+            aria-label={t('auto_2994b49cf5', "Scroll right")}
           >
             <i className="ri-arrow-right-s-line text-foreground-700 text-lg"></i>
           </button>

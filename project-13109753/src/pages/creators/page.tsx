@@ -2,8 +2,10 @@ import { Link } from 'react-router-dom';
 import CreatorNavbar from '@/components/feature/CreatorNavbar';
 import Footer from '@/components/feature/Footer';
 import { useAuth } from '@/context/AuthContext';
+import { useAutoT } from '@/hooks/useAutoT';
 
 export default function CreatorsHomePage() {
+  const t = useAutoT();
   const { user } = useAuth();
 
   return (
@@ -15,7 +17,7 @@ export default function CreatorsHomePage() {
           <img
             src="https://readdy.ai/api/search-image?query=Serene%20Japanese%20landscape%20with%20a%20red%20torii%20gate%20and%20Mount%20Fuji%20at%20golden%20hour%2C%20soft%20gradient%20sky%20in%20warm%20amber%20and%20deep%20indigo%2C%20delicate%20cherry%20blossom%20petals%20floating%20in%20the%20air%2C%20misty%20atmosphere%2C%20artistic%20digital%20illustration%2C%20elegant%20minimal%20composition%2C%20high%20detail%2C%20cinematic%20lighting&width=1600&height=900&seq=creators-hero-01&orientation=landscape"
             alt="日本の風景"
-            title="日本の風景 TABI Creators"
+            title={t('auto_20c8bc093d', "日本の風景 TABI Creators")}
             className="w-full h-full object-cover object-top"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-foreground-950/85 via-foreground-900/70 to-foreground-800/85"></div>
@@ -24,7 +26,7 @@ export default function CreatorsHomePage() {
         <div className="relative max-w-4xl mx-auto px-6 md:px-10 text-center">
           <span className="inline-flex items-center gap-3 text-xs font-semibold tracking-widest uppercase text-accent-300 mb-6">
             <span className="w-10 h-px bg-accent-400/60"></span>
-            TABI Creators
+            {t('auto_43f89dae73', "TABI Creators")}
             <span className="w-10 h-px bg-accent-400/60"></span>
           </span>
           <h1 className="font-heading font-bold text-3xl md:text-5xl text-white leading-tight mb-6">
@@ -97,7 +99,7 @@ export default function CreatorsHomePage() {
               <i className="ri-map-pin-line text-xl"></i>
             </span>
             <h2 className="font-heading font-bold text-lg text-foreground-900 mb-2">
-              SPOTの口コミを書く
+              {t('auto_2f1a7d464a', "SPOTの口コミを書く")}
             </h2>
             <p className="text-foreground-500 text-sm leading-relaxed flex-1">
               地元ならではのおすすめスポットを、実在する場所を検索して

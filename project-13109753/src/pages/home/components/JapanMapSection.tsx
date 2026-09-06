@@ -1,8 +1,8 @@
 import { useTranslation } from 'react-i18next';
-import { useBatchTranslation, getBatchField } from '@/hooks/useBatchTranslation';
 import {  } from 'react-router-dom';
 import { useLocalizedNavigate } from '@/hooks/useLocalizedNavigate';
 import { PREFECTURE_REGIONS } from '@/mocks/prefectureData';
+import { useAutoT, useAutoText } from '@/hooks/useAutoT';
 
 interface RegionImage {
   slug: string;
@@ -45,11 +45,9 @@ const REGION_IMAGES: RegionImage[] = [
 ];
 
 export default function JapanMapSection() {
-  const { t } = useTranslation();
+  const tx = useAutoText();
+  const t = useAutoT();
   const regionSlugs = PREFECTURE_REGIONS.map((r) => r.slug);
-  const { translations: regionTrans } = useBatchTranslation('region', regionSlugs, 'en');
-  const tb = (slug: string, field: string, original: string) =>
-    getBatchField(regionTrans, slug, field, original);
   const navigate = useLocalizedNavigate();
 
   return (
@@ -57,7 +55,7 @@ export default function JapanMapSection() {
       <div className="max-w-5xl mx-auto">
         <div className="mb-10 text-center">
           <span className="inline-block text-xs font-semibold tracking-widest uppercase text-accent-600 mb-3">
-            All 47 Prefectures
+            {t('auto_bed698a01b', "All 47 Prefectures")}
           </span>
           <h2 className="font-heading font-bold text-3xl md:text-5xl text-foreground-900 leading-tight mb-3">
             {t("map_exploreJapan", "Explore Japan")} <span className="text-primary-500">{t("map_regionByRegion", "Region by Region")}</span>
@@ -83,14 +81,14 @@ export default function JapanMapSection() {
                   {img && (
                     <img
                       src={img.image}
-                      alt={tb(region.slug, "region", region.region)}
+                      alt={tx(region.region)}
                       className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
                     />
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
                   <div className="absolute bottom-3 left-4 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                     <span className="text-white text-sm font-semibold whitespace-nowrap">
-                      {t("map_explore", "Explore")} {tb(region.slug, "region", region.region)}
+                      {t("map_explore", "Explore")} {tx(region.region)}
                     </span>
                     <i className="ri-arrow-right-line text-white text-sm"></i>
                   </div>
@@ -99,14 +97,14 @@ export default function JapanMapSection() {
                 <div className="p-5">
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="font-heading font-bold text-lg text-foreground-900">
-                      {tb(region.slug, "region", region.region)}
+                      {tx(region.region)}
                     </h3>
                     <span className="text-xs font-medium text-foreground-400 bg-background-100 px-2.5 py-1 rounded-full whitespace-nowrap">
-                      {prefCount} prefecture{prefCount > 1 ? 's' : ''}
+                      {prefCount}{' '}{t('auto_7ddbeda119', "prefecture")}{prefCount > 1 ? 's' : ''}
                     </span>
                   </div>
                   <p className="text-foreground-600 text-sm leading-relaxed line-clamp-2">
-                    {tb(region.slug, "description", region.description)}
+                    {tx(region.description)}
                   </p>
                 </div>
               </button>

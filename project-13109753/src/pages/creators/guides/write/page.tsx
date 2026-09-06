@@ -4,6 +4,7 @@ import CreatorNavbar from '@/components/feature/CreatorNavbar';
 import Footer from '@/components/feature/Footer';
 import { useAuth } from '@/context/AuthContext';
 import { destinations as fallbackDestinations } from '@/mocks/homeData';
+import { useAutoT } from '@/hooks/useAutoT';
 
 // TABI 3.0：日本人が慣れ親しんだ「旅行記」形式（フォートラベル等を参考にした、
 // 時系列の自由記述＋写真）で投稿してもらい、AIが裏側で解析して、TABIの
@@ -27,6 +28,7 @@ const inputClass =
   'w-full bg-background-50 border border-background-200 rounded-md px-3.5 py-2.5 text-sm text-foreground-900 placeholder:text-foreground-400 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-primary-400 transition-all';
 
 export default function WriteTravelogueePage() {
+  const t = useAutoT();
   const navigate = useNavigate();
   const { user, loading } = useAuth();
 
@@ -257,8 +259,7 @@ export default function WriteTravelogueePage() {
             いつも通りに、書くだけでいい
           </h1>
           <p className="text-white/60 text-sm max-w-md mx-auto leading-relaxed">
-            タイトルと本文を自由に書き、写真を添えてください。あとはAIが
-            自動で読み解き、TABIのガイドや旅程として整理します。
+            {t('auto_85283a0208', "タイトルと本文を自由に書き、写真を添えてください。あとはAIが 自動で読み解き、TABIのガイドや旅程として整理します。")}
           </p>
         </div>
       </section>
@@ -434,7 +435,7 @@ export default function WriteTravelogueePage() {
                 disabled={!canSubmit}
                 className="w-full bg-primary-500 hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-sm py-3.5 rounded-lg transition-colors cursor-pointer whitespace-nowrap"
               >
-                {submitting ? 'AIが解析中...' : '投稿してAIに整理してもらう'}
+                {submitting ? t('auto_b6cf36cf47', "AIが解析中...") : '投稿してAIに整理してもらう'}
               </button>
             </form>
           </div>

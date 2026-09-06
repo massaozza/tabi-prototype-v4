@@ -4,6 +4,7 @@ import CreatorNavbar from '@/components/feature/CreatorNavbar';
 import Footer from '@/components/feature/Footer';
 import { useAuth } from '@/context/AuthContext';
 import { destinations as fallbackDestinations } from '@/mocks/homeData';
+import { useAutoT } from '@/hooks/useAutoT';
 
 // TABI 3.0：日本人クリエイターが、AIチャットを使わずに「手動で・簡単に」
 // おすすめ旅程（Recommended Trip）を作れるようにするためのフォーム。
@@ -47,6 +48,7 @@ const inputClass =
   'w-full bg-background-50 border border-background-200 rounded-md px-3.5 py-2.5 text-sm text-foreground-900 placeholder:text-foreground-400 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-primary-400 transition-all';
 
 export default function NewRecommendedTripPage() {
+  const t = useAutoT();
   const navigate = useNavigate();
   const { user, loading } = useAuth();
 
@@ -245,7 +247,7 @@ export default function NewRecommendedTripPage() {
                   ハイライト（英語・最大3点）
                 </label>
                 <p className="text-xs text-foreground-400 mb-2">
-                  カードに表示する見どころを英語で。例：Sunrise hike at Fushimi Inari
+                  {t('auto_06b08f6bac', "カードに表示する見どころを英語で。例：Sunrise hike at Fushimi Inari")}
                 </p>
                 <div className="space-y-2">
                   {highlights.map((h, i) => (
@@ -323,13 +325,13 @@ export default function NewRecommendedTripPage() {
                   表示名（英語）
                 </label>
                 <p className="text-xs text-foreground-400 mb-2">
-                  カードに表示されます。例：Keiko · Kyoto local
+                  {t('auto_0a2896f716', "カードに表示されます。例：Keiko · Kyoto local")}
                 </p>
                 <input
                   type="text"
                   value={authorName}
                   onChange={(e) => setAuthorName(e.target.value)}
-                  placeholder="例：Keiko · Kyoto local"
+                  placeholder={t('auto_1539439758', "例：Keiko · Kyoto local")}
                   className={inputClass}
                 />
               </div>
