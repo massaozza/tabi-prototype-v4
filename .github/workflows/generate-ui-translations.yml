@@ -1,0 +1,66 @@
+name: Generate UI translations
+
+# GitHubの Actions タブから手動で実行する。
+#   1. src配下から t('auto_xxx', "English") を抽出
+#   2. Geminiで各言語に翻訳（未翻訳分のみ）
+#   3. src/i18n/local/{lang}/auto.ts を生成してコミット
+#
+# 事前準備（1回だけ）：
+#   Settings → Secrets and variables → Actions → New repository secret
+#     Name:   GEMINI_API_KEY
+#     Secret: （Gemini APIキー）
+
+on:
+  workflow_dispatch:
+    inputs:
+      langs:
+        description: '対象言語（空欄なら全言語）例: ko th zh-TW'
+        required: false
+        default: ''
+      model:
+        description: 'Geminiのモデル名'
+        required: false
+        default: 'gemini-3.6-flash'
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    # 無料枠だとレート待ちが入るため長めに確保する
+    timeout-minutes: 120
+
+    defaults:
+      run:
+        working-directory: project-13109753
+
+    steps:
+      - name: リポジトリを取得
+        uses: actions/checkout@v4
+
+      - name: Node.jsを準備
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 文言を抽出
+        run: npm run i18n:extract
+
+      - name: 翻訳を生成
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL: ${{ inputs.model }}
+        run: npm run i18n:generate -- ${{ inputs.langs }}
+
+      - name: 変更をコミット
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add scripts/ui-strings.json scripts/ui-translations src/i18n/local
+          if git diff --cached --quiet; then
+            echo "変更はありませんでした"
+          else
+            git commit -m "chore(i18n): UI翻訳を自動生成"
+            git push
+          fi
