@@ -100,7 +100,10 @@ export default function JapanMapSection() {
                       {tx(region.region)}
                     </h3>
                     <span className="text-xs font-medium text-foreground-400 bg-background-100 px-2.5 py-1 rounded-full whitespace-nowrap">
-                      {prefCount}{' '}{t('auto_7ddbeda119', "prefecture")}{prefCount > 1 ? 's' : ''}
+                      {prefCount}{' '}
+                      {prefCount > 1
+                        ? t('map_prefectures', 'prefectures')
+                        : t('map_prefecture', 'prefecture')}
                     </span>
                   </div>
                   <p className="text-foreground-600 text-sm leading-relaxed line-clamp-2">
