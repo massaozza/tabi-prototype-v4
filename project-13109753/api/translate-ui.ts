@@ -35,8 +35,8 @@ const LANG_NAMES: Record<string, string> = {
 };
 
 const MAX_TEXTS = 250;
-const CHUNK = 40;
-const CHUNK_CHARS = 6000;
+const CHUNK = 25;
+const CHUNK_CHARS = 3500;
 
 function json(data: unknown, status = 200): Response {
   return new Response(JSON.stringify(data), {
@@ -115,7 +115,7 @@ ${JSON.stringify(payload)}`;
         headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { responseMimeType: 'application/json' },
+          generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 8192 },
         }),
       }
     );
@@ -150,6 +150,31 @@ ${JSON.stringify(payload)}`;
     const v = parsed[String(i)];
     return typeof v === 'string' && v.trim() ? v : original;
   });
+}
+
+// チャンクが失敗したら半分に割って再挑戦する。
+// 1件が原因で40件まとめて英語のまま残る、という事態を防ぐ。
+async function translateWithRetry(
+  texts: string[],
+  targetLang: string,
+  apiKey: string,
+  errors: string[],
+  depth = 0
+): Promise<string[] | null> {
+  const out = await translateChunk(texts, targetLang, apiKey, errors);
+  if (out) return out;
+  if (depth >= 2 || texts.length <= 1) return null;
+
+  const mid = Math.ceil(texts.length / 2);
+  const [a, b] = await Promise.all([
+    translateWithRetry(texts.slice(0, mid), targetLang, apiKey, errors, depth + 1),
+    translateWithRetry(texts.slice(mid), targetLang, apiKey, errors, depth + 1),
+  ]);
+  if (!a && !b) return null;
+  return [
+    ...(a || texts.slice(0, mid)),
+    ...(b || texts.slice(mid)),
+  ];
 }
 
 export default async function handler(req: Request): Promise<Response> {
@@ -221,7 +246,7 @@ export default async function handler(req: Request): Promise<Response> {
     if (cur.length > 0) chunks.push(cur);
 
     const errors: string[] = [];
-    const results = await Promise.all(chunks.map((c) => translateChunk(c, lang, apiKey, errors)));
+    const results = await Promise.all(chunks.map((c) => translateWithRetry(c, lang, apiKey, errors)));
 
     // ── 3. キャッシュ保存（180日） ──
     const writes: Promise<unknown>[] = [];
@@ -231,6 +256,8 @@ export default async function handler(req: Request): Promise<Response> {
         const translated = out[i];
         if (typeof translated !== 'string' || !translated.trim()) return;
         translations[original] = translated;
+        // 翻訳できず原文が返ってきたものはキャッシュしない（次回再挑戦させる）
+        if (translated === original && !alreadyTarget(original, lang)) return;
         writes.push(
           kv.set(uiKey(original, lang), translated, { ex: 60 * 60 * 24 * 180 }).catch(() => null)
         );
