@@ -24,7 +24,12 @@ export const SUPPORTED_LANGS = [
 ] as const;
 
 const STORAGE_PREFIX = 'tabi47_ui_trans_';
-const MAX_BATCH = 200;
+// 1リクエストあたりの上限。サーバー側はチャンクを順番にGeminiへ送るため、
+// 大きすぎるとEdge Functionの実行時間上限に触れる。
+const MAX_BATCH = 100;
+// レート上限で取得できなかった分を再挑戦するまでの待ち時間
+const RETRY_DELAY_MS = 15000;
+const MAX_ATTEMPTS = 3;
 
 type Listener = () => void;
 
@@ -45,8 +50,8 @@ class AutoTranslator {
   private hydrated = new Set<string>();
   /** 取得待ちの原文 */
   private pending: Record<string, Set<string>> = {};
-  /** 取得中・取得済みで結果が無かった原文（無限リトライ防止） */
-  private attempted: Record<string, Set<string>> = {};
+  /** 原文ごとの取得試行回数（無限リトライ防止） */
+  private attempts: Record<string, Map<string, number>> = {};
   private listeners = new Set<Listener>();
   private timer: ReturnType<typeof setTimeout> | null = null;
   private failures = 0;
@@ -102,19 +107,19 @@ class AutoTranslator {
     if (!text.trim()) return;
     this.hydrate(lang);
     if (this.cache[lang]?.[text] !== undefined) return;
-    if (!this.attempted[lang]) this.attempted[lang] = new Set();
-    if (this.attempted[lang].has(text)) return;
+    if (!this.attempts[lang]) this.attempts[lang] = new Map();
+    if ((this.attempts[lang].get(text) || 0) >= MAX_ATTEMPTS) return;
     if (!this.pending[lang]) this.pending[lang] = new Set();
     this.pending[lang].add(text);
     this.schedule();
   }
 
-  private schedule() {
+  private schedule(delay = 50) {
     if (this.timer) return;
     this.timer = setTimeout(() => {
       this.timer = null;
       void this.flush();
-    }, 50);
+    }, delay);
   }
 
   private async flush() {
@@ -127,7 +132,9 @@ class AutoTranslator {
       const batch = all.slice(0, MAX_BATCH);
       const rest = all.slice(MAX_BATCH);
       this.pending[lang] = new Set(rest);
-      batch.forEach((t) => this.attempted[lang].add(t));
+      batch.forEach((t) => this.attempts[lang].set(t, (this.attempts[lang].get(t) || 0) + 1));
+
+      let retryLater: string[] = [];
 
       try {
         const res = await fetch('/api/translate-ui', {
@@ -137,8 +144,8 @@ class AutoTranslator {
         });
         if (!res.ok) throw new Error(String(res.status));
         const data = await res.json();
-        const map = data?.translations;
-        if (map && typeof map === 'object') {
+        const map = data?.translations || {};
+        if (typeof map === 'object') {
           this.hydrate(lang);
           let changed = false;
           for (const [original, translated] of Object.entries(map)) {
@@ -152,14 +159,26 @@ class AutoTranslator {
             this.emit();
           }
         }
+        // Geminiのレート上限で返らなかった分は、少し待ってから再挑戦する
+        if (data?.rateLimited) {
+          retryLater = batch.filter((t) => this.cache[lang]?.[t] === undefined);
+        }
         this.failures = 0;
       } catch {
         this.failures += 1;
-        // 失敗した分は再挑戦できるようにしておく
-        batch.forEach((t) => this.attempted[lang].delete(t));
+        // ネットワーク失敗した分は試行回数を戻して再挑戦できるようにする
+        batch.forEach((t) => {
+          const n = this.attempts[lang].get(t) || 1;
+          this.attempts[lang].set(t, n - 1);
+        });
       }
 
-      if (rest.length > 0) this.schedule();
+      if (retryLater.length > 0) {
+        retryLater.forEach((t) => this.pending[lang].add(t));
+        this.schedule(RETRY_DELAY_MS);
+      } else if (rest.length > 0) {
+        this.schedule();
+      }
     }
   }
 }
