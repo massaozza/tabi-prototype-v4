@@ -84,7 +84,7 @@ export default async function handler(req: Request) {
           }
         } while (cursor !== 0);
         if (uids.length > 0) {
-          await kv.sadd('users:index', ...uids);
+          await kv.sadd('users:index', uids[0], ...uids.slice(1));
         }
       } catch { /* バックフィル失敗は無視 */ }
     }
