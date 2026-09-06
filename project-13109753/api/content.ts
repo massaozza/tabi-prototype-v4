@@ -1,6 +1,6 @@
 import { kv } from '@vercel/kv';
-import { localsPlaces, latestGuides, destinations } from '../src/mocks/homeData';
-import { articleData } from '../src/mocks/articleData';
+import { localsPlaces, latestGuides, destinations } from '../src/mocks/homeData.js';
+import { articleData } from '../src/mocks/articleData.js';
 
 export const config = { runtime: 'edge' };
 
