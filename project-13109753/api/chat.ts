@@ -15,7 +15,7 @@
 // サーバー側で実在するIDかどうかを必ず検証してから返す（AIの幻覚対策）。
 
 import { kv } from '@vercel/kv';
-import { localsPlaces, latestGuides, destinations } from '../src/mocks/homeData';
+import { localsPlaces, latestGuides, destinations } from '../src/mocks/homeData.js';
 
 export const config = { runtime: 'edge' };
 
