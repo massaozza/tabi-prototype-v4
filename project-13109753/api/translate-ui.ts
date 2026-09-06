@@ -80,7 +80,8 @@ function alreadyTarget(text: string, lang: string): boolean {
 async function translateChunk(
   texts: string[],
   targetLang: string,
-  apiKey: string
+  apiKey: string,
+  errors: string[]
 ): Promise<string[] | null> {
   const payload: Record<string, string> = {};
   texts.forEach((t, i) => {
@@ -104,7 +105,7 @@ Rules:
 
 ${JSON.stringify(payload)}`;
 
-  const model = 'gemini-2.0-flash';
+  const model = process.env.GEMINI_MODEL || 'gemini-3.6-flash';
   let res: Response;
   try {
     res = await fetch(
@@ -114,22 +115,20 @@ ${JSON.stringify(payload)}`;
         headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.1,
-            maxOutputTokens: 8192,
-            responseMimeType: 'application/json',
-          },
+          generationConfig: { responseMimeType: 'application/json' },
         }),
       }
     );
   } catch (e) {
     console.error('[translate-ui] fetch failed:', e);
+    errors.push('fetch failed: ' + String(e).slice(0, 120));
     return null;
   }
 
   if (!res.ok) {
     const body = await res.text().catch(() => '');
     console.error('[translate-ui] Gemini error:', res.status, body.slice(0, 300));
+    errors.push(`gemini ${res.status} (${model}): ` + body.slice(0, 200));
     return null;
   }
 
@@ -142,6 +141,7 @@ ${JSON.stringify(payload)}`;
     parsed = JSON.parse(cleaned);
   } catch {
     console.error('[translate-ui] JSON parse failed:', cleaned.slice(0, 200));
+    errors.push('json parse failed: ' + cleaned.slice(0, 150));
     return null;
   }
   if (!parsed || typeof parsed !== 'object') return null;
@@ -220,7 +220,8 @@ export default async function handler(req: Request): Promise<Response> {
     }
     if (cur.length > 0) chunks.push(cur);
 
-    const results = await Promise.all(chunks.map((c) => translateChunk(c, lang, apiKey)));
+    const errors: string[] = [];
+    const results = await Promise.all(chunks.map((c) => translateChunk(c, lang, apiKey, errors)));
 
     // ── 3. キャッシュ保存（180日） ──
     const writes: Promise<unknown>[] = [];
@@ -237,7 +238,11 @@ export default async function handler(req: Request): Promise<Response> {
     });
     await Promise.all(writes);
 
-    return json({ translations, translated: writes.length });
+    return json({
+      translations,
+      translated: writes.length,
+      ...(errors.length ? { geminiErrors: errors.slice(0, 3) } : {}),
+    });
   } catch (err) {
     console.error('[translate-ui] error:', err);
     // 失敗してもキャッシュ済み分は返す（画面が壊れないように）
