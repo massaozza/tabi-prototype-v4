@@ -5,6 +5,7 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import messages from './local/index';
+import { initAutoTranslations } from './loadAutoTranslations';
 
 export const SUPPORTED_LANGUAGES = [
   { code: 'en', label: 'English' },
@@ -36,6 +37,14 @@ i18n
     interpolation: {
       escapeValue: false,
     },
+    react: {
+      // addResourceBundle で訳が追加されたときに再描画させる
+      // （auto.ts の遅延読み込み完了を画面に反映するため）
+      bindI18nStore: 'added',
+    },
   });
+
+// 自動生成の訳（auto.ts）を現在の言語の分だけ読み込む
+initAutoTranslations();
 
 export default i18n;

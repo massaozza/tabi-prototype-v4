@@ -1,4 +1,6 @@
-const modules = import.meta.glob('./*/*.ts', { eager: true });
+// auto.ts は容量が大きいため除外し、loadAutoTranslations.ts で
+// 現在の言語の分だけ遅延読み込みする。
+const modules = import.meta.glob(['./*/*.ts', '!./*/auto.ts'], { eager: true });
 
 const messages: Record<string, { translation: Record<string, string> }> = {};
 
