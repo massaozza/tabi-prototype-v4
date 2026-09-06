@@ -38,6 +38,9 @@ const MAX_TEXTS = 250;
 const CHUNK = 25;
 const CHUNK_CHARS = 3500;
 
+// Geminiのレート上限に達したことを表す。以降のリクエストを止めるために使う。
+class RateLimited extends Error {}
+
 function json(data: unknown, status = 200): Response {
   return new Response(JSON.stringify(data), {
     status,
@@ -129,6 +132,8 @@ ${JSON.stringify(payload)}`;
     const body = await res.text().catch(() => '');
     console.error('[translate-ui] Gemini error:', res.status, body.slice(0, 300));
     errors.push(`gemini ${res.status} (${model}): ` + body.slice(0, 200));
+    // 429（レート上限）は分割リトライしても悪化するだけなので即座に打ち切る
+    if (res.status === 429) throw new RateLimited();
     return null;
   }
 
@@ -163,18 +168,14 @@ async function translateWithRetry(
 ): Promise<string[] | null> {
   const out = await translateChunk(texts, targetLang, apiKey, errors);
   if (out) return out;
-  if (depth >= 2 || texts.length <= 1) return null;
+  if (depth >= 1 || texts.length <= 1) return null;
 
+  // 429以外の失敗なら、半分に割って順番に再挑戦する（並列にはしない）
   const mid = Math.ceil(texts.length / 2);
-  const [a, b] = await Promise.all([
-    translateWithRetry(texts.slice(0, mid), targetLang, apiKey, errors, depth + 1),
-    translateWithRetry(texts.slice(mid), targetLang, apiKey, errors, depth + 1),
-  ]);
+  const a = await translateWithRetry(texts.slice(0, mid), targetLang, apiKey, errors, depth + 1);
+  const b = await translateWithRetry(texts.slice(mid), targetLang, apiKey, errors, depth + 1);
   if (!a && !b) return null;
-  return [
-    ...(a || texts.slice(0, mid)),
-    ...(b || texts.slice(mid)),
-  ];
+  return [...(a || texts.slice(0, mid)), ...(b || texts.slice(mid))];
 }
 
 export default async function handler(req: Request): Promise<Response> {
@@ -245,8 +246,28 @@ export default async function handler(req: Request): Promise<Response> {
     }
     if (cur.length > 0) chunks.push(cur);
 
+    // 【重要】Geminiの毎分リクエスト上限に引っかからないよう、
+    // チャンクは並列ではなく順番に処理する。
+    // 429が出た時点で打ち切り、取得できた分だけ返す（残りは次回のアクセスで取得される）。
     const errors: string[] = [];
-    const results = await Promise.all(chunks.map((c) => translateWithRetry(c, lang, apiKey, errors)));
+    const results: (string[] | null)[] = [];
+    let rateLimited = false;
+    for (const chunk of chunks) {
+      if (rateLimited) {
+        results.push(null);
+        continue;
+      }
+      try {
+        results.push(await translateWithRetry(chunk, lang, apiKey, errors));
+      } catch (e) {
+        if (e instanceof RateLimited) {
+          rateLimited = true;
+          results.push(null);
+        } else {
+          throw e;
+        }
+      }
+    }
 
     // ── 3. キャッシュ保存（180日） ──
     const writes: Promise<unknown>[] = [];
@@ -268,7 +289,8 @@ export default async function handler(req: Request): Promise<Response> {
     return json({
       translations,
       translated: writes.length,
-      ...(errors.length ? { geminiErrors: errors.slice(0, 3) } : {}),
+      ...(rateLimited ? { rateLimited: true } : {}),
+      ...(errors.length ? { geminiErrors: errors.slice(0, 2) } : {}),
     });
   } catch (err) {
     console.error('[translate-ui] error:', err);
