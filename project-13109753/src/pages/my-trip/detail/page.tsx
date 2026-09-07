@@ -5,6 +5,8 @@ import Footer from '@/components/feature/Footer';
 import { useAuth } from '@/context/AuthContext';
 import type { Trip, TripItem } from '../types';
 import { useAutoT, useAutoText } from '@/hooks/useAutoT';
+import { loginPathWithReturn } from '@/lib/pendingAction';
+import BookingCta from '@/components/feature/BookingCta';
 
 interface TripMeal { id: string; suggestion: string; status?: string; }
 interface TripActivity { type?: 'activity' | 'transport'; time?: string; title: string; description?: string; spotId?: string; category?: string; }
@@ -132,7 +134,7 @@ export default function MyTripDetailPage() {
   const isEditable = (status?: string) => status === 'planning' || status === 'traveling';
 
   useEffect(() => {
-    if (!user) { navigate('/login'); return; }
+    if (!user) { navigate(loginPathWithReturn()); return; }
     let cancelled = false;
     async function fetchData() {
       try {
@@ -1011,6 +1013,17 @@ export default function MyTripDetailPage() {
                 })}
               </div>
             </>
+          )}
+
+          {/* 収益ファネルの出口。旅程を確認した直後に置く */}
+          {trip && (
+            <BookingCta
+              contentType="trip"
+              contentId={trip.id}
+              source="my-trip"
+              context={trip.title}
+              className="mt-8"
+            />
           )}
 
           <div className="mt-6">

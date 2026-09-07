@@ -5,6 +5,13 @@ import Navbar from '@/components/feature/Navbar';
 import Footer from '@/components/feature/Footer';
 import { useAuth } from '@/context/AuthContext';
 import { useAutoT, useAutoText } from '@/hooks/useAutoT';
+import BookingCta from '@/components/feature/BookingCta';
+import { trackEvent } from '@/lib/track';
+import {
+  savePendingAction,
+  takePendingAction,
+  loginPathWithReturn,
+} from '@/lib/pendingAction';
 
 interface TripMeal {
   id: string;
@@ -86,11 +93,7 @@ export default function PublicTripDetailPage() {
           const found = json.trips.find((t: PublicTrip) => t.id === id) ?? null;
           setTrip(found);
           if (found) {
-            fetch('/api/track-view', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ contentType: 'trip', id: found.id }),
-            }).catch(() => {});
+            trackEvent('view', 'trip', found.id);
           }
         }
       } catch {
@@ -105,16 +108,20 @@ export default function PublicTripDetailPage() {
     };
   }, [id]);
 
-  const handleSave = async () => {
+  const handleSave = async (tripArg?: PublicTrip) => {
+    const target = tripArg || trip;
+    if (!target) return;
     if (!user) {
-      navigate('/login');
+      // ログイン後にこの操作を続行できるよう、意図と戻り先を残す
+      savePendingAction('save', 'trip', target.id);
+      navigate(loginPathWithReturn());
       return;
     }
-    if (!trip) return;
+    trackEvent('save', 'trip', target.id);
     setSaving(true);
     setActionError('');
     try {
-      const res = await fetch(`/api/trips?action=save&tripId=${encodeURIComponent(trip.id)}`, {
+      const res = await fetch(`/api/trips?action=save&tripId=${encodeURIComponent(target.id)}`, {
         method: 'POST',
         credentials: 'include',
       });
@@ -128,17 +135,20 @@ export default function PublicTripDetailPage() {
     }
   };
 
-  const handleCopy = async () => {
+  const handleCopy = async (tripArg?: PublicTrip) => {
+    const target = tripArg || trip;
+    if (!target) return;
     if (!user) {
-      navigate('/login');
+      savePendingAction('copy', 'trip', target.id);
+      navigate(loginPathWithReturn());
       return;
     }
-    if (!trip) return;
+    trackEvent('copy', 'trip', target.id);
     setCopying(true);
     setActionError('');
     try {
       const res = await fetch(
-        `/api/trips?action=copy&sourceTripId=${encodeURIComponent(trip.id)}`,
+        `/api/trips?action=copy&sourceTripId=${encodeURIComponent(target.id)}`,
         { method: 'POST', credentials: 'include' }
       );
       const data = await res.json();
@@ -149,6 +159,23 @@ export default function PublicTripDetailPage() {
       setCopying(false);
     }
   };
+
+  // ── ログインから戻ってきたときに、押しかけた操作を自動で続行する ──
+  // 未ログインでSave/Copyを押した人が、ログイン後にどの旅程だったか
+  // 探し直さずに済むようにするための処理。
+  useEffect(() => {
+    if (!user || !trip) return;
+    const pending = takePendingAction();
+    if (!pending || pending.contentType !== 'trip' || pending.id !== trip.id) return;
+
+    if (pending.action === 'copy') {
+      void handleCopy(trip);
+    } else if (pending.action === 'save') {
+      void handleSave(trip);
+    }
+    // trip と user が揃った初回だけ実行させる
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, trip]);
 
   return (
     <main className="min-h-screen bg-background-50">
@@ -238,7 +265,7 @@ export default function PublicTripDetailPage() {
 
               <div className="flex items-center gap-3 mb-10">
                 <button
-                  onClick={handleSave}
+                  onClick={() => handleSave()}
                   disabled={saving || saved}
                   className="inline-flex items-center gap-2 bg-background-100 hover:bg-background-200 disabled:opacity-60 text-foreground-800 font-semibold text-sm px-5 py-2.5 rounded-lg transition-colors cursor-pointer whitespace-nowrap"
                 >
@@ -246,7 +273,7 @@ export default function PublicTripDetailPage() {
                   {saved ? t('trips_saved', 'Saved') : saving ? t('trips_saving', 'Saving...') : t('trips_save', 'Save')}
                 </button>
                 <button
-                  onClick={handleCopy}
+                  onClick={() => handleCopy()}
                   disabled={copying}
                   className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 disabled:opacity-60 text-white font-semibold text-sm px-5 py-2.5 rounded-lg transition-colors cursor-pointer whitespace-nowrap"
                 >
@@ -305,6 +332,15 @@ export default function PublicTripDetailPage() {
                     );
                   })}
               </section>
+
+              {/* 収益ファネルの出口。日程を見終わった直後に置く */}
+              <BookingCta
+                contentType="trip"
+                contentId={trip.id}
+                source="trip"
+                context={trip.title}
+                className="mb-10"
+              />
 
               {(trip.reflectionWhatWorked || trip.reflectionWhatToChange) && (
                 <section className="bg-background-100 rounded-xl p-6 mb-10">

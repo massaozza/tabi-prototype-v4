@@ -5,6 +5,8 @@ import Navbar from '@/components/feature/Navbar';
 import Footer from '@/components/feature/Footer';
 import { useAuth } from '@/context/AuthContext';
 import { useAutoT, useAutoText } from '@/hooks/useAutoT';
+import { trackEvent } from '@/lib/track';
+import { savePendingAction, loginPathFor } from '@/lib/pendingAction';
 
 interface PublicTrip {
   id: string;
@@ -31,9 +33,11 @@ function PublicTripCard({ trip }: { trip: PublicTrip }) {
 
   const handleSave = async () => {
     if (!user) {
-      navigate('/login');
+      savePendingAction('save', 'trip', trip.id);
+      navigate(loginPathFor(`/trips/${trip.id}`));
       return;
     }
+    trackEvent('save', 'trip', trip.id);
     setSaving(true);
     setActionError('');
     try {
@@ -53,9 +57,12 @@ function PublicTripCard({ trip }: { trip: PublicTrip }) {
 
   const handleCopy = async () => {
     if (!user) {
-      navigate('/login');
+      // ログイン後は該当の旅程ページへ戻し、そこでコピーを自動続行させる
+      savePendingAction('copy', 'trip', trip.id);
+      navigate(loginPathFor(`/trips/${trip.id}`));
       return;
     }
+    trackEvent('copy', 'trip', trip.id);
     setCopying(true);
     setActionError('');
     try {

@@ -40,7 +40,9 @@ interface AffiliateEvent {
   createdAt: string;
 }
 
-const VALID_SOURCES = ['article', 'chat'] as const;
+// 'trip'    … 公開Trip詳細ページのBooking CTA
+// 'my-trip' … 自分の旅程詳細のBooking CTA
+const VALID_SOURCES = ['article', 'chat', 'trip', 'my-trip'] as const;
 
 function getCookie(req: Request, name: string): string | null {
   const cookieHeader = req.headers.get('cookie') || '';

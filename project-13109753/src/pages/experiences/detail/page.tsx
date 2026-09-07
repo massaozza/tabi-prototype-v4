@@ -7,6 +7,7 @@ import { useAuth } from '@/context/AuthContext';
 import { formatArea, formatMonth, type Experience } from '../types';
 import { computeExperienceScore, MAX_EXPERIENCE_SCORE } from '../score';
 import { useAutoT, useAutoText } from '@/hooks/useAutoT';
+import { loginPathWithReturn } from '@/lib/pendingAction';
 
 interface RelatedSpot {
   id: string;
@@ -163,7 +164,8 @@ export default function ExperienceDetailPage() {
 
   const handleToggleHelpful = async () => {
     if (!user) {
-      navigate('/login');
+      // ログイン後は読んでいた体験談に戻す
+      navigate(loginPathWithReturn());
       return;
     }
     if (!id || helpfulPending) return;

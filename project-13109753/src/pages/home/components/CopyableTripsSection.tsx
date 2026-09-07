@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useAutoT, useAutoText } from '@/hooks/useAutoT';
+import { trackEvent } from '@/lib/track';
+import { savePendingAction, loginPathFor } from '@/lib/pendingAction';
 
 // TABI47：TOPページ「Trips You Can Copy」セクション。
 // カードはティーザーに徹する。写真・タグ・タイトル・概要・予算・CTAのみ。
@@ -76,7 +78,12 @@ function TripCard({ trip, spotImages }: { trip: PublicTrip; spotImages: Map<stri
   const budgetText = formatBudget(trip.budgetMin, trip.budgetMax);
 
   const handleCopy = async () => {
-    if (!user) { navigate('/login'); return; }
+    if (!user) {
+      savePendingAction('copy', 'trip', trip.id);
+      navigate(loginPathFor(`/trips/${trip.id}`));
+      return;
+    }
+    trackEvent('copy', 'trip', trip.id);
     setCopying(true);
     setError('');
     try {

@@ -1,14 +1,18 @@
 import { useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import Navbar from '@/components/feature/Navbar';
 import Footer from '@/components/feature/Footer';
 import { useAuth } from '@/context/AuthContext';
 import { useAutoT } from '@/hooks/useAutoT';
+import { resolveNextPath } from '@/lib/pendingAction';
 
 export default function LoginPage() {
   const t = useAutoT();
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
+  // Save / Copy から飛ばされてきた場合は元のページへ戻す
+  const nextPath = resolveNextPath(location.search);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -21,7 +25,7 @@ export default function LoginPage() {
     const result = await login(email, password);
     setSubmitting(false);
     if (result.success) {
-      navigate('/');
+      navigate(nextPath, { replace: true });
     } else {
       setError(result.error || 'Login failed');
     }
@@ -115,9 +119,12 @@ export default function LoginPage() {
 
           <p className="text-center text-sm text-foreground-500 mt-6">
             {t('auto_f838dc11db', "Don't have an account?")}{' '}
-            <a href="/signup" className="text-primary-500 hover:text-primary-600 font-semibold transition-colors cursor-pointer">
+            <Link
+              to={`/signup${nextPath !== '/' ? `?next=${encodeURIComponent(nextPath)}` : ''}`}
+              className="text-primary-500 hover:text-primary-600 font-semibold transition-colors cursor-pointer"
+            >
               {t('auto_0b81497c85', "Sign up")}
-            </a>
+            </Link>
           </p>
         </div>
       </section>

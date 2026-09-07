@@ -1,13 +1,16 @@
 import { useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Navbar from '@/components/feature/Navbar';
 import Footer from '@/components/feature/Footer';
 import { useAuth } from '@/context/AuthContext';
 import { useAutoT } from '@/hooks/useAutoT';
+import { resolveNextPath } from '@/lib/pendingAction';
 
 export default function SignupPage() {
   const t = useAutoT();
   const navigate = useNavigate();
+  const location = useLocation();
+  const nextPath = resolveNextPath(location.search);
   const { signup } = useAuth();
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
@@ -22,7 +25,7 @@ export default function SignupPage() {
     const result = await signup(email, password, displayName);
     setSubmitting(false);
     if (result.success) {
-      navigate('/');
+      navigate(nextPath, { replace: true });
     } else {
       setError(result.error || 'Signup failed');
     }
