@@ -65,7 +65,7 @@ export default function NewArticlePage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-foreground-900 font-heading">New Article</h1>
-          <p className="text-sm text-foreground-500 mt-1">Create a new article for Japan Quest Guide</p>
+          <p className="text-sm text-foreground-500 mt-1">Create a new article for TABI47</p>
         </div>
         <button
           onClick={() => navigate('/admin/articles')}

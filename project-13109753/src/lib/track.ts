@@ -7,6 +7,8 @@
 //   trackEvent('copy', 'trip', trip.id);
 //   trackEvent('booking_hotel', 'trip', trip.id);
 
+import { trackAnalyticsEvent } from '@/lib/analytics';
+
 export type FunnelEvent = 'view' | 'save' | 'copy' | 'booking_hotel' | 'booking_experience';
 export type TrackContentType = 'guide' | 'experience' | 'trip' | 'spot';
 
@@ -20,6 +22,10 @@ export function trackEvent(
   id: string
 ): void {
   if (typeof window === 'undefined' || !id) return;
+
+  // GAにも送る。GA側では「流入元ごとのコピー率」など、
+  // 自前の集計では追えない切り口で分析できる。
+  trackAnalyticsEvent(event, { content_type: contentType, content_id: id });
 
   try {
     void fetch('/api/track-view', {

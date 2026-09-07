@@ -2,6 +2,7 @@ import { useNavigate, type NavigateFunction } from "react-router-dom";
 import { useRoutes, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import routes from "./config";
+import { trackPageView } from "@/lib/analytics";
 
 let navigateResolver: (navigate: ReturnType<typeof useNavigate>) => void;
 
@@ -35,6 +36,16 @@ export function AppRoutes() {
       window.scrollTo(0, 0);
     }
   }, [location.pathname]);
+
+  // SPAでは画面遷移でページの再読み込みが起きないため、
+  // GA4へのページビュー送信を明示的に行う。
+  // documentのtitleが更新されるのを待ってから送る。
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      trackPageView(location.pathname + location.search);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [location.pathname, location.search]);
 
   return element;
 }
