@@ -3,6 +3,7 @@
 // DELETE /api/admin-users?uid=xxx → ユーザー削除（Admin専用）
 
 import { kv } from '@vercel/kv';
+import { isAdminRequest, adminUnauthorized } from './_adminAuth.js';
 
 export const config = { runtime: 'edge' };
 
@@ -33,6 +34,9 @@ function json(data: unknown, status = 200) {
 }
 
 export default async function handler(req: Request) {
+  // 管理者以外は一切処理させない（サーバー側の境界）
+  if (!(await isAdminRequest(req))) return adminUnauthorized();
+
   const url = new URL(req.url);
 
   // ── DELETE: ユーザー削除（Admin専用） ──

@@ -318,17 +318,23 @@ export default async function handler(req: Request): Promise<Response> {
   try {
     const kvLocals = await kv.get<any[]>('content:localsPlaces');
     if (kvLocals) localsData = kvLocals;
-  } catch {}
+  } catch {
+    // KVが読めなくてもフォールバックデータで応答するため、ここでは何もしない
+  }
 
   try {
     const kvGuides = await kv.get<any[]>('content:latestGuides');
     if (kvGuides) guidesData = kvGuides;
-  } catch {}
+  } catch {
+    // KVが読めなくてもフォールバックデータで応答するため、ここでは何もしない
+  }
 
   try {
     const kvDestinations = await kv.get<any[]>('content:destinations');
     if (kvDestinations) destinationsData = kvDestinations;
-  } catch {}
+  } catch {
+    // KVが読めなくてもフォールバックデータで応答するため、ここでは何もしない
+  }
 
   const experiencesData = await fetchExperiences();
   const experiencesById = new Map(experiencesData.map((e) => [e.id, e]));

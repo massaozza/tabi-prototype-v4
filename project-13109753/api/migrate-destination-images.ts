@@ -30,6 +30,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import crypto from 'crypto';
+import { isAdminNodeRequest } from './_adminAuth.js';
 
 interface Destination {
   id: string;
@@ -46,12 +47,123 @@ function getExtensionFromContentType(contentType: string): string {
   return 'jpg';
 }
 
+// ───────────────────────────────────────────────
+// SSRF・リソース枯渇への対策
+//
+// このAPIは「指定されたURLをサーバーが取得してR2に保存する」動きをする。
+// 無認証・無制限のままだと次の悪用が可能だった：
+//   - 社内ネットワークやクラウドのメタデータ（169.254.169.254）への到達
+//   - 巨大ファイルを掴ませてメモリを枯渇させる
+//   - 第三者にR2の保存容量と転送量を消費させる
+// そこで、管理者認証に加えて以下の制限を設ける。
+// ───────────────────────────────────────────────
+
+/** 取得を許可する画像1件あたりの上限（10MB） */
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+
+/** 画像として受け入れるContent-Type */
+const ALLOWED_CONTENT_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/avif'];
+
+/** プライベート・ループバック・リンクローカル等の宛先を拒否する */
+function isBlockedHost(hostname: string): boolean {
+  const h = hostname.toLowerCase();
+
+  if (h === 'localhost' || h.endsWith('.localhost') || h.endsWith('.internal')) return true;
+
+  // IPv6のループバック・ユニークローカル
+  if (h === '::1' || h === '[::1]') return true;
+  if (/^\[?f[cd][0-9a-f]{2}:/i.test(h)) return true;
+
+  // IPv4
+  const m = h.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (m) {
+    const [a, b] = [Number(m[1]), Number(m[2])];
+    if (a === 10) return true;                       // 10.0.0.0/8
+    if (a === 127) return true;                      // ループバック
+    if (a === 0) return true;                        // 0.0.0.0/8
+    if (a === 169 && b === 254) return true;         // リンクローカル（クラウドメタデータ）
+    if (a === 172 && b >= 16 && b <= 31) return true; // 172.16.0.0/12
+    if (a === 192 && b === 168) return true;         // 192.168.0.0/16
+    if (a === 100 && b >= 64 && b <= 127) return true; // CGNAT
+    if (a >= 224) return true;                       // マルチキャスト以上
+  }
+  return false;
+}
+
+/** 取得先URLとして安全か検証する */
+function validateImageUrl(raw: string): { ok: true; url: URL } | { ok: false; error: string } {
+  let url: URL;
+  try {
+    url = new URL(raw);
+  } catch {
+    return { ok: false, error: 'Invalid URL' };
+  }
+  if (url.protocol !== 'https:' && url.protocol !== 'http:') {
+    return { ok: false, error: 'Only http(s) URLs are allowed' };
+  }
+  if (isBlockedHost(url.hostname)) {
+    return { ok: false, error: 'This host is not allowed' };
+  }
+  return { ok: true, url };
+}
+
+/** 画像を取得する。サイズ・種別を検証し、上限を超えたら中断する */
+async function fetchImageSafely(
+  rawUrl: string
+): Promise<{ buffer: Buffer; contentType: string } | { error: string }> {
+  const checked = validateImageUrl(rawUrl);
+  if (checked.ok === false) return { error: checked.error };
+
+  let imgRes: Response;
+  try {
+    imgRes = await fetch(checked.url.toString(), {
+      // リダイレクトで内部ホストへ回り込まれるのを防ぐ
+      redirect: 'manual',
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        Accept: 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
+      },
+    });
+  } catch (err) {
+    return { error: String(err) };
+  }
+
+  if (imgRes.status >= 300 && imgRes.status < 400) {
+    return { error: 'Redirects are not followed' };
+  }
+  if (!imgRes.ok) return { error: `status ${imgRes.status}` };
+
+  const contentType = (imgRes.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
+  if (!ALLOWED_CONTENT_TYPES.includes(contentType)) {
+    return { error: `Unsupported content-type: ${contentType || 'unknown'}` };
+  }
+
+  const declared = Number(imgRes.headers.get('content-length') || 0);
+  if (declared && declared > MAX_IMAGE_BYTES) {
+    return { error: `Image too large (${declared} bytes)` };
+  }
+
+  const buffer = Buffer.from(await imgRes.arrayBuffer());
+  if (buffer.byteLength > MAX_IMAGE_BYTES) {
+    return { error: `Image too large (${buffer.byteLength} bytes)` };
+  }
+
+  return { buffer, contentType };
+}
+
 export default async function handler(
   req: VercelRequest,
   res: VercelResponse
 ): Promise<void> {
   if (req.method !== 'GET') {
     res.status(405).json({ error: 'Method not allowed' });
+    return;
+  }
+
+  // 管理者以外は実行させない。無認証だと任意URLをサーバーに取得させられる
+  if (!(await isAdminNodeRequest(req))) {
+    res.status(401).json({ error: 'Admin authentication required' });
     return;
   }
 
@@ -87,18 +199,11 @@ export default async function handler(
     const results = await Promise.all(
       urls.map(async (url) => {
         try {
-          const imgRes = await fetch(url, {
-            headers: {
-              'User-Agent':
-                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-              Accept: 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
-            },
-          });
-          if (!imgRes.ok) {
-            return { url, error: `status ${imgRes.status}` };
+          const fetched = await fetchImageSafely(url);
+          if ('error' in fetched) {
+            return { url, error: fetched.error };
           }
-          const contentType = imgRes.headers.get('content-type') || 'image/jpeg';
-          const buffer = Buffer.from(await imgRes.arrayBuffer());
+          const { buffer, contentType } = fetched;
           const objectKey = `destinations/test-${crypto.randomUUID()}.${getExtensionFromContentType(
             contentType
           )}`;
@@ -124,22 +229,15 @@ export default async function handler(
   // そのURL1件だけをその場でテストする（動作検証用）
   if (testUrl) {
     try {
-      const imgRes = await fetch(decodeURIComponent(testUrl), {
-        headers: {
-          'User-Agent':
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-          Accept: 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
-        },
-      });
-      if (!imgRes.ok) {
+      const fetched = await fetchImageSafely(decodeURIComponent(testUrl));
+      if ('error' in fetched) {
         res.status(200).json({
           testMode: true,
-          error: `Failed to fetch source image (status ${imgRes.status})`,
+          error: `Failed to fetch source image: ${fetched.error}`,
         });
         return;
       }
-      const contentType = imgRes.headers.get('content-type') || 'image/jpeg';
-      const buffer = Buffer.from(await imgRes.arrayBuffer());
+      const { buffer, contentType } = fetched;
       const objectKey = `destinations/test-${crypto.randomUUID()}.${getExtensionFromContentType(
         contentType
       )}`;
@@ -186,18 +284,11 @@ export default async function handler(
         return { id: dest.id, skipped: true, reason: 'Already migrated or not a readdy.ai URL' };
       }
       try {
-        const imgRes = await fetch(dest.image, {
-          headers: {
-            'User-Agent':
-              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            Accept: 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
-          },
-        });
-        if (!imgRes.ok) {
-          return { id: dest.id, error: `Failed to fetch source image (status ${imgRes.status})` };
+        const fetched = await fetchImageSafely(dest.image);
+        if ('error' in fetched) {
+          return { id: dest.id, error: `Failed to fetch source image: ${fetched.error}` };
         }
-        const contentType = imgRes.headers.get('content-type') || 'image/jpeg';
-        const buffer = Buffer.from(await imgRes.arrayBuffer());
+        const { buffer, contentType } = fetched;
 
         const objectKey = `destinations/${dest.id}-${crypto.randomUUID()}.${getExtensionFromContentType(
           contentType

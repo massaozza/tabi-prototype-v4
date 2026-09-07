@@ -254,10 +254,6 @@ async function getGuideRecord(id: string): Promise<Guide | null> {
   return value ?? null;
 }
 
-async function updateGuideRecord(id: string, data: Guide): Promise<void> {
-  await kv.set(recordKey(id), data);
-}
-
 async function deleteGuideRecord(id: string, uid: string, spotIds: string[]): Promise<void> {
   await kv.del(recordKey(id));
   await kv.srem(collectionIndexKey(), id);

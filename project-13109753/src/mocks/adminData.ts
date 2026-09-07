@@ -511,4 +511,6 @@ export const statusOptions = [
   { value: 'needs_update', label: '要更新', color: 'bg-red-100 text-red-700' },
 ];
 
-export const DEFAULT_ADMIN_PASSWORD = 'japanquest2026';
+// 管理者パスワードはサーバー側の環境変数 ADMIN_PASSWORD で管理する。
+// クライアントのバンドルに含めるとビルド成果物から誰でも読めてしまうため、
+// ここには置かない（以前の DEFAULT_ADMIN_PASSWORD は削除済み）。

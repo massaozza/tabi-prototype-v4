@@ -14,6 +14,8 @@
 //
 // GEMINI_API_KEYはVercelの環境変数に保存すること。フロントエンドには絶対に露出させない。
 
+import { isAdminRequest, adminUnauthorized } from './_adminAuth.js';
+
 export const config = { runtime: 'edge' };
 
 const TEXT_TYPES = ['h2', 'h3', 'paragraph', 'pro-tip', 'warning'] as const;
@@ -104,6 +106,9 @@ function extractJson(text: string): unknown {
 }
 
 export default async function handler(req: Request): Promise<Response> {
+  // 管理画面専用の機能。無認証だとGeminiの利用料を第三者に消費される
+  if (!(await isAdminRequest(req))) return adminUnauthorized();
+
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
       status: 405,

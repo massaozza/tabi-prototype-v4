@@ -1,0 +1,33 @@
+{
+  // api/ 配下（Vercel Serverless / Edge Functions）用の型チェック設定。
+  //
+  // 【なぜ別ファイルにするか】
+  // tsconfig.app.json は Vite 向けに "moduleResolution": "bundler" で書かれており、
+  // 相対importの拡張子を省略できる。一方 Vercel は api/ を nodenext 相当で
+  // ビルドするため、拡張子を省略すると TS2835 でビルドが失敗する。
+  // 解決方式が違うので、同じ設定で両方を見ることはできない。
+  //
+  // これまで api/ は type-check の対象外だったため、
+  // 「デプロイして初めてエラーに気づく」状態になっていた。
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.api.tsbuildinfo",
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "skipLibCheck": true,
+    "noEmit": true,
+    "resolveJsonModule": true,
+    "allowJs": false,
+    "esModuleInterop": true,
+
+    /* 既存コードに合わせて緩めにしている。段階的に強めていく余地はある */
+    "strict": false,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "useUnknownInCatchVariables": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
+  },
+  "include": ["api"]
+}

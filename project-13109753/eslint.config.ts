@@ -92,6 +92,39 @@ export default [
       'no-undef': 'error',
     },
   },
+  // api/ 配下（Vercel Serverless / Edge Functions）
+  // これまでlintの対象外だったため、既存コードに any が多数残っている。
+  // 対象に加えること自体は有益なので、no-explicit-any は当面 warn に落とし、
+  // 未定義変数などの実害のある問題だけを error にする。
+  {
+    files: ['api/**/*.ts'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      globals: {
+        ...globals.node,
+        // Edge Runtime で使えるWeb標準API
+        Request: 'readonly',
+        Response: 'readonly',
+        Headers: 'readonly',
+        URL: 'readonly',
+        URLSearchParams: 'readonly',
+        fetch: 'readonly',
+        crypto: 'readonly',
+        TextEncoder: 'readonly',
+        TextDecoder: 'readonly',
+        btoa: 'readonly',
+        atob: 'readonly',
+        console: 'readonly',
+        process: 'readonly',
+        Buffer: 'readonly',
+      },
+    },
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      'no-undef': 'error',
+    },
+  },
   // Only enforce this rule for the router config file to avoid false positives elsewhere.
   {
     files: ['src/router/config.tsx'],

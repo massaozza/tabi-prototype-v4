@@ -1,5 +1,4 @@
 import { useState, useEffect, createContext, useContext, useCallback } from 'react';
-import { DEFAULT_ADMIN_PASSWORD } from '@/mocks/adminData';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -23,27 +22,38 @@ export function AdminAuthProvider({ children }: AdminAuthProviderProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [checked, setChecked] = useState(false);
 
+  // 【重要】以前は localStorage の値だけで認証済みと判断していた。
+  // それはブラウザ内で完結する仕組みで、画面を隠すだけの効果しかなく、
+  // APIを直接叩けば誰でもデータを読み書きできた。
+  // 現在は HttpOnly Cookie のセッションをサーバーに問い合わせて判定する。
   useEffect(() => {
-    const stored = localStorage.getItem('tabi47_admin_auth');
-    if (stored) {
-      try {
-        const data = JSON.parse(stored);
-        const now = Date.now();
-        const eightHours = 8 * 60 * 60 * 1000;
-        if (data.timestamp && now - data.timestamp < eightHours) {
-          setIsAuthenticated(true);
-        } else {
-          localStorage.removeItem('tabi47_admin_auth');
-        }
-      } catch {
-        localStorage.removeItem('tabi47_admin_auth');
-      }
-    }
-    setChecked(true);
+    let cancelled = false;
+    fetch('/api/admin-auth', { credentials: 'include' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!cancelled) setIsAuthenticated(Boolean(d?.authenticated));
+      })
+      .catch(() => {
+        if (!cancelled) setIsAuthenticated(false);
+      })
+      .finally(() => {
+        if (!cancelled) setChecked(true);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const logout = useCallback(() => {
-    localStorage.removeItem('tabi47_admin_auth');
+    // Cookieはサーバー側でしか消せないのでAPIに依頼する
+    void fetch('/api/admin-auth', { method: 'DELETE', credentials: 'include' }).catch(() => {});
+    // 古い実装が残した値も掃除しておく
+    try {
+      localStorage.removeItem('tabi47_admin_auth');
+      localStorage.removeItem('tabi47_admin_password');
+    } catch {
+      /* noop */
+    }
     setIsAuthenticated(false);
   }, []);
 
@@ -74,21 +84,41 @@ function AdminLoginScreen({ onLogin }: { onLogin: () => void }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
-    setTimeout(() => {
-      const storedPassword = localStorage.getItem('tabi47_admin_password') || DEFAULT_ADMIN_PASSWORD;
-      if (password === storedPassword) {
-        localStorage.setItem('tabi47_admin_auth', JSON.stringify({ timestamp: Date.now() }));
+    // パスワードの照合はサーバー側で行う。
+    // 成功すると HttpOnly Cookie が発行され、以後のAPI呼び出しが通る。
+    try {
+      const res = await fetch('/api/admin-auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ password }),
+      });
+
+      if (res.ok) {
         onLogin();
-      } else {
-        setError('Incorrect password. Please try again.');
+        return;
       }
+
+      const data = await res.json().catch(() => null);
+      if (res.status === 429) {
+        setError('Too many attempts. Please wait a few minutes.');
+      } else if (res.status === 503) {
+        setError(
+          'Admin login is not configured on the server (ADMIN_PASSWORD / ADMIN_SESSION_SECRET).'
+        );
+      } else {
+        setError(data?.error || 'Incorrect password. Please try again.');
+      }
+    } catch {
+      setError('Could not reach the server. Please try again.');
+    } finally {
       setLoading(false);
-    }, 600);
+    }
   };
 
   return (

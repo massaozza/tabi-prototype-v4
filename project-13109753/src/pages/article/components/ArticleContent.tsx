@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAutoT } from '@/hooks/useAutoT';
+import { sanitizeArticleHtml } from '@/lib/sanitizeHtml';
 
 interface TocItem {
   number: string;
@@ -64,7 +65,8 @@ function renderContentBlock(block: ContentBlock, index: number, t: (k: string, d
         <p
           key={index}
           className="text-foreground-700 text-[15px] md:text-base leading-[1.8] mb-5"
-          dangerouslySetInnerHTML={{ __html: block.text || '' }}
+          // 保存型XSSを防ぐため、必ずサニタイズを通してから描画する
+          dangerouslySetInnerHTML={{ __html: sanitizeArticleHtml(block.text) }}
         />
       );
 

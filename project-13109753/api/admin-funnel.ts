@@ -23,6 +23,7 @@
 //   → 種別を絞って取得
 
 import { kv } from '@vercel/kv';
+import { isAdminRequest, adminUnauthorized } from './_adminAuth.js';
 
 export const config = { runtime: 'edge' };
 
@@ -184,6 +185,9 @@ async function readCounts(
 }
 
 export default async function handler(req: Request): Promise<Response> {
+  // 管理者以外は一切処理させない（サーバー側の境界）
+  if (!(await isAdminRequest(req))) return adminUnauthorized();
+
   if (req.method !== 'GET') return json({ error: 'Method not allowed' }, 405);
 
   const url = new URL(req.url);
