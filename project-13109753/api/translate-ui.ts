@@ -16,6 +16,7 @@
 //   res:  { translations: { [originalText]: translatedText } }
 
 import { kv } from '@vercel/kv';
+import { checkRateLimit, clientIpFromRequest } from './_rateLimit.js';
 
 export const config = { runtime: 'edge' };
 
@@ -35,6 +36,17 @@ const LANG_NAMES: Record<string, string> = {
 };
 
 const MAX_TEXTS = 250;
+
+// ── レート制限 ──
+// このAPIは未認証で呼べるため、無制限だとランダムな文字列を送り続けて
+// Geminiの残高を枯らすことができてしまう。
+// ただしキャッシュに当たるだけのリクエストではGeminiを呼ばないので、
+// 「実際にGeminiを呼ぶことになった回数」だけを数える。
+// これにより、翻訳済みのページを普通に閲覧している人は制限に当たらない。
+const TRANSLATE_LIMITS = [
+  { windowSeconds: 60 * 60, max: 40 },
+  { windowSeconds: 60 * 60 * 24, max: 150 },
+];
 const CHUNK = 25;
 const CHUNK_CHARS = 3500;
 
@@ -224,6 +236,18 @@ export default async function handler(req: Request): Promise<Response> {
 
     if (missing.length === 0) {
       return json({ translations, fromCache: true });
+    }
+
+    // ここに来た時点で未翻訳が残っている＝Geminiを呼ぶ必要がある。
+    // キャッシュで済んだリクエストは上でreturnしているため数に入らない。
+    const limit = await checkRateLimit(
+      'translate-ui',
+      `ip:${clientIpFromRequest(req)}`,
+      TRANSLATE_LIMITS
+    );
+    if (!limit.ok) {
+      // 取得できた分（キャッシュ済み）は返し、残りは次回に回す
+      return json({ translations, rateLimited: true, retryAfter: limit.retryAfter });
     }
 
     const apiKey = process.env.GEMINI_API_KEY;

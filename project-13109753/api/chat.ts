@@ -16,6 +16,13 @@
 
 import { kv } from '@vercel/kv';
 import { localsPlaces, latestGuides, destinations } from '../src/mocks/homeData.js';
+import {
+  checkRateLimit,
+  clientIpFromRequest,
+  rateLimitedResponse,
+  ANON_LIMITS,
+  USER_LIMITS,
+} from './_rateLimit.js';
 
 export const config = { runtime: 'edge' };
 
@@ -248,6 +255,23 @@ function extractJson(text: string): unknown {
   return JSON.parse(cleaned);
 }
 
+/**
+ * ログイン済みなら uid を返す。未ログインなら null。
+ * チャット自体は未ログインでも使えるが、レート制限の上限を
+ * ログイン済みユーザーには緩めるために参照する。
+ */
+async function getUidForRateLimit(req: Request): Promise<string | null> {
+  const cookie = req.headers.get('cookie') || '';
+  const match = cookie.match(/(?:^|;\s*)session=([^;]*)/);
+  if (!match) return null;
+  try {
+    const record = await kv.get<{ uid?: string }>(`session:${decodeURIComponent(match[1])}`);
+    return record?.uid || null;
+  } catch {
+    return null;
+  }
+}
+
 export default async function handler(req: Request): Promise<Response> {
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
@@ -255,6 +279,17 @@ export default async function handler(req: Request): Promise<Response> {
       headers: { 'Content-Type': 'application/json' },
     });
   }
+
+  // ── レート制限 ──
+  // チャットは未ログインでも使える入口なので、ログイン必須にはしない。
+  // ただし1回ごとにGeminiを呼ぶため、無制限だと残高を枯らされる。
+  const uid = await getUidForRateLimit(req);
+  const limit = await checkRateLimit(
+    'chat',
+    uid ? `uid:${uid}` : `ip:${clientIpFromRequest(req)}`,
+    uid ? USER_LIMITS : ANON_LIMITS
+  );
+  if (!limit.ok) return rateLimitedResponse(limit.retryAfter);
 
   let body: { message?: string; history?: ChatMessage[] };
   try {

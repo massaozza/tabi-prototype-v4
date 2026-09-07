@@ -22,6 +22,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { kv } from '@vercel/kv';
 import crypto from 'crypto';
+import { checkRateLimit, USER_LIMITS } from './_rateLimit.js';
 
 interface PhotoInput {
   url: string;
@@ -223,6 +224,16 @@ export default async function handler(
   const uid = await getAuthenticatedUid(req);
   if (!uid) {
     res.status(401).json({ error: 'You must be logged in to post a travelogue' });
+    return;
+  }
+
+  // ログイン必須だが、アカウントを取れば無制限に呼べる状態は避ける
+  const limit = await checkRateLimit('parse-travelogue', `uid:${uid}`, USER_LIMITS);
+  if (!limit.ok) {
+    res
+      .status(429)
+      .setHeader('Retry-After', String(limit.retryAfter))
+      .json({ error: 'Too many requests. Please try again later.', retryAfter: limit.retryAfter });
     return;
   }
 

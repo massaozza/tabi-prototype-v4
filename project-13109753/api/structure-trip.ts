@@ -14,6 +14,7 @@
 // この処理はあくまで「構造化するだけ」で、実際の保存は行わない。
 
 import { kv } from '@vercel/kv';
+import { checkRateLimit, rateLimitedResponse, USER_LIMITS } from './_rateLimit.js';
 
 export const config = { runtime: 'edge' };
 
@@ -195,6 +196,10 @@ export default async function handler(req: Request): Promise<Response> {
       { status: 401, headers: { 'Content-Type': 'application/json' } }
     );
   }
+
+  // ログイン必須だが、アカウントを取れば無制限に呼べる状態は避ける
+  const limit = await checkRateLimit('structure-trip', `uid:${uid}`, USER_LIMITS);
+  if (!limit.ok) return rateLimitedResponse(limit.retryAfter);
 
   let body: { history?: ChatMessage[] };
   try {

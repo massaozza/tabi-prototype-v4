@@ -187,6 +187,14 @@ export default function FloatingChatButton() {
         if (user && assistantCount >= 1) {
           refreshTripPreviewSilently();
         }
+      } else if (res.status === 429) {
+        // レート制限。原因が分かるように専用の案内を出す
+        const minutes = Math.max(Math.ceil((data?.retryAfter || 0) / 60), 1);
+        addAssistantMessage(
+          `I've hit my limit for now. Please try again in about ${minutes} minute${
+            minutes > 1 ? 's' : ''
+          }.${user ? '' : ' Signing in gives you more room to chat.'}`
+        );
       } else {
         addAssistantMessage(ERROR_MESSAGE);
       }
