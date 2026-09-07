@@ -8,7 +8,7 @@ interface AdminTrip {
   authorName?: string;
   createdAt: string;
   isPublic: boolean;
-  tripType?: string;a
+  tripType?: string;
   saveCount: number;
   copyCount: number;
 }
