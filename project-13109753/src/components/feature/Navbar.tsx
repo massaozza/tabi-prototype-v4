@@ -138,7 +138,7 @@ export default function Navbar({ variant }: { variant?: 'default' | 'dark' } = {
                 aria-label={t('nav_language', 'Language')}
               >
                 <i className="ri-global-line text-base"></i>
-                <span>{tx(currentLang.label)}</span>
+                <span>{currentLang.label}</span>
                 <i className={`text-xs transition-transform ${langMenuOpen ? 'ri-arrow-up-s-line' : 'ri-arrow-down-s-line'}`}></i>
               </button>
               {langMenuOpen && (
@@ -153,7 +153,7 @@ export default function Navbar({ variant }: { variant?: 'default' | 'dark' } = {
                           : 'text-foreground-700 hover:bg-background-50'
                       }`}
                     >
-                      {tx(lang.label)}
+                      {lang.label}
                     </button>
                   ))}
                 </div>
@@ -264,7 +264,7 @@ export default function Navbar({ variant }: { variant?: 'default' | 'dark' } = {
                       : 'text-foreground-700 hover:bg-background-100'
                   }`}
                 >
-                  {tx(lang.label)}
+                  {lang.label}
                 </button>
               ))}
             </div>
