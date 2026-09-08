@@ -21,6 +21,7 @@
 // すべて管理者認証必須。
 
 import { kv } from '@vercel/kv';
+import { destinations as mockDestinations } from '../src/mocks/homeData.js';
 import { isAdminRequest, adminUnauthorized } from './_adminAuth.js';
 import {
   type Spot,
@@ -60,19 +61,43 @@ interface LegacySpot {
   image?: string;
 }
 
-/** 移行元データを読む */
-async function readLegacy(): Promise<LegacySpot[]> {
-  const list = await kv.get<LegacySpot[]>(LEGACY_CACHE_KEY);
-  return Array.isArray(list) ? list : [];
+/**
+ * 移行元データを読む。
+ *
+ * 【重要】content:destinations は空の可能性がある。
+ * /api/content の GET は `kv.get(...) ?? FALLBACK_DATA` という実装で、
+ * KVが空のときは src/mocks/homeData.ts の値を返している。
+ * つまり現在表示されている367件の正データは KV ではなくソースコードにある。
+ *
+ * そのため移行元は「KV → 無ければ mocks」の順で解決する。
+ * これを間違えると0件を移して空振りする。
+ */
+async function readLegacy(): Promise<{ list: LegacySpot[]; origin: 'kv' | 'mocks' | 'none' }> {
+  try {
+    const fromKv = await kv.get<LegacySpot[]>(LEGACY_CACHE_KEY);
+    if (Array.isArray(fromKv) && fromKv.length > 0) {
+      return { list: fromKv, origin: 'kv' };
+    }
+  } catch {
+    /* KVが読めない場合も mocks にフォールバックする */
+  }
+
+  const fromMocks = mockDestinations as unknown as LegacySpot[];
+  if (Array.isArray(fromMocks) && fromMocks.length > 0) {
+    return { list: fromMocks, origin: 'mocks' };
+  }
+  return { list: [], origin: 'none' };
 }
 
 /** バックアップを取る。戻り値はタイムスタンプ */
-async function createBackup(): Promise<{ stamp: string; count: number }> {
-  const legacy = await readLegacy();
+async function createBackup(): Promise<{ stamp: string; count: number; origin: string }> {
+  const { list, origin } = await readLegacy();
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
-  await kv.set(backupKey(stamp), legacy);
+  // KVの現在値もそのまま残す（空なら空として記録し、復元時に元の状態へ戻せる）
+  const kvCurrent = await kv.get<LegacySpot[]>(LEGACY_CACHE_KEY).catch(() => null);
+  await kv.set(backupKey(stamp), { source: list, kvBefore: kvCurrent, origin });
   await kv.sadd('backup:destinations:index', stamp);
-  return { stamp, count: legacy.length };
+  return { stamp, count: list.length, origin };
 }
 
 export default async function handler(req: Request): Promise<Response> {
@@ -85,7 +110,7 @@ export default async function handler(req: Request): Promise<Response> {
   // 検証レポート
   // ───────────────────────────────────────────
   if (req.method === 'GET' && (action === 'verify' || !action)) {
-    const legacy = await readLegacy();
+    const { list: legacy, origin: legacyOrigin } = await readLegacy();
     const legacyIds = legacy.map((s) => s.id).filter((v): v is string => Boolean(v));
     const spotIds = await listSpotIds();
     const spots = await getSpots(spotIds);
@@ -174,6 +199,8 @@ export default async function handler(req: Request): Promise<Response> {
 
     return json({
       migrated: Boolean(await kv.get(MIGRATION_FLAG)),
+      // 移行元がKVかmocksかを明示する（0件で空振りするのを防ぐため）
+      legacySource: legacyOrigin,
       counts: {
         legacy: legacy.length,
         newStore: spotIds.length,
@@ -215,18 +242,27 @@ export default async function handler(req: Request): Promise<Response> {
     const stamp = url.searchParams.get('stamp');
     if (!stamp) return json({ error: 'stamp query parameter is required' }, 400);
 
-    const backup = await kv.get<LegacySpot[]>(backupKey(stamp));
-    if (!Array.isArray(backup)) return json({ error: 'Backup not found' }, 404);
+    const backup = await kv.get<{
+      source?: LegacySpot[];
+      kvBefore?: LegacySpot[] | null;
+      origin?: string;
+    }>(backupKey(stamp));
+    if (!backup) return json({ error: 'Backup not found' }, 404);
 
-    // 派生キャッシュを元の内容に戻す。
-    // spot:{id} 側は残るが、読み取り経路は派生キャッシュなので表示は復旧する。
-    await kv.set(LEGACY_CACHE_KEY, backup);
+    // 移行前のKVの状態に正確に戻す。
+    // 元が空（mocksで表示されていた）なら、キーを削除して空の状態に戻す。
+    if (Array.isArray(backup.kvBefore) && backup.kvBefore.length > 0) {
+      await kv.set(LEGACY_CACHE_KEY, backup.kvBefore);
+    } else {
+      await kv.del(LEGACY_CACHE_KEY);
+    }
     await kv.del(MIGRATION_FLAG);
 
     return json({
       success: true,
-      restored: backup.length,
-      note: 'content:destinations restored and migration flag cleared. spot:{id} records were left in place.',
+      restoredTo: Array.isArray(backup.kvBefore) && backup.kvBefore.length > 0 ? 'kv snapshot' : 'empty (mocks fallback)',
+      sourceCount: backup.source?.length ?? 0,
+      note: 'Migration flag cleared. spot:{id} records were left in place; the site now reads the pre-migration source again.',
     });
   }
 
@@ -234,9 +270,12 @@ export default async function handler(req: Request): Promise<Response> {
   // 移行
   // ───────────────────────────────────────────
   if (action === 'migrate') {
-    const legacy = await readLegacy();
+    const { list: legacy, origin } = await readLegacy();
     if (legacy.length === 0) {
-      return json({ error: 'No legacy data found in content:destinations' }, 400);
+      return json(
+        { error: 'No legacy spot data found in KV or mocks. Nothing to migrate.' },
+        400
+      );
     }
 
     // 1. バックアップ（必ず取る）
@@ -302,6 +341,7 @@ export default async function handler(req: Request): Promise<Response> {
     return json({
       success: true,
       backupStamp: backup.stamp,
+      legacySource: origin,
       legacyCount: legacy.length,
       written,
       errors: errors.length,
