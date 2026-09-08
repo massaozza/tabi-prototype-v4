@@ -113,6 +113,8 @@ export interface StagingRecord {
 export interface ImportRun {
   runId: string;
   prefecture: string;
+  /** 取得したカテゴリ群。1回で全カテゴリを取ると実行時間上限を超えるため分割する */
+  group?: string;
   startedAt: string;
   finishedAt?: string;
   /** Overpassから取得した生の件数 */

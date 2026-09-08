@@ -36,7 +36,9 @@ import { kv } from '@vercel/kv';
 import { isAdminRequest, adminUnauthorized } from './_adminAuth.js';
 import { listPublishedSpots } from './_spotStore.js';
 
-export const config = { runtime: 'edge', maxDuration: 60 };
+// 【注意】maxDuration は Edge Runtime では効かない。
+// 実際の実行時間上限は約25秒なので、重い処理は必ず分割する。
+export const config = { runtime: 'edge' };
 
 function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), {

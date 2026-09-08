@@ -47,7 +47,9 @@ import {
   type ImportRun,
 } from './_osmStaging.js';
 
-export const config = { runtime: 'edge', maxDuration: 60 };
+// 【注意】maxDuration は Edge Runtime では効かない。
+// 実際の実行時間上限は約25秒なので、重い処理は必ず分割する。
+export const config = { runtime: 'edge' };
 
 const OVERPASS_ENDPOINTS = [
   'https://overpass-api.de/api/interpreter',
@@ -78,35 +80,80 @@ function json(data: unknown, status = 200) {
 }
 
 /**
- * Overpass のクエリ。
+ * 取得対象のカテゴリ群。
  *
- * 【対象を観光Spotに絞る理由（指示書10）】
- * 全国の全飲食店を取得すると件数と品質管理の負荷が急増する。
- * 初期は観光価値が明確なものに限定し、
- * Restaurant / Cafe は Creator投稿や人気エリアから個別に追加する。
+ * 【1回のリクエストで全カテゴリを取らない理由】
+ * 栃木県の全観光Spotを1クエリで取ると、Overpass側の処理が30秒を超え、
+ * Edge Functionの実行時間上限（約25秒）に達して504になる（実測）。
+ * カテゴリ単位に分け、呼び出し側が順番に実行できるようにする。
+ *
+ * 【指示書10に沿った優先順位】
+ * 観光価値が明確なものを先に取る。
+ * Restaurant / Cafe は全国Importの対象外とし、
+ * Creator投稿や人気エリアから個別に追加する方針。
  */
-function buildOverpassQuery(prefJa: string): string {
-  return `
-[out:json][timeout:90][maxsize:134217728];
-area["name"="${prefJa}"]["admin_level"="4"]->.pref;
-(
-  node["tourism"~"^(attraction|museum|gallery|viewpoint|theme_park|aquarium|zoo)$"](area.pref);
-  way ["tourism"~"^(attraction|museum|gallery|viewpoint|theme_park|aquarium|zoo)$"](area.pref);
-
-  node["historic"](area.pref);
-  way ["historic"](area.pref);
-
+export const IMPORT_GROUPS: { key: string; label: string; query: string }[] = [
+  {
+    key: 'worship',
+    label: 'Shrines & temples',
+    query: `
   node["amenity"="place_of_worship"]["name"](area.pref);
-  way ["amenity"="place_of_worship"]["name"](area.pref);
-
-  node["leisure"~"^(park|garden)$"]["name"](area.pref);
-  way ["leisure"~"^(park|garden)$"]["name"](area.pref);
-
+  way ["amenity"="place_of_worship"]["name"](area.pref);`,
+  },
+  {
+    key: 'historic',
+    label: 'Historic sites & castles',
+    query: `
+  node["historic"]["name"](area.pref);
+  way ["historic"]["name"](area.pref);`,
+  },
+  {
+    key: 'tourism',
+    label: 'Attractions & museums',
+    query: `
+  node["tourism"~"^(attraction|museum|gallery|theme_park|aquarium|zoo)$"]["name"](area.pref);
+  way ["tourism"~"^(attraction|museum|gallery|theme_park|aquarium|zoo)$"]["name"](area.pref);`,
+  },
+  {
+    key: 'nature',
+    label: 'Nature & viewpoints',
+    query: `
+  node["tourism"="viewpoint"]["name"](area.pref);
   node["natural"~"^(waterfall|peak|beach|cape|hot_spring)$"]["name"](area.pref);
-  way ["natural"~"^(waterfall|beach|cape)$"]["name"](area.pref);
-
+  way ["natural"~"^(waterfall|beach|cape)$"]["name"](area.pref);`,
+  },
+  {
+    key: 'park',
+    label: 'Parks & gardens',
+    query: `
+  node["leisure"~"^(park|garden)$"]["name"](area.pref);
+  way ["leisure"~"^(park|garden)$"]["name"](area.pref);`,
+  },
+  {
+    key: 'onsen',
+    label: 'Onsen',
+    query: `
   node["amenity"~"^(onsen|public_bath)$"]["name"](area.pref);
   way ["amenity"~"^(onsen|public_bath)$"]["name"](area.pref);
+  node["bath:type"="onsen"]["name"](area.pref);`,
+  },
+];
+
+/**
+ * Overpass のクエリを組み立てる。
+ *
+ * timeout は Edge Functionの上限（約25秒）より短く設定する。
+ * Overpass側で90秒待たれると、こちらが先に打ち切られて
+ * 何も得られないまま504になる。
+ */
+function buildOverpassQuery(prefJa: string, groupKey: string): string {
+  const group = IMPORT_GROUPS.find((g) => g.key === groupKey);
+  if (!group) throw new Error(`Unknown import group: ${groupKey}`);
+
+  return `
+[out:json][timeout:18][maxsize:67108864];
+area["name"="${prefJa}"]["admin_level"="4"]->.pref;
+(${group.query}
 );
 out tags center;
 `.trim();
@@ -129,6 +176,9 @@ async function fetchOverpass(
   query: string,
   errors: string[]
 ): Promise<OverpassElement[] | null> {
+  // 【重要】Edge Functionの上限は約25秒。
+  // 待機を長く取ると再試行する前に打ち切られるため、
+  // 待ちは短く、エンドポイントの切り替えを優先する。
   for (const endpoint of OVERPASS_ENDPOINTS) {
     for (let attempt = 1; attempt <= 2; attempt++) {
       try {
@@ -143,10 +193,14 @@ async function fetchOverpass(
         });
 
         if (res.status === 429 || res.status === 504) {
-          const wait = attempt * 5000;
-          errors.push(`${endpoint} returned ${res.status}, waiting ${wait}ms`);
-          await new Promise((r) => setTimeout(r, wait));
-          continue;
+          // 1回だけ短く待って再試行し、それでも駄目なら次のエンドポイントへ
+          if (attempt === 1) {
+            errors.push(`${endpoint} returned ${res.status}, retrying once`);
+            await new Promise((r) => setTimeout(r, 2000));
+            continue;
+          }
+          errors.push(`${endpoint} returned ${res.status} twice`);
+          break;
         }
         if (!res.ok) {
           errors.push(`${endpoint} returned ${res.status}`);
@@ -226,6 +280,8 @@ export default async function handler(req: Request): Promise<Response> {
       runs,
       staging: summary,
       availablePrefectures: Object.keys(PREFECTURE_JA),
+      // カテゴリ単位に分けて実行する必要があるため、一覧を返す
+      importGroups: IMPORT_GROUPS.map((g) => ({ key: g.key, label: g.label })),
       attribution: '© OpenStreetMap contributors (ODbL 1.0)',
     });
   }
@@ -234,6 +290,7 @@ export default async function handler(req: Request): Promise<Response> {
 
   const prefecture = url.searchParams.get('prefecture') || '';
   const dryRun = url.searchParams.get('dryRun') === '1';
+  const groupKey = url.searchParams.get('group') || IMPORT_GROUPS[0].key;
 
   const prefJa = PREFECTURE_JA[prefecture];
   if (!prefJa) {
@@ -243,11 +300,22 @@ export default async function handler(req: Request): Promise<Response> {
     );
   }
 
-  const runId = `${prefecture}-${Date.now()}`;
+  const groupIndex = IMPORT_GROUPS.findIndex((g) => g.key === groupKey);
+  if (groupIndex === -1) {
+    return json(
+      { error: `Unknown group. Use one of: ${IMPORT_GROUPS.map((g) => g.key).join(', ')}` },
+      400
+    );
+  }
+  const nextGroup = IMPORT_GROUPS[groupIndex + 1]?.key ?? null;
+
+  // カテゴリごとに実行するため、runIdは都道府県+カテゴリで作る
+  const runId = `${prefecture}-${groupKey}-${Date.now()}`;
   const errors: string[] = [];
   const run: ImportRun = {
     runId,
     prefecture,
+    group: groupKey,
     startedAt: new Date().toISOString(),
     fetched: 0,
     staged: 0,
@@ -260,7 +328,7 @@ export default async function handler(req: Request): Promise<Response> {
 
   try {
     // ── 1. Overpass から取得 ──
-    const elements = await fetchOverpass(buildOverpassQuery(prefJa), errors);
+    const elements = await fetchOverpass(buildOverpassQuery(prefJa, groupKey), errors);
     if (!elements) {
       run.status = 'failed';
       run.errors = errors;
@@ -397,6 +465,9 @@ export default async function handler(req: Request): Promise<Response> {
 
     return json({
       dryRun,
+      group: groupKey,
+      groupLabel: IMPORT_GROUPS[groupIndex].label,
+      nextGroup,
       run,
       // 判定結果の要約。処理をブラックボックスにしないため
       samples: {
@@ -408,9 +479,11 @@ export default async function handler(req: Request): Promise<Response> {
         NEW: records.filter((r) => r.matchStatus === 'NEW').slice(0, 5).map(summarize),
       },
       attribution: '© OpenStreetMap contributors (ODbL 1.0)',
-      hint: dryRun
-        ? 'This was a dry run. Remove dryRun=1 to save to staging.'
-        : 'Saved to staging. Review POSSIBLE_MATCH and NEW before publishing.',
+      hint: nextGroup
+        ? `Next: run again with &group=${nextGroup}`
+        : dryRun
+          ? 'All groups done (dry run). Remove dryRun=1 to save to staging.'
+          : 'All groups done. Review POSSIBLE_MATCH and NEW before publishing.',
     });
   } catch (err) {
     run.status = 'failed';

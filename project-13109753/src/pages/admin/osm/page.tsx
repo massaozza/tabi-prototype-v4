@@ -95,6 +95,9 @@ export default function AdminOsmPage() {
   const [importPref, setImportPref] = useState('Tochigi');
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<unknown>(null);
+  // カテゴリごとに分けて実行するため、進行状況を表示する
+  const [importGroups, setImportGroups] = useState<{ key: string; label: string }[]>([]);
+  const [importProgress, setImportProgress] = useState<string[]>([]);
 
   const [busyId, setBusyId] = useState<string | null>(null);
   const [notice, setNotice] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
@@ -108,6 +111,7 @@ export default function AdminOsmPage() {
         setRuns(Array.isArray(d.runs) ? d.runs : []);
         setSummary(d.staging ?? null);
         setPrefectures(Array.isArray(d.availablePrefectures) ? d.availablePrefectures : []);
+        setImportGroups(Array.isArray(d.importGroups) ? d.importGroups : []);
       })
       .catch(() => {});
   };
@@ -140,27 +144,77 @@ export default function AdminOsmPage() {
     );
   }, [items, search]);
 
+  /**
+   * 全カテゴリを順番に実行する。
+   *
+   * 1回のリクエストで全カテゴリを取るとOverpassの処理が長引き、
+   * Edge Functionの実行時間上限（約25秒）を超えて504になる（実測）。
+   * そのためカテゴリ単位に分け、前の結果が返ってから次を投げる。
+   * Overpassへの同時アクセスを避ける意味でも順次実行が適切。
+   */
   const runImport = async (dryRun: boolean) => {
     setImporting(true);
     setImportResult(null);
+    setImportProgress([]);
     setNotice(null);
+
+    const groups = importGroups.length > 0 ? importGroups : [{ key: 'worship', label: 'Shrines & temples' }];
+    const results: unknown[] = [];
+    const totals = { fetched: 0, staged: 0, rejected: 0, MATCHED: 0, POSSIBLE_MATCH: 0, NEW: 0 };
+
     try {
-      const params = new URLSearchParams({ prefecture: importPref });
-      if (dryRun) params.set('dryRun', '1');
-      const res = await fetch(`/api/admin-osm-import?${params.toString()}`, { method: 'POST' });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || `Failed (${res.status})`);
-      setImportResult(data);
+      for (const g of groups) {
+        setImportProgress((prev) => [...prev, `${g.label}: running…`]);
+
+        const params = new URLSearchParams({ prefecture: importPref, group: g.key });
+        if (dryRun) params.set('dryRun', '1');
+
+        const res = await fetch(`/api/admin-osm-import?${params.toString()}`, { method: 'POST' });
+        const text = await res.text();
+
+        let data: {
+          run?: { fetched?: number; staged?: number; rejected?: number; counts?: Record<string, number> };
+          error?: string;
+        } | null = null;
+        try {
+          data = JSON.parse(text);
+        } catch {
+          // タイムアウト時などJSON以外が返ることがある
+          throw new Error(`${g.label}: ${res.status} ${text.slice(0, 120)}`);
+        }
+        if (!res.ok) throw new Error(data?.error || `${g.label}: failed (${res.status})`);
+
+        const r = data?.run;
+        totals.fetched += r?.fetched ?? 0;
+        totals.staged += r?.staged ?? 0;
+        totals.rejected += r?.rejected ?? 0;
+        totals.MATCHED += r?.counts?.MATCHED ?? 0;
+        totals.POSSIBLE_MATCH += r?.counts?.POSSIBLE_MATCH ?? 0;
+        totals.NEW += r?.counts?.NEW ?? 0;
+
+        results.push(data);
+        setImportProgress((prev) => [
+          ...prev.slice(0, -1),
+          `${g.label}: fetched ${r?.fetched ?? 0}, staged ${r?.staged ?? 0}, rejected ${r?.rejected ?? 0}`,
+        ]);
+      }
+
+      setImportResult({ totals, perGroup: results });
       setNotice({
         type: 'success',
         message: dryRun
-          ? `Dry run finished: ${data.run.fetched} fetched, ${data.run.rejected} rejected.`
-          : `Import finished: ${data.run.staged} saved to staging.`,
+          ? `Dry run finished: ${totals.fetched} fetched, ${totals.rejected} rejected (nothing saved).`
+          : `Import finished: ${totals.staged} saved to staging.`,
       });
       loadDashboard();
       if (!dryRun) loadQueue();
     } catch (e) {
-      setNotice({ type: 'error', message: e instanceof Error ? e.message : 'Import failed' });
+      setNotice({
+        type: 'error',
+        message: e instanceof Error ? e.message : 'Import failed',
+      });
+      // 途中までの結果も見せる（どのカテゴリで失敗したか分かるように）
+      if (results.length > 0) setImportResult({ totals, perGroup: results, incomplete: true });
     } finally {
       setImporting(false);
     }
@@ -255,9 +309,20 @@ export default function AdminOsmPage() {
             {importing ? 'Running…' : 'Import to staging'}
           </button>
           <span className="text-xs text-foreground-500">
-            One prefecture at a time, to stay within Overpass API limits.
+            One prefecture at a time, split by category to stay within Overpass and function
+            time limits.
           </span>
         </div>
+
+        {importProgress.length > 0 && (
+          <div className="mt-4 space-y-1">
+            {importProgress.map((line, i) => (
+              <p key={i} className="text-xs text-foreground-600 font-mono">
+                {line}
+              </p>
+            ))}
+          </div>
+        )}
 
         {importResult != null && (
           <pre className="mt-4 bg-white border border-background-200 rounded-md p-3 text-xs overflow-x-auto max-h-72 text-foreground-700">

@@ -39,7 +39,9 @@ import {
   type StagingRecord,
 } from './_osmStaging.js';
 
-export const config = { runtime: 'edge', maxDuration: 60 };
+// 【注意】maxDuration は Edge Runtime では効かない。
+// 実際の実行時間上限は約25秒なので、重い処理は必ず分割する。
+export const config = { runtime: 'edge' };
 
 const VALID_STATUS: MatchStatus[] = ['MATCHED', 'POSSIBLE_MATCH', 'NEW', 'REJECTED'];
 
