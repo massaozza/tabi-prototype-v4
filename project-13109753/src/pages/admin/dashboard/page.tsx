@@ -15,8 +15,7 @@
 // PV・流入元・国別・滞在時間はGoogle Analyticsで見る。
 // ここではGAで追いにくい「コンテンツ単位のファネル」を扱う。
 
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
 
 const EVENTS = ['view', 'save', 'copy', 'booking_hotel', 'booking_experience'] as const;
 type FunnelEvent = (typeof EVENTS)[number];
@@ -43,8 +42,38 @@ interface DashboardData {
     articles: ContentCounts;
   };
   users: { total: number; recent7d: number; withTrip: number };
-  topContent: { contentType: string; id: string; title: string; copy: number; view: number }[];
+  byType: Record<string, Counts & { items: number }>;
+  items: ContentRow[];
 }
+
+interface ContentRow {
+  contentType: string;
+  id: string;
+  title: string;
+  counts: Counts;
+}
+
+const EVENT_LABEL: Record<FunnelEvent, string> = {
+  view: 'Views',
+  save: 'Saves',
+  copy: 'Copies',
+  booking_hotel: 'Book Hotel',
+  booking_experience: 'Book Experience',
+};
+
+const TYPE_LABEL: Record<string, string> = {
+  trip: 'Trip',
+  guide: 'Guide',
+  experience: 'Experience',
+  spot: 'Spot',
+};
+
+const TYPE_COLOR: Record<string, string> = {
+  trip: 'bg-blue-50 text-blue-700 border-blue-200',
+  guide: 'bg-purple-50 text-purple-700 border-purple-200',
+  experience: 'bg-amber-50 text-amber-700 border-amber-200',
+  spot: 'bg-green-50 text-green-700 border-green-200',
+};
 
 function num(n: number | null | undefined): string {
   if (n === null || n === undefined) return '—';
@@ -118,6 +147,13 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  // ── コンテンツ明細（旧Funnelページの内容を統合したもの） ──
+  // Dashboardが縦に長くなりすぎないよう、既定では閉じておく。
+  const [showDetail, setShowDetail] = useState(false);
+  const [search, setSearch] = useState('');
+  const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [sortKey, setSortKey] = useState<FunnelEvent>('copy');
+
   useEffect(() => {
     let cancelled = false;
     fetch('/api/admin-dashboard')
@@ -141,6 +177,21 @@ export default function DashboardPage() {
     };
   }, []);
 
+  // 明細の絞り込み。dataがまだ無い間は空配列を返す。
+  // 早期returnより前にフックを置く必要があるため、ここで算出する。
+  const filtered = useMemo(() => {
+    const rows = data?.items || [];
+    const q = search.trim().toLowerCase();
+    let out = rows;
+    if (typeFilter !== 'all') out = out.filter((i) => i.contentType === typeFilter);
+    if (q) {
+      out = out.filter(
+        (i) => i.title.toLowerCase().includes(q) || i.id.toLowerCase().includes(q)
+      );
+    }
+    return [...out].sort((a, b) => b.counts[sortKey] - a.counts[sortKey]);
+  }, [data, search, typeFilter, sortKey]);
+
   if (loading) {
     return (
       <div className="space-y-5">
@@ -162,7 +213,7 @@ export default function DashboardPage() {
     );
   }
 
-  const { funnel, content, users, topContent, months } = data;
+  const { funnel, content, users, items, byType, months } = data;
   const cur = funnel.current;
   const prev = funnel.previous;
 
@@ -241,10 +292,8 @@ export default function DashboardPage() {
         </div>
         <p className="text-xs text-foreground-500 mt-3">
           Page views, traffic sources and countries are tracked in Google Analytics. This funnel
-          covers what happens to individual pieces of content.{' '}
-          <Link to="/admin/funnel" className="text-primary-500 hover:text-primary-600 font-medium">
-            See per-content breakdown →
-          </Link>
+          covers what happens to individual pieces of content — see the per-content breakdown
+          at the bottom of this page.
         </p>
       </section>
 
@@ -320,52 +369,182 @@ export default function DashboardPage() {
         </p>
       </section>
 
-      {/* ── 伸びているコンテンツ ── */}
+      {/* ── コンテンツ明細（旧Funnelページを統合） ── */}
       <section>
-        <h2 className="font-heading font-bold text-base text-foreground-900 mb-3">
-          Most copied content
-        </h2>
-        <div className="bg-background-50 rounded-lg border border-background-200 overflow-x-auto">
-          {topContent.length === 0 ? (
-            <p className="py-10 text-center text-sm text-foreground-500">
-              No copies recorded yet.
-            </p>
-          ) : (
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-xs text-foreground-500 border-b border-background-200">
-                  <th className="py-3 px-5 font-medium">Content</th>
-                  <th className="py-3 px-3 font-medium text-right">Views</th>
-                  <th className="py-3 px-3 font-medium text-right">Copies</th>
-                  <th className="py-3 px-5 font-medium text-right">Copy rate</th>
-                </tr>
-              </thead>
-              <tbody>
-                {topContent.map((t) => (
-                  <tr
-                    key={`${t.contentType}:${t.id}`}
-                    className="border-b border-background-100 last:border-0"
-                  >
-                    <td className="py-3 px-5 max-w-[320px]">
-                      <p className="text-foreground-900 font-medium truncate">{t.title}</p>
-                      <p className="text-xs text-foreground-400 truncate">{t.id}</p>
-                    </td>
-                    <td className="py-3 px-3 text-right tabular-nums text-foreground-700">
-                      {num(t.view)}
-                    </td>
-                    <td className="py-3 px-3 text-right tabular-nums text-foreground-900 font-medium">
-                      {num(t.copy)}
-                    </td>
-                    <td className="py-3 px-5 text-right tabular-nums text-foreground-600">
-                      {rate(t.copy, t.view)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-heading font-bold text-base text-foreground-900">
+            By content
+            <span className="ml-2 text-xs font-normal text-foreground-500">
+              {num(items.length)} items
+            </span>
+          </h2>
+          <button
+            type="button"
+            onClick={() => setShowDetail((v) => !v)}
+            className="text-sm font-medium text-primary-500 hover:text-primary-600 cursor-pointer whitespace-nowrap"
+          >
+            {showDetail ? 'Hide details' : 'Show details'}
+          </button>
         </div>
+
+        {/* 種別ごとの内訳は常に見せる（件数が少ないので邪魔にならない） */}
+        <div className="bg-background-50 rounded-lg border border-background-200 overflow-x-auto mb-4">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-xs text-foreground-500 border-b border-background-200">
+                <th className="py-3 px-5 font-medium">Type</th>
+                <th className="py-3 px-3 font-medium text-right">Items</th>
+                {EVENTS.map((ev) => (
+                  <th key={ev} className="py-3 px-3 font-medium text-right whitespace-nowrap">
+                    {EVENT_LABEL[ev]}
+                  </th>
+                ))}
+                <th className="py-3 px-5 font-medium text-right whitespace-nowrap">Copy rate</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.entries(byType).map(([type, cts]) => (
+                <tr key={type} className="border-b border-background-100 last:border-0">
+                  <td className="py-3 px-5">
+                    <span
+                      className={`text-xs font-semibold px-2 py-0.5 rounded-full border whitespace-nowrap ${
+                        TYPE_COLOR[type] ||
+                        'bg-background-100 text-foreground-600 border-background-200'
+                      }`}
+                    >
+                      {TYPE_LABEL[type] || type}
+                    </span>
+                  </td>
+                  <td className="py-3 px-3 text-right text-foreground-500 tabular-nums">
+                    {num(cts.items)}
+                  </td>
+                  {EVENTS.map((ev) => (
+                    <td
+                      key={ev}
+                      className={`py-3 px-3 text-right tabular-nums ${
+                        cts[ev] > 0 ? 'text-foreground-900' : 'text-foreground-300'
+                      }`}
+                    >
+                      {num(cts[ev])}
+                    </td>
+                  ))}
+                  <td className="py-3 px-5 text-right tabular-nums text-foreground-600">
+                    {rate(cts.copy, cts.view)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* 1件ごとの明細は開いたときだけ */}
+        {showDetail && (
+          <div className="bg-background-50 rounded-lg border border-background-200">
+            <div className="p-4 border-b border-background-200 flex flex-col md:flex-row md:items-center gap-3">
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search title or ID"
+                className="bg-white border border-background-200 rounded-md px-3 py-2 text-sm text-foreground-900 placeholder:text-foreground-400 focus:outline-none focus:ring-2 focus:ring-primary-400 w-full md:w-56"
+              />
+              <select
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+                className="bg-white border border-background-200 rounded-md px-3 py-2 text-sm text-foreground-900 focus:outline-none focus:ring-2 focus:ring-primary-400 cursor-pointer"
+              >
+                <option value="all">All types</option>
+                {Object.keys(byType).map((t) => (
+                  <option key={t} value={t}>
+                    {TYPE_LABEL[t] || t}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={sortKey}
+                onChange={(e) => setSortKey(e.target.value as FunnelEvent)}
+                className="bg-white border border-background-200 rounded-md px-3 py-2 text-sm text-foreground-900 focus:outline-none focus:ring-2 focus:ring-primary-400 cursor-pointer"
+              >
+                {EVENTS.map((ev) => (
+                  <option key={ev} value={ev}>
+                    Sort by {EVENT_LABEL[ev]}
+                  </option>
+                ))}
+              </select>
+              <span className="text-xs text-foreground-500 md:ml-auto whitespace-nowrap">
+                {num(filtered.length)} shown
+              </span>
+            </div>
+
+            <div className="overflow-x-auto max-h-[600px]">
+              <table className="w-full text-sm">
+                <thead className="sticky top-0 bg-background-50">
+                  <tr className="text-left text-xs text-foreground-500 border-b border-background-200">
+                    <th className="py-3 px-5 font-medium">Content</th>
+                    <th className="py-3 px-3 font-medium">Type</th>
+                    {EVENTS.map((ev) => (
+                      <th key={ev} className="py-3 px-3 font-medium text-right whitespace-nowrap">
+                        {EVENT_LABEL[ev]}
+                      </th>
+                    ))}
+                    <th className="py-3 px-5 font-medium text-right whitespace-nowrap">
+                      Copy rate
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={EVENTS.length + 3}
+                        className="py-10 text-center text-sm text-foreground-500"
+                      >
+                        No content matches this filter.
+                      </td>
+                    </tr>
+                  ) : (
+                    filtered.map((item) => (
+                      <tr
+                        key={`${item.contentType}:${item.id}`}
+                        className="border-b border-background-100 last:border-0 hover:bg-background-100/50"
+                      >
+                        <td className="py-3 px-5 max-w-[280px]">
+                          <p className="text-foreground-900 font-medium truncate">{item.title}</p>
+                          <p className="text-xs text-foreground-400 truncate">{item.id}</p>
+                        </td>
+                        <td className="py-3 px-3">
+                          <span
+                            className={`text-xs font-semibold px-2 py-0.5 rounded-full border whitespace-nowrap ${
+                              TYPE_COLOR[item.contentType] ||
+                              'bg-background-100 text-foreground-600 border-background-200'
+                            }`}
+                          >
+                            {TYPE_LABEL[item.contentType] || item.contentType}
+                          </span>
+                        </td>
+                        {EVENTS.map((ev) => (
+                          <td
+                            key={ev}
+                            className={`py-3 px-3 text-right tabular-nums ${
+                              item.counts[ev] > 0 ? 'text-foreground-900' : 'text-foreground-300'
+                            }`}
+                          >
+                            {num(item.counts[ev])}
+                          </td>
+                        ))}
+                        <td className="py-3 px-5 text-right tabular-nums text-foreground-600">
+                          {rate(item.counts.copy, item.counts.view)}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </section>
+
     </div>
   );
 }

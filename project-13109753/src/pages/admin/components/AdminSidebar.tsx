@@ -13,7 +13,6 @@ const sidebarLinks = [
   { to: '/admin/experiences', icon: 'ri-camera-line', label: 'Experiences' },
   { to: '/admin/featured', icon: 'ri-star-line', label: 'Featured' },
   { to: '/admin/users', icon: 'ri-team-line', label: 'Users' },
-  { to: '/admin/funnel', icon: 'ri-funds-line', label: 'Funnel' },
 ];
 
 export default function AdminSidebar({ onLogout }: AdminSidebarProps) {

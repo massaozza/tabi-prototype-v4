@@ -181,41 +181,107 @@ async function collectArticles(): Promise<ContentCounts> {
   }
 }
 
-/** コピー数の多いコンテンツ上位 */
-async function topByCopy(
-  limit = 5
-): Promise<{ contentType: string; id: string; title: string; copy: number; view: number }[]> {
-  const targets: { contentType: string; id: string; title: string }[] = [];
+/**
+ * コンテンツ1件ごとのファネル数値を集める。
+ *
+ * 【以前の実装の問題】
+ * Trip しか集計していなかったため、Spot（377件）やGuide・Experienceが
+ * どれだけ見られているかをDashboardから知る手段が無かった。
+ * Funnelページを統合するにあたり、全種別を対象にする。
+ */
+interface ContentRow {
+  contentType: string;
+  id: string;
+  title: string;
+  counts: Counts;
+}
 
-  // Trip
-  const uids = ((await kv.smembers('users:index')) || []) as string[];
-  const perUser = await Promise.all(
-    uids.map((uid) => kv.smembers(`user:${uid}:trips`).catch(() => []))
-  );
-  const publishedIds = ((await kv.smembers('trips:published')) || []) as string[];
-  const tripIds = [...new Set([...perUser.flat(), ...publishedIds].filter(Boolean))] as string[];
-  const trips = await Promise.all(
-    tripIds.map((id) => kv.get<Record<string, unknown>>(`trips:${id}`).catch(() => null))
-  );
-  tripIds.forEach((id, i) => {
-    const t = trips[i];
-    targets.push({
-      contentType: 'trip',
+async function collectIdsAndTitles(
+  contentType: string
+): Promise<{ id: string; title: string }[]> {
+  if (contentType === 'trip') {
+    const uids = ((await kv.smembers('users:index')) || []) as string[];
+    const perUser = await Promise.all(
+      uids.map((uid) => kv.smembers(`user:${uid}:trips`).catch(() => []))
+    );
+    const publishedIds = ((await kv.smembers('trips:published')) || []) as string[];
+    const ids = [...new Set([...perUser.flat(), ...publishedIds].filter(Boolean))] as string[];
+    const records = await Promise.all(
+      ids.map((id) => kv.get<Record<string, unknown>>(`trips:${id}`).catch(() => null))
+    );
+    return ids.map((id, i) => ({
       id,
-      title: (typeof t?.title === 'string' && t.title) || '(No title)',
-    });
-  });
-
-  if (targets.length === 0) return [];
-
-  const keys: string[] = [];
-  for (const t of targets) {
-    keys.push(`events:copy:${t.contentType}:${t.id}`);
-    keys.push(`views:${t.contentType}:${t.id}`);
+      title: (typeof records[i]?.title === 'string' && records[i]!.title as string) || '(No title)',
+    }));
   }
 
-  const values: unknown[] = [];
+  if (contentType === 'guide' || contentType === 'experience') {
+    const indexKey = contentType === 'guide' ? 'guides:all' : 'experiences:all';
+    const prefix = contentType === 'guide' ? 'guides:' : 'experiences:';
+    const titleFields = contentType === 'guide' ? ['title'] : ['placeName', 'title'];
+    const ids = ((await kv.smembers(indexKey)) || []) as string[];
+    const records = await Promise.all(
+      ids
+        .filter(Boolean)
+        .map((id) => kv.get<Record<string, unknown>>(`${prefix}${id}`).catch(() => null))
+    );
+    return ids.filter(Boolean).map((id, i) => {
+      const r = records[i];
+      let title = '';
+      for (const f of titleFields) {
+        if (r && typeof r[f] === 'string' && r[f]) {
+          title = r[f] as string;
+          break;
+        }
+      }
+      return { id, title: title || '(No title)' };
+    });
+  }
+
+  if (contentType === 'spot') {
+    const out: { id: string; title: string }[] = [];
+    const seen = new Set<string>();
+    for (const key of ['content:destinations', 'content:localsPlaces']) {
+      try {
+        const list = await kv.get<Record<string, unknown>[]>(key);
+        if (!Array.isArray(list)) continue;
+        for (const item of list) {
+          const id = item?.id;
+          if (typeof id !== 'string' || seen.has(id)) continue;
+          seen.add(id);
+          const title =
+            (typeof item.title === 'string' && item.title) ||
+            (typeof item.name === 'string' && item.name) ||
+            '(No title)';
+          out.push({ id, title });
+        }
+      } catch {
+        /* 片方が無くても続行する */
+      }
+    }
+    return out;
+  }
+
+  return [];
+}
+
+/** 5イベント分のカウンタをまとめて読む */
+async function readRowCounts(
+  contentType: string,
+  records: { id: string; title: string }[]
+): Promise<ContentRow[]> {
+  if (records.length === 0) return [];
+
+  const keys: string[] = [];
+  for (const r of records) {
+    for (const ev of EVENTS) {
+      keys.push(ev === 'view' ? `views:${contentType}:${r.id}` : `events:${ev}:${contentType}:${r.id}`);
+    }
+  }
+
+  // mgetは一度に投げる量が多すぎると失敗しうるので分割する
   const CHUNK = 200;
+  const values: unknown[] = [];
   for (let i = 0; i < keys.length; i += CHUNK) {
     const slice = keys.slice(i, i + CHUNK);
     try {
@@ -226,15 +292,39 @@ async function topByCopy(
     }
   }
 
-  return targets
-    .map((t, i) => ({
-      ...t,
-      copy: toNumber(values[i * 2]),
-      view: toNumber(values[i * 2 + 1]),
-    }))
-    .filter((t) => t.copy > 0 || t.view > 0)
-    .sort((a, b) => b.copy - a.copy || b.view - a.view)
-    .slice(0, limit);
+  return records.map((r, idx) => {
+    const counts = emptyCounts();
+    EVENTS.forEach((ev, evIdx) => {
+      counts[ev] = toNumber(values[idx * EVENTS.length + evIdx]);
+    });
+    return { contentType, id: r.id, title: r.title, counts };
+  });
+}
+
+/** 全種別のコンテンツ明細を返す */
+async function collectAllContent(): Promise<{
+  items: ContentRow[];
+  byType: Record<string, Counts & { items: number }>;
+}> {
+  const types = ['trip', 'guide', 'experience', 'spot'];
+  const items: ContentRow[] = [];
+  const byType: Record<string, Counts & { items: number }> = {};
+
+  for (const contentType of types) {
+    const records = await collectIdsAndTitles(contentType);
+    const rows = await readRowCounts(contentType, records);
+    items.push(...rows);
+
+    const sum = emptyCounts();
+    for (const r of rows) {
+      for (const ev of EVENTS) sum[ev] += r.counts[ev];
+    }
+    byType[contentType] = { ...sum, items: rows.length };
+  }
+
+  // 数字が動いているものを上に出す
+  items.sort((a, b) => b.counts.copy - a.counts.copy || b.counts.view - a.counts.view);
+  return { items, byType };
 }
 
 export default async function handler(req: Request): Promise<Response> {
@@ -254,7 +344,7 @@ export default async function handler(req: Request): Promise<Response> {
       experiences,
       spots,
       articles,
-      top,
+      allContent,
     ] = await Promise.all([
       readAllTimeTotals(),
       readMonthTotals(thisMonth),
@@ -264,7 +354,7 @@ export default async function handler(req: Request): Promise<Response> {
       collectFromIndex('experiences:all', 'experiences:'),
       collectSpots(),
       collectArticles(),
-      topByCopy(),
+      collectAllContent(),
     ]);
 
     // ユーザー
@@ -298,7 +388,8 @@ export default async function handler(req: Request): Promise<Response> {
         recent7d: recentUsers,
         withTrip: tripData.uidsWithTrip.size,
       },
-      topContent: top,
+      byType: allContent.byType,
+      items: allContent.items,
     });
   } catch (err) {
     return json({ error: 'Failed to build dashboard', detail: String(err) }, 500);
