@@ -50,7 +50,8 @@
     "i18n:generate": "node scripts/generate-ui-translations.mjs",
     "type-check:app": "tsc --noEmit --project tsconfig.app.json",
     "type-check:api": "tsc --noEmit --project tsconfig.api.json",
-    "snapshot:spots": "node scripts/generate-spot-snapshot.mjs"
+    "snapshot:spots": "node scripts/generate-spot-snapshot.mjs",
+    "osm:import": "esbuild scripts/osm-import.ts --bundle --platform=node --format=esm --target=node20 --outfile=.tmp/osm-import.mjs --log-level=warning && node .tmp/osm-import.mjs"
   },
   "type": "module",
   "version": "0.0.0"

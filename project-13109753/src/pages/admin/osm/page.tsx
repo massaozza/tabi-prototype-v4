@@ -92,12 +92,9 @@ export default function AdminOsmPage() {
   const [onlyPending, setOnlyPending] = useState(true);
   const [search, setSearch] = useState('');
 
-  const [importPref, setImportPref] = useState('Tochigi');
-  const [importing, setImporting] = useState(false);
-  const [importResult, setImportResult] = useState<unknown>(null);
-  // カテゴリごとに分けて実行するため、進行状況を表示する
+  // Importの実行はGitHub Actionsが担うため、この画面では案内のみ表示する
   const [importGroups, setImportGroups] = useState<{ key: string; label: string }[]>([]);
-  const [importProgress, setImportProgress] = useState<string[]>([]);
+  const [runner, setRunner] = useState<{ workflow?: string; reason?: string } | null>(null);
 
   const [busyId, setBusyId] = useState<string | null>(null);
   const [notice, setNotice] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
@@ -112,6 +109,7 @@ export default function AdminOsmPage() {
         setSummary(d.staging ?? null);
         setPrefectures(Array.isArray(d.availablePrefectures) ? d.availablePrefectures : []);
         setImportGroups(Array.isArray(d.importGroups) ? d.importGroups : []);
+        setRunner(d.runner ?? null);
       })
       .catch(() => {});
   };
@@ -143,82 +141,6 @@ export default function AdminOsmPage() {
         i.id.toLowerCase().includes(q)
     );
   }, [items, search]);
-
-  /**
-   * 全カテゴリを順番に実行する。
-   *
-   * 1回のリクエストで全カテゴリを取るとOverpassの処理が長引き、
-   * Edge Functionの実行時間上限（約25秒）を超えて504になる（実測）。
-   * そのためカテゴリ単位に分け、前の結果が返ってから次を投げる。
-   * Overpassへの同時アクセスを避ける意味でも順次実行が適切。
-   */
-  const runImport = async (dryRun: boolean) => {
-    setImporting(true);
-    setImportResult(null);
-    setImportProgress([]);
-    setNotice(null);
-
-    const groups = importGroups.length > 0 ? importGroups : [{ key: 'worship', label: 'Shrines & temples' }];
-    const results: unknown[] = [];
-    const totals = { fetched: 0, staged: 0, rejected: 0, MATCHED: 0, POSSIBLE_MATCH: 0, NEW: 0 };
-
-    try {
-      for (const g of groups) {
-        setImportProgress((prev) => [...prev, `${g.label}: running…`]);
-
-        const params = new URLSearchParams({ prefecture: importPref, group: g.key });
-        if (dryRun) params.set('dryRun', '1');
-
-        const res = await fetch(`/api/admin-osm-import?${params.toString()}`, { method: 'POST' });
-        const text = await res.text();
-
-        let data: {
-          run?: { fetched?: number; staged?: number; rejected?: number; counts?: Record<string, number> };
-          error?: string;
-        } | null = null;
-        try {
-          data = JSON.parse(text);
-        } catch {
-          // タイムアウト時などJSON以外が返ることがある
-          throw new Error(`${g.label}: ${res.status} ${text.slice(0, 120)}`);
-        }
-        if (!res.ok) throw new Error(data?.error || `${g.label}: failed (${res.status})`);
-
-        const r = data?.run;
-        totals.fetched += r?.fetched ?? 0;
-        totals.staged += r?.staged ?? 0;
-        totals.rejected += r?.rejected ?? 0;
-        totals.MATCHED += r?.counts?.MATCHED ?? 0;
-        totals.POSSIBLE_MATCH += r?.counts?.POSSIBLE_MATCH ?? 0;
-        totals.NEW += r?.counts?.NEW ?? 0;
-
-        results.push(data);
-        setImportProgress((prev) => [
-          ...prev.slice(0, -1),
-          `${g.label}: fetched ${r?.fetched ?? 0}, staged ${r?.staged ?? 0}, rejected ${r?.rejected ?? 0}`,
-        ]);
-      }
-
-      setImportResult({ totals, perGroup: results });
-      setNotice({
-        type: 'success',
-        message: dryRun
-          ? `Dry run finished: ${totals.fetched} fetched, ${totals.rejected} rejected (nothing saved).`
-          : `Import finished: ${totals.staged} saved to staging.`,
-      });
-      loadDashboard();
-      if (!dryRun) loadQueue();
-    } catch (e) {
-      setNotice({
-        type: 'error',
-        message: e instanceof Error ? e.message : 'Import failed',
-      });
-      // 途中までの結果も見せる（どのカテゴリで失敗したか分かるように）
-      if (results.length > 0) setImportResult({ totals, perGroup: results, incomplete: true });
-    } finally {
-      setImporting(false);
-    }
-  };
 
   const review = async (
     item: StagingItem,
@@ -275,60 +197,45 @@ export default function AdminOsmPage() {
         </div>
       )}
 
-      {/* ── Import 実行 ── */}
+      {/* ── Import の実行方法（GitHub Actionsで行う） ── */}
       <section className="bg-background-50 border border-background-200 rounded-lg p-5">
-        <h2 className="font-heading font-bold text-base text-foreground-900 mb-3">
-          Run an import
+        <h2 className="font-heading font-bold text-base text-foreground-900 mb-2">
+          Running an import
         </h2>
-        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-          <select
-            value={importPref}
-            onChange={(e) => setImportPref(e.target.value)}
-            className={`${input} cursor-pointer sm:w-48`}
-          >
-            {(prefectures.length > 0 ? prefectures : ['Tochigi']).map((p) => (
-              <option key={p} value={p}>
-                {p}
-              </option>
-            ))}
-          </select>
-          <button
-            type="button"
-            onClick={() => runImport(true)}
-            disabled={importing}
-            className="bg-background-100 hover:bg-background-200 disabled:opacity-50 text-foreground-800 font-semibold text-sm px-4 py-2 rounded-lg cursor-pointer whitespace-nowrap"
-          >
-            {importing ? 'Running…' : 'Dry run'}
-          </button>
-          <button
-            type="button"
-            onClick={() => runImport(false)}
-            disabled={importing}
-            className="bg-primary-500 hover:bg-primary-600 disabled:opacity-50 text-white font-semibold text-sm px-4 py-2 rounded-lg cursor-pointer whitespace-nowrap"
-          >
-            {importing ? 'Running…' : 'Import to staging'}
-          </button>
-          <span className="text-xs text-foreground-500">
-            One prefecture at a time, split by category to stay within Overpass and function
-            time limits.
-          </span>
+        <p className="text-sm text-foreground-600">
+          Imports run in GitHub Actions, not from this screen. Overpass responses for a whole
+          prefecture can take longer than the 25 second limit on our serverless functions, so
+          running them here failed with a timeout.
+        </p>
+
+        <ol className="mt-4 space-y-2 text-sm text-foreground-700 list-decimal list-inside">
+          <li>
+            Open the repository on GitHub and go to <strong>Actions</strong>
+          </li>
+          <li>
+            Select <strong>{runner?.workflow || 'OSM import'}</strong> in the left sidebar
+          </li>
+          <li>
+            Click <strong>Run workflow</strong>, enter a prefecture (for example{' '}
+            <code className="bg-background-100 px-1 rounded">Tochigi</code>), and keep{' '}
+            <strong>dry run</strong> checked for the first attempt
+          </li>
+          <li>Check the log, then run again with dry run unchecked to save to staging</li>
+          <li>Come back here and review what landed in staging</li>
+        </ol>
+
+        <div className="mt-4 pt-4 border-t border-background-200">
+          <p className="text-xs font-medium text-foreground-600 mb-1">Categories fetched</p>
+          <p className="text-xs text-foreground-500">
+            {importGroups.length > 0
+              ? importGroups.map((g) => `${g.label} (${g.key})`).join(' · ')
+              : 'Shrines & temples · Historic sites · Attractions · Nature · Parks · Onsen'}
+          </p>
+          <p className="text-xs text-foreground-500 mt-2">
+            Restaurants and cafes are intentionally excluded from bulk imports. They are added
+            through creator posts and popular areas instead, to keep quality manageable.
+          </p>
         </div>
-
-        {importProgress.length > 0 && (
-          <div className="mt-4 space-y-1">
-            {importProgress.map((line, i) => (
-              <p key={i} className="text-xs text-foreground-600 font-mono">
-                {line}
-              </p>
-            ))}
-          </div>
-        )}
-
-        {importResult != null && (
-          <pre className="mt-4 bg-white border border-background-200 rounded-md p-3 text-xs overflow-x-auto max-h-72 text-foreground-700">
-            {JSON.stringify(importResult, null, 2)}
-          </pre>
-        )}
       </section>
 
       {/* ── Staging の状況 ── */}
