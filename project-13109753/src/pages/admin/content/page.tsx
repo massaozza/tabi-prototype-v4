@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 import ContentList from './components/ContentList';
-import { PREFECTURE_REGIONS } from '@/mocks/prefectureData';
 
-type ContentTab = 'localsPlaces' | 'latestGuides' | 'destinations';
+// 【変更】destinations タブを削除した。
+// Spotの保存は「配列を丸ごと置換する」方式だったため、
+// Import処理と同時に保存すると互いの変更を消し合っていた。
+// Spotの編集は /admin/spots（1件ずつ更新）に移した。
+type ContentTab = 'localsPlaces' | 'latestGuides';
 
 export interface ContentItem {
   id: string;
@@ -18,7 +21,6 @@ export interface ContentItem {
 const TAB_LABELS: Record<ContentTab, string> = {
   localsPlaces: 'Local Places',
   latestGuides: 'Latest Guides',
-  destinations: 'Destinations',
 };
 
 function generateId(): string {
@@ -44,7 +46,6 @@ export default function ContentPage() {
   const [formCategory, setFormCategory] = useState('');
   const [formDescription, setFormDescription] = useState('');
   const [formHref, setFormHref] = useState('');
-  const [formPrefecture, setFormPrefecture] = useState('');
 
   const hasChanges = JSON.stringify(items) !== JSON.stringify(originalItems);
 
@@ -83,7 +84,6 @@ export default function ContentPage() {
     setFormCategory('');
     setFormDescription('');
     setFormHref('');
-    setFormPrefecture('');
     setIsNewItem(true);
     setEditingItem(null);
     setShowForm(true);
@@ -96,7 +96,6 @@ export default function ContentPage() {
     setFormCategory(item.category || '');
     setFormDescription(item.description || '');
     setFormHref(item.href || '');
-    setFormPrefecture(item.prefecture || '');
     setIsNewItem(false);
     setEditingItem(item);
     setShowForm(true);
@@ -119,7 +118,6 @@ export default function ContentPage() {
       ...(activeTab === 'localsPlaces' ? { story: formStory.trim() } : {}),
       ...(activeTab !== 'localsPlaces' ? { category: formCategory.trim(), description: formDescription.trim() } : {}),
       ...(activeTab === 'latestGuides' ? { href: formHref.trim() } : {}),
-      ...(activeTab === 'destinations' ? { prefecture: formPrefecture.trim() } : {}),
     };
 
     if (isNewItem) {
@@ -172,7 +170,7 @@ export default function ContentPage() {
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
         <div className="flex gap-1 bg-background-200 rounded-lg p-1 w-fit">
-          {(['localsPlaces', 'latestGuides', 'destinations'] as ContentTab[]).map((tab) => (
+          {(['localsPlaces', 'latestGuides'] as ContentTab[]).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -252,32 +250,6 @@ export default function ContentPage() {
                     className="w-full px-3 py-2 rounded-lg border border-background-200 bg-background-50 text-foreground-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
                     placeholder="Enter category..."
                   />
-                </div>
-              )}
-              {activeTab === 'destinations' && (
-                <div>
-                  <label className="block text-sm font-medium text-foreground-700 mb-1">
-                    Prefecture
-                  </label>
-                  <select
-                    value={formPrefecture}
-                    onChange={(e) => setFormPrefecture(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-background-200 bg-background-50 text-foreground-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
-                  >
-                    <option value="">Select a prefecture...</option>
-                    {PREFECTURE_REGIONS.map((region) => (
-                      <optgroup key={region.slug} label={region.region}>
-                        {region.prefectures.map((pref) => (
-                          <option key={pref} value={pref}>
-                            {pref}
-                          </option>
-                        ))}
-                      </optgroup>
-                    ))}
-                  </select>
-                  <p className="text-xs text-foreground-400 mt-1">
-                    Required for this destination to appear on its prefecture page.
-                  </p>
                 </div>
               )}
               {activeTab === 'latestGuides' && (

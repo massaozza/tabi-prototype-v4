@@ -2,6 +2,7 @@ import { kv } from '@vercel/kv';
 import { localsPlaces, latestGuides, destinations } from '../src/mocks/homeData.js';
 import { articleData } from '../src/mocks/articleData.js';
 import { isAdminRequest, adminUnauthorized } from './_adminAuth.js';
+import { isMigrated } from './_spotStore.js';
 
 export const config = { runtime: 'edge' };
 
@@ -135,6 +136,22 @@ export default async function handler(req: Request): Promise<Response> {
       return new Response(
         JSON.stringify({ error: '"data" must be an array' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // ── destinations は書き込み禁止 ──
+    // 移行後、Spotの正データは spot:{id} に移った。
+    // content:destinations はそこから再構築される読み取り専用の派生キャッシュであり、
+    // ここに直接書くと spot:{id} との二重管理になり、
+    // Import処理と管理画面操作が互いの変更を消し合う原因になる。
+    if (type === 'destinations' && (await isMigrated())) {
+      return new Response(
+        JSON.stringify({
+          error:
+            'content:destinations is a read-only derived cache. Use /api/spots (POST / PATCH) to change spots.',
+          hint: 'POST /api/spots for new spots, PATCH /api/spots?id=xxx to update one.',
+        }),
+        { status: 409, headers: { 'Content-Type': 'application/json' } }
       );
     }
 

@@ -25,6 +25,7 @@ import ArticlesPage from "../pages/admin/articles/page";
 import NewArticlePage from "../pages/admin/articles/new/page";
 import EditArticlePage from "../pages/admin/articles/edit/page";
 import ContentPage from "../pages/admin/content/page";
+import AdminSpotsPage from "../pages/admin/spots/page";
 import FeaturedPage from "../pages/admin/featured/page";
 import UsersPage from "../pages/admin/users/page";
 import AdminTripsPage from "../pages/admin/trips/page";
@@ -152,6 +153,7 @@ const routes: RouteObject[] = [
       { path: "articles/new", element: <NewArticlePage /> },
       { path: "articles/:id/edit", element: <EditArticlePage /> },
       { path: "content", element: <ContentPage /> },
+      { path: "spots", element: <AdminSpotsPage /> },
       { path: "featured", element: <FeaturedPage /> },
       { path: "users", element: <UsersPage /> },
       { path: "trips", element: <AdminTripsPage /> },
