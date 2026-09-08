@@ -27,18 +27,13 @@ import {
   type Spot,
   LEGACY_CACHE_KEY,
   MIGRATION_FLAG,
-  SPOTS_INDEX,
   backupKey,
-  spotKey,
   getSpot,
   getSpots,
   listSpotIds,
-  saveSpot,
+  bulkSaveSpots,
   rebuildDerivedCache,
-  evaluateCompleteness,
   deriveEnrichmentLevel,
-  statusIndexKey,
-  prefIndexKey,
 } from './_spotStore.js';
 
 export const config = { runtime: 'edge', maxDuration: 60 };
@@ -278,16 +273,30 @@ export default async function handler(req: Request): Promise<Response> {
       );
     }
 
-    // 1. バックアップ（必ず取る）
-    const backup = await createBackup();
+    // ── バッチ処理にしている理由 ──
+    // 1件ずつ saveSpot() を呼ぶと1件あたりKV操作が9回発生し、
+    // 367件では約3,300往復になってEdge Functionの実行時間を超える（実測504）。
+    // offset / limit で分割し、呼び出し側が続きから再開できるようにする。
+    // 冪等なので、同じ範囲を二度実行してもSpotは増えない。
+    const offset = Math.max(0, parseInt(url.searchParams.get('offset') || '0', 10) || 0);
+    const limit = Math.min(
+      200,
+      Math.max(1, parseInt(url.searchParams.get('limit') || '120', 10) || 120)
+    );
 
-    // 2. 1件ずつ spot:{id} へ書き込む。
-    //    派生キャッシュの再構築は最後に1回だけ行う（rebuild=false）。
+    // バックアップは最初のバッチでだけ取る
+    let backupStamp: string | null = null;
+    if (offset === 0) {
+      const backup = await createBackup();
+      backupStamp = backup.stamp;
+    }
+
+    const slice = legacy.slice(offset, offset + limit);
     const errors: { id: string; error: string }[] = [];
-    let written = 0;
     const seen = new Set<string>();
+    const prepared: Spot[] = [];
 
-    for (const l of legacy) {
+    for (const l of slice) {
       if (!l.id || typeof l.id !== 'string') {
         errors.push({ id: String(l.id), error: 'missing id' });
         continue;
@@ -298,55 +307,62 @@ export default async function handler(req: Request): Promise<Response> {
       }
       seen.add(l.id);
 
-      try {
-        const spot: Spot = {
-          id: l.id,
-          title: l.title || '',
-          category: l.category || '',
-          prefecture: l.prefecture || '',
-          description: l.description || '',
-          lat: typeof l.lat === 'number' ? l.lat : 0,
-          lng: typeof l.lng === 'number' ? l.lng : 0,
-          image: l.image || '',
-          status: 'published',
-          sources: [{ type: 'TABI47_LEGACY', syncedAt: new Date().toISOString() }],
-          // 既存データはすべてTABI47が用意したものなので、
-          // フィールド単位の出典もLEGACYとして記録する
-          fieldSources: {
-            title: 'TABI47_LEGACY',
-            category: 'TABI47_LEGACY',
-            prefecture: 'TABI47_LEGACY',
-            description: 'TABI47_LEGACY',
-            lat: 'TABI47_LEGACY',
-            lng: 'TABI47_LEGACY',
-            image: 'TABI47_LEGACY',
-          },
-        };
-
-        // completeness は saveSpot 内で実データから判定される（固定値を入れない）
-        await saveSpot(spot, false);
-        written += 1;
-      } catch (e) {
-        errors.push({ id: l.id, error: String(e) });
-      }
+      prepared.push({
+        id: l.id,
+        title: l.title || '',
+        category: l.category || '',
+        prefecture: l.prefecture || '',
+        description: l.description || '',
+        lat: typeof l.lat === 'number' ? l.lat : 0,
+        lng: typeof l.lng === 'number' ? l.lng : 0,
+        image: l.image || '',
+        status: 'published',
+        sources: [{ type: 'TABI47_LEGACY', syncedAt: new Date().toISOString() }],
+        // 既存データはすべてTABI47が用意したものなので、
+        // フィールド単位の出典もLEGACYとして記録する
+        fieldSources: {
+          title: 'TABI47_LEGACY',
+          category: 'TABI47_LEGACY',
+          prefecture: 'TABI47_LEGACY',
+          description: 'TABI47_LEGACY',
+          lat: 'TABI47_LEGACY',
+          lng: 'TABI47_LEGACY',
+          image: 'TABI47_LEGACY',
+        },
+      });
     }
 
-    // 3. 派生キャッシュを spot:{id} から再構築する。
-    //    ここで初めて content:destinations が新ストア由来になる。
-    const cache = await rebuildDerivedCache();
+    // completeness は bulkSaveSpots が実データから判定する（固定値を入れない）
+    const result = await bulkSaveSpots(prepared, 'published');
+    errors.push(...result.errors);
 
-    // 4. 移行完了フラグ
-    await kv.set(MIGRATION_FLAG, new Date().toISOString());
+    const nextOffset = offset + slice.length;
+    const done = nextOffset >= legacy.length;
+
+    // 全バッチが終わったら、派生キャッシュを再構築して完了フラグを立てる
+    let cache: { count: number; skipped: boolean } | null = null;
+    if (done) {
+      cache = await rebuildDerivedCache();
+      await kv.set(MIGRATION_FLAG, new Date().toISOString());
+    }
 
     return json({
       success: true,
-      backupStamp: backup.stamp,
       legacySource: origin,
       legacyCount: legacy.length,
-      written,
+      offset,
+      limit,
+      processed: slice.length,
+      written: result.written,
       errors: errors.length,
       errorSamples: errors.slice(0, 10),
+      nextOffset: done ? null : nextOffset,
+      done,
+      backupStamp,
       derivedCache: cache,
+      hint: done
+        ? 'Migration complete. Run action=verify to check the result.'
+        : `Run again with ?action=migrate&offset=${nextOffset} to continue.`,
     });
   }
 
@@ -354,22 +370,37 @@ export default async function handler(req: Request): Promise<Response> {
   // 索引の再構築（索引だけが壊れた場合の修復用）
   // ───────────────────────────────────────────
   if (action === 'reindex') {
-    const ids = await listSpotIds();
-    const spots = await getSpots(ids);
-    let fixed = 0;
+    // migrate と同じ理由でバッチ処理にする（逐次だとタイムアウトする）
+    const offset = Math.max(0, parseInt(url.searchParams.get('offset') || '0', 10) || 0);
+    const limit = Math.min(
+      200,
+      Math.max(1, parseInt(url.searchParams.get('limit') || '120', 10) || 120)
+    );
 
-    for (const s of spots) {
-      await kv.sadd(SPOTS_INDEX, s.id);
-      if (s.prefecture) await kv.sadd(prefIndexKey(s.prefecture), s.id);
-      await kv.sadd(statusIndexKey(s.status || 'published'), s.id);
-      // completeness を再判定する（Guide/Experienceが後から増えた場合に反映）
-      const completeness = await evaluateCompleteness(s);
-      await kv.set(spotKey(s.id), { ...s, completeness });
-      fixed += 1;
-    }
+    const allIds = await listSpotIds();
+    const slice = allIds.slice(offset, offset + limit);
+    const spots = await getSpots(slice);
 
-    const cache = await rebuildDerivedCache();
-    return json({ success: true, reindexed: fixed, derivedCache: cache });
+    // bulkSaveSpots が completeness を再判定する
+    // （Guide / Experience が後から増えた場合に反映される）
+    const result = await bulkSaveSpots(spots);
+
+    const nextOffset = offset + slice.length;
+    const done = nextOffset >= allIds.length;
+    const cache = done ? await rebuildDerivedCache() : null;
+
+    return json({
+      success: true,
+      total: allIds.length,
+      offset,
+      processed: slice.length,
+      reindexed: result.written,
+      errors: result.errors.length,
+      nextOffset: done ? null : nextOffset,
+      done,
+      derivedCache: cache,
+      hint: done ? 'Reindex complete.' : `Run again with ?action=reindex&offset=${nextOffset}.`,
+    });
   }
 
   return json({ error: 'Unknown action. Use backup / migrate / verify / rollback / reindex.' }, 400);

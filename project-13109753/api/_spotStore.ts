@@ -303,6 +303,110 @@ export async function saveSpot(spot: Spot, rebuild = true): Promise<void> {
 }
 
 /**
+ * 移行・Import用の一括書き込み。
+ *
+ * saveSpot() は1件あたりKV操作を9回行う（本体+索引+completeness判定）。
+ * 367件を逐次実行すると約3,300往復になり、
+ * Edge Functionの実行時間上限を超えてタイムアウトする（実測504）。
+ *
+ * この関数は次の工夫で往復回数を大幅に削減する：
+ *   - completeness判定に必要な scard を全件まとめて並列実行
+ *   - 索引の sadd を「1件ずつ」ではなく「まとめて1回」に集約
+ *   - 本体の set を並列実行
+ *
+ * @returns 書き込んだ件数
+ */
+export async function bulkSaveSpots(
+  spots: Spot[],
+  defaultStatus: SpotStatus = 'published'
+): Promise<{ written: number; errors: { id: string; error: string }[] }> {
+  const errors: { id: string; error: string }[] = [];
+  if (spots.length === 0) return { written: 0, errors };
+
+  const now = new Date().toISOString();
+
+  // 1. completeness判定に必要なリレーション件数を全件まとめて取得
+  const relCounts = await Promise.all(
+    spots.map(async (s) => {
+      try {
+        const [g, e] = await Promise.all([
+          kv.scard(`spot:${s.id}:guides`).catch(() => 0),
+          kv.scard(`spot:${s.id}:experiences`).catch(() => 0),
+        ]);
+        return { guides: Number(g), experiences: Number(e) };
+      } catch {
+        return { guides: 0, experiences: 0 };
+      }
+    })
+  );
+
+  // 2. レコードを組み立てる（ここではKVアクセスなし）
+  const records: Spot[] = spots.map((s, i) => {
+    const rel = relCounts[i];
+    const completeness: SpotCompleteness = {
+      baseData:
+        Boolean(s.title) &&
+        Boolean(s.category) &&
+        Boolean(s.prefecture) &&
+        typeof s.lat === 'number' &&
+        typeof s.lng === 'number',
+      editorialContent: typeof s.description === 'string' && s.description.trim().length >= 40,
+      officialInfo: Boolean(s.officialUrl || s.openingHours || s.admission),
+      localKnowledge: rel.guides > 0,
+      actualData: rel.experiences > 0,
+    };
+    return {
+      ...s,
+      status: s.status || defaultStatus,
+      completeness,
+      createdAt: s.createdAt || now,
+      updatedAt: now,
+    };
+  });
+
+  // 3. 本体を並列で書き込む
+  const writes = await Promise.allSettled(
+    records.map((r) => kv.set(spotKey(r.id), r))
+  );
+  writes.forEach((w, i) => {
+    if (w.status === 'rejected') {
+      errors.push({ id: records[i].id, error: String(w.reason) });
+    }
+  });
+
+  const ok = records.filter((_, i) => writes[i].status === 'fulfilled');
+
+  // 4. 索引はまとめて1回ずつ（都道府県・状態ごとにグループ化）
+  const byPref = new Map<string, string[]>();
+  const byStatus = new Map<string, string[]>();
+  for (const r of ok) {
+    if (r.prefecture) {
+      const arr = byPref.get(r.prefecture) || [];
+      arr.push(r.id);
+      byPref.set(r.prefecture, arr);
+    }
+    const st = r.status || defaultStatus;
+    const arr2 = byStatus.get(st) || [];
+    arr2.push(r.id);
+    byStatus.set(st, arr2);
+  }
+
+  const indexOps: Promise<unknown>[] = [];
+  if (ok.length > 0) {
+    indexOps.push(kv.sadd(SPOTS_INDEX, ok[0].id, ...ok.slice(1).map((r) => r.id)));
+  }
+  for (const [pref, ids] of byPref) {
+    indexOps.push(kv.sadd(prefIndexKey(pref), ids[0], ...ids.slice(1)));
+  }
+  for (const [st, ids] of byStatus) {
+    indexOps.push(kv.sadd(statusIndexKey(st as SpotStatus), ids[0], ...ids.slice(1)));
+  }
+  await Promise.all(indexOps.map((p) => p.catch(() => null)));
+
+  return { written: ok.length, errors };
+}
+
+/**
  * Spotを部分更新する。渡されたフィールドだけを変更する。
  * 一括置換ではないため、Import処理と同時に実行しても他の変更を消さない。
  */
