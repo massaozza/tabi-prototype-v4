@@ -118,10 +118,25 @@ ${JSON.stringify(spots)}
         headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
         body: JSON.stringify({
           contents: [{ role: 'user', parts: [{ text: prompt }] }],
+          // 【重要】generationConfig の指定が漏れていたため、
+          // thinking対応モデル（gemini-3.6-flash）では思考トークンだけで
+          // 出力枠を使い切り、本文が空文字で返ってきていた。
+          // 結果として answer が '' になり、常に null（紐づけなし）になっていた。
+          //
+          // 判定結果はidだけを返す短い応答なので、出力枠を明示し、
+          // 揺れの少ない低温度にする。
+          generationConfig: {
+            temperature: 0,
+            maxOutputTokens: 2048,
+            thinkingConfig: { thinkingBudget: 0 },
+          },
         }),
       }
     );
-    if (!response.ok) return null;
+    if (!response.ok) {
+      console.error('[experiences] spot matching failed:', response.status);
+      return null;
+    }
 
     const data = await response.json();
     const text: string =

@@ -156,7 +156,16 @@ ${JSON.stringify(spots)}
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
-        body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: prompt }] }] }),
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [{ text: prompt }] }],
+          // 【重要】experiences.ts と同じ問題。generationConfig の指定漏れにより
+          // thinking対応モデルで本文が空になり、常に紐づけなしになっていた。
+          generationConfig: {
+            temperature: 0,
+            maxOutputTokens: 2048,
+            thinkingConfig: { thinkingBudget: 0 },
+          },
+        }),
       }
     );
     if (!response.ok) return null;
