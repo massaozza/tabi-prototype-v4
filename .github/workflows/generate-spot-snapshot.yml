@@ -1,0 +1,74 @@
+name: Generate spot snapshot
+
+# Published Spot から Last Known Good Snapshot を生成し、Cloudflare R2 へ保存する。
+#
+# 目的：
+#   KVが読めない場合のフォールバックを、常に最新の正データから作る。
+#   src/mocks/homeData.ts の固定367件を恒久的なフォールバックにすると、
+#   Admin編集やOSM Importの結果が反映されず、
+#   障害時だけ古いデータに戻るという気づきにくい不整合が生じる。
+#
+# 事前準備（Settings → Secrets and variables → Actions）：
+#   KV_REST_API_URL
+#   KV_REST_API_TOKEN
+#   R2_ACCOUNT_ID
+#   R2_ACCESS_KEY_ID
+#   R2_SECRET_ACCESS_KEY
+#   R2_BUCKET_NAME
+#
+# いずれも Vercel の環境変数と同じ値を設定する。
+
+on:
+  # 手動実行（Import直後など、すぐ反映したいとき）
+  workflow_dispatch:
+    inputs:
+      dryRun:
+        description: '書き込まず内容だけ確認する'
+        required: false
+        type: boolean
+        default: false
+
+  # 定期実行。Spotが更新されなくても1日1回は最新化しておく
+  schedule:
+    # 毎日 UTC 18:00（日本時間 翌3:00）。アクセスの少ない時間帯に実行する
+    - cron: '0 18 * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    defaults:
+      run:
+        working-directory: project-13109753
+
+    steps:
+      - name: リポジトリを取得
+        uses: actions/checkout@v4
+
+      - name: Node.jsを準備
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 依存関係をインストール
+        # @aws-sdk/client-s3 が必要なため
+        run: npm ci
+
+      - name: Snapshotを生成
+        env:
+          KV_REST_API_URL: ${{ secrets.KV_REST_API_URL }}
+          KV_REST_API_TOKEN: ${{ secrets.KV_REST_API_TOKEN }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+        run: |
+          if [ "${{ inputs.dryRun }}" = "true" ]; then
+            npm run snapshot:spots -- --dry-run
+          else
+            npm run snapshot:spots
+          fi
