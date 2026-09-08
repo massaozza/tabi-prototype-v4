@@ -377,7 +377,12 @@ export default async function handler(req: Request): Promise<Response> {
       Math.max(1, parseInt(url.searchParams.get('limit') || '120', 10) || 120)
     );
 
-    const allIds = await listSpotIds();
+    // 【重要】RedisのSetは順序を保証しない。
+    // smembers をバッチごとに呼び直すと順序が変わりうるため、
+    // offset/limit で分割すると「二重処理されるSpot」と
+    // 「一度も処理されないSpot」が生じる（実際に hase-dera が飛ばされた）。
+    // ソートして順序を確定させることで、分割実行を安全にする。
+    const allIds = (await listSpotIds()).sort();
     const slice = allIds.slice(offset, offset + limit);
     const spots = await getSpots(slice);
 
