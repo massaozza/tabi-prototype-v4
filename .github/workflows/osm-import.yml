@@ -1,0 +1,78 @@
+name: OSM import
+
+# OpenStreetMap から都道府県単位でSpot候補を取得し、KVのStagingへ保存する。
+#
+# 【なぜGitHub Actionsで実行するか】
+# Vercel Edge Function の実行時間上限は約25秒で変更できない。
+# 栃木県の寺社カテゴリだけでOverpassの処理が20秒を超え、
+# 実測で FUNCTION_INVOCATION_TIMEOUT になった。
+# 全国47都道府県では最初から成り立たない方式だった。
+#
+# Actionsなら6時間まで使えるため、Overpassの応答を十分に待て、
+# カテゴリ間に間隔を空けて負荷をかけずに済む。
+#
+# 【Productionには影響しない】
+# このワークフローはStaging Layerまでしか書き込まない。
+# Spotの作成・変更は /admin/osm のReview画面からのみ行われる。
+#
+# 事前準備（Snapshot生成で既に設定済みなら追加不要）：
+#   KV_REST_API_URL
+#   KV_REST_API_TOKEN
+
+on:
+  workflow_dispatch:
+    inputs:
+      prefecture:
+        description: '都道府県（英語表記）例: Tochigi'
+        required: true
+        default: 'Tochigi'
+      groups:
+        description: 'カテゴリ（カンマ区切り。空欄なら全部）例: worship,historic'
+        required: false
+        default: ''
+      dryRun:
+        description: 'Stagingに保存せず内容だけ確認する'
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    # Overpassの待機とカテゴリ間の間隔を含めても収まる長さ
+    timeout-minutes: 60
+
+    defaults:
+      run:
+        working-directory: project-13109753
+
+    steps:
+      - name: リポジトリを取得
+        uses: actions/checkout@v4
+
+      - name: Node.jsを準備
+        uses: actions/setup-node@v4
+        with:
+          # AWS SDK等が Node 22 以上を求めるようになるため上げておく
+          node-version: '22'
+
+      - name: 依存関係をインストール
+        run: npm ci
+
+      - name: Importを実行
+        env:
+          KV_REST_API_URL: ${{ secrets.KV_REST_API_URL }}
+          KV_REST_API_TOKEN: ${{ secrets.KV_REST_API_TOKEN }}
+        run: |
+          ARGS="--prefecture=${{ inputs.prefecture }}"
+          if [ -n "${{ inputs.groups }}" ]; then
+            ARGS="$ARGS --group=${{ inputs.groups }}"
+          fi
+          if [ "${{ inputs.dryRun }}" = "true" ]; then
+            ARGS="$ARGS --dry-run"
+          fi
+          echo "実行: npm run osm:import -- $ARGS"
+          npm run osm:import -- $ARGS
