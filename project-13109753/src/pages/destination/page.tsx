@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Navbar from '@/components/feature/Navbar';
 import Footer from '@/components/feature/Footer';
-import { destinations as fallbackDestinations } from '@/mocks/homeData';
+import { loadAllSpots } from '@/lib/spotSnapshot';
 import { type Experience } from '@/pages/experiences/types';
 import AddToTripButton from '@/components/feature/AddToTripButton';
 import { useAutoT, useAutoText } from '@/hooks/useAutoT';
@@ -142,7 +142,7 @@ export default function DestinationPage() {
     setActiveTab('overview');
 
     async function fetchData() {
-      let list: Destination[] = fallbackDestinations;
+      let list: Destination[] = [];
 
       try {
         const res = await fetch('/api/content?type=destinations');
@@ -153,7 +153,14 @@ export default function DestinationPage() {
           }
         }
       } catch {
-        // フォールバックデータのまま続行
+        // 下のフォールバックで処理する
+      }
+
+      // KVが読めなかった場合は R2 の Last Known Good Snapshot に退避する。
+      // 以前は mocks の367件を使っていたため、Admin編集やImportの結果が
+      // 反映されない古いデータが表示されていた。
+      if (list.length === 0) {
+        list = (await loadAllSpots()) as Destination[];
       }
 
       if (cancelled) return;

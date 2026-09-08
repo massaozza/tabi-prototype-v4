@@ -4,7 +4,7 @@ import Navbar from '@/components/feature/Navbar';
 import Footer from '@/components/feature/Footer';
 import PlaceAutocompleteInput from '@/components/feature/PlaceAutocompleteInput';
 import { useAuth } from '@/context/AuthContext';
-import { destinations as fallbackDestinations } from '@/mocks/homeData';
+import { useSpots } from '@/hooks/useSpots';
 import PhotoUploader from '@/pages/experiences/new/components/PhotoUploader';
 import { useAutoT } from '@/hooks/useAutoT';
 
@@ -55,7 +55,10 @@ export default function NewGuidePage() {
   const [authorExpertiseArea, setAuthorExpertiseArea] = useState('');
   const [bodyJa, setBodyJa] = useState('');
   const [spotDrafts, setSpotDrafts] = useState<GuideSpotDraft[]>([emptySpotDraft()]);
-  const [spotOptions, setSpotOptions] = useState<SpotOption[]>(fallbackDestinations);
+  // KV（正データ）→ R2のSnapshot の順で解決する。
+  // 以前は mocks の367件を初期値にしていたため、
+  // Admin編集やImportで追加したSpotが候補に出なかった。
+  const { spots: availableSpots } = useSpots();
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   const [photosUploading, setPhotosUploading] = useState(false);
 
@@ -69,26 +72,6 @@ export default function NewGuidePage() {
       navigate('/login', { replace: true });
     }
   }, [loading, user, navigate]);
-
-  useEffect(() => {
-    let cancelled = false;
-    async function fetchSpots() {
-      try {
-        const res = await fetch('/api/content?type=destinations');
-        if (!res.ok) throw new Error('failed');
-        const json = await res.json();
-        if (!cancelled && Array.isArray(json.data)) {
-          setSpotOptions(json.data);
-        }
-      } catch {
-        // フォールバック（homeData.tsの静的データ）のまま
-      }
-    }
-    fetchSpots();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   if (loading) {
     return (

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import CreatorNavbar from '@/components/feature/CreatorNavbar';
 import Footer from '@/components/feature/Footer';
 import { useAuth } from '@/context/AuthContext';
-import { destinations as fallbackDestinations } from '@/mocks/homeData';
+import { useSpots } from '@/hooks/useSpots';
 import { useAutoT } from '@/hooks/useAutoT';
 
 // TABI 3.0：日本人クリエイターが、AIチャットを使わずに「手動で・簡単に」
@@ -60,7 +60,10 @@ export default function NewRecommendedTripPage() {
   const [budgetMin, setBudgetMin] = useState('');
   const [budgetMax, setBudgetMax] = useState('');
   const [authorName, setAuthorName] = useState('');
-  const [spotOptions, setSpotOptions] = useState<SpotOption[]>(fallbackDestinations);
+  // KV（正データ）→ R2のSnapshot の順で解決する。
+  // 以前は mocks の367件を初期値にしていたため、
+  // Admin編集やImportで追加したSpotが候補に出なかった。
+  const { spots: availableSpots } = useSpots();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -69,26 +72,6 @@ export default function NewRecommendedTripPage() {
       navigate('/login', { replace: true });
     }
   }, [loading, user, navigate]);
-
-  useEffect(() => {
-    let cancelled = false;
-    async function fetchSpots() {
-      try {
-        const res = await fetch('/api/content?type=destinations');
-        if (!res.ok) throw new Error('failed');
-        const json = await res.json();
-        if (!cancelled && Array.isArray(json.data)) {
-          setSpotOptions(json.data);
-        }
-      } catch {
-        // フォールバック（homeData.tsの静的データ）のまま
-      }
-    }
-    fetchSpots();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   if (loading || !user) {
     return null;
@@ -369,7 +352,7 @@ export default function NewRecommendedTripPage() {
                               list={`spot-options-${dayIndex}-${spotIndex}`}
                               value={spot.name}
                               onChange={(e) => {
-                                const matched = spotOptions.find(
+                                const matched = availableSpots.find(
                                   (o) => o.title === e.target.value
                                 );
                                 updateSpot(dayIndex, spotIndex, {
@@ -381,7 +364,7 @@ export default function NewRecommendedTripPage() {
                               className={`${inputClass} text-sm`}
                             />
                             <datalist id={`spot-options-${dayIndex}-${spotIndex}`}>
-                              {spotOptions.map((o) => (
+                              {availableSpots.map((o) => (
                                 <option key={o.id} value={o.title} />
                               ))}
                             </datalist>

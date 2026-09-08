@@ -15,7 +15,7 @@
 // サーバー側で実在するIDかどうかを必ず検証してから返す（AIの幻覚対策）。
 
 import { kv } from '@vercel/kv';
-import { localsPlaces, latestGuides, destinations } from '../src/mocks/homeData.js';
+import { localsPlaces, latestGuides } from '../src/mocks/homeData.js';
 import {
   checkRateLimit,
   clientIpFromRequest,
@@ -348,7 +348,10 @@ export default async function handler(req: Request): Promise<Response> {
 
   let localsData: any[] = localsPlaces;
   let guidesData: any[] = latestGuides;
-  let destinationsData: any[] = destinations;
+  // Spotは KV（content:destinations = spot:{id} の派生キャッシュ）から読む。
+  // 以前は mocks の367件を初期値にしていたため、KVが読めないときに
+  // AIが古いSpot一覧を前提に回答していた。
+  let destinationsData: any[] = [];
 
   try {
     const kvLocals = await kv.get<any[]>('content:localsPlaces');

@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import LocalizedLink from '@/components/feature/LocalizedLink';
-import { destinations as fallbackDestinations } from '@/mocks/homeData';
+import { loadAllSpots } from '@/lib/spotSnapshot';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAutoT, useAutoText } from '@/hooks/useAutoT';
@@ -77,8 +77,12 @@ export default function DestinationsSection() {
           setDestinations(json.data);
         }
       } catch {
+        // KVが読めない場合は R2 の Last Known Good Snapshot に退避する。
+        // 以前は mocks の367件に戻していたため、
+        // Admin編集やImportの結果が反映されない古いデータが表示されていた。
         if (!cancelled) {
-          setDestinations(fallbackDestinations);
+          const snapshot = await loadAllSpots();
+          if (!cancelled) setDestinations(snapshot);
         }
       } finally {
         if (!cancelled) {

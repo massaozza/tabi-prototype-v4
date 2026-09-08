@@ -5,7 +5,7 @@ import Footer from '@/components/feature/Footer';
 import { useAuth } from '@/context/AuthContext';
 import PhotoUploader from '@/pages/experiences/new/components/PhotoUploader';
 import VideoUploader from '@/pages/experiences/new/components/VideoUploader';
-import { destinations as fallbackDestinations } from '@/mocks/homeData';
+import { useSpots } from '@/hooks/useSpots';
 import { useAutoT } from '@/hooks/useAutoT';
 
 // TABI 3.0：日本人クリエイター向けの、体験投稿フォーム（日本語版）。
@@ -87,27 +87,11 @@ export default function NewExperiencePageJa() {
   const [placeName, setPlaceName] = useState('');
   const [area, setArea] = useState('');
   const [spotId, setSpotId] = useState<string | undefined>(undefined);
-  const [spotOptions, setSpotOptions] = useState(fallbackDestinations);
+  // KV（正データ）→ R2のSnapshot の順で解決する。
+  // 以前は mocks の367件を初期値にしていたため、
+  // Admin編集やImportで追加したSpotが候補に出なかった。
+  const { spots: availableSpots } = useSpots();
 
-  useEffect(() => {
-    let cancelled = false;
-    async function fetchSpots() {
-      try {
-        const res = await fetch('/api/content?type=destinations');
-        if (!res.ok) throw new Error('failed');
-        const json = await res.json();
-        if (!cancelled && Array.isArray(json.data)) {
-          setSpotOptions(json.data);
-        }
-      } catch {
-        // フォールバック（homeData.tsの静的データ）のまま
-      }
-    }
-    fetchSpots();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
   const [category, setCategory] = useState('Temple');
   const [visitedMonth, setVisitedMonth] = useState('');
   const [travelStyle, setTravelStyle] = useState('Solo');
@@ -294,7 +278,7 @@ export default function NewExperiencePageJa() {
                     list="spot-options"
                     value={placeName}
                     onChange={(e) => {
-                      const matched = spotOptions.find((o) => o.title === e.target.value);
+                      const matched = availableSpots.find((o) => o.title === e.target.value);
                       setPlaceName(e.target.value);
                       setSpotId(matched?.id);
                     }}
@@ -303,7 +287,7 @@ export default function NewExperiencePageJa() {
                     className={inputClass}
                   />
                   <datalist id="spot-options">
-                    {spotOptions.map((o) => (
+                    {availableSpots.map((o) => (
                       <option key={o.id} value={o.title} />
                     ))}
                   </datalist>

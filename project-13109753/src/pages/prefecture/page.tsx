@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Navbar from '@/components/feature/Navbar';
 import Footer from '@/components/feature/Footer';
-import { destinations as fallbackDestinations } from '@/mocks/homeData';
+import { useSpots } from '@/hooks/useSpots';
 import { PREFECTURE_REGIONS } from '@/mocks/prefectureData';
 import type { Guide } from '@/pages/guides/page';
 import { useAutoT, useAutoText } from '@/hooks/useAutoT';
@@ -66,28 +66,10 @@ export default function PrefecturePage() {
   const tx = useAutoText();
   const t = useAutoT();
   const { name } = useParams<{ name: string }>();
-  const [destinations, setDestinations] = useState<Destination[]>(fallbackDestinations);
+  // KV（正データ）→ R2のSnapshot の順で解決する。
+  // 以前は mocks の367件を初期値にしていたため、取得失敗時に古いデータが出ていた。
+  const { spots: destinations } = useSpots();
   const [guides, setGuides] = useState<Guide[]>([]);
-
-  useEffect(() => {
-    let cancelled = false;
-    async function fetchData() {
-      try {
-        const res = await fetch('/api/content?type=destinations');
-        if (!res.ok) throw new Error('Failed to fetch');
-        const json = await res.json();
-        if (!cancelled && Array.isArray(json.data)) {
-          setDestinations(json.data);
-        }
-      } catch {
-        // フォールバック（homeData.tsの静的データ）のまま
-      }
-    }
-    fetchData();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   useEffect(() => {
     let cancelled = false;

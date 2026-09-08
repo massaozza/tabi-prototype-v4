@@ -1,5 +1,5 @@
 import { kv } from '@vercel/kv';
-import { localsPlaces, latestGuides, destinations } from '../src/mocks/homeData.js';
+import { localsPlaces, latestGuides } from '../src/mocks/homeData.js';
 import { articleData } from '../src/mocks/articleData.js';
 import { isAdminRequest, adminUnauthorized } from './_adminAuth.js';
 import { isMigrated } from './_spotStore.js';
@@ -11,10 +11,19 @@ type ContentType = typeof VALID_TYPES[number];
 
 const KV_KEY_PREFIX = 'content:';
 
+// 【重要】destinations の mocks フォールバックは廃止した。
+//
+// Spotの正データは KV の spot:{id} にあり、content:destinations は
+// そこから再構築される派生キャッシュ。
+// ここで mocks の367件に戻すと、Admin編集やOSM Importの結果が
+// 反映されない古いデータを返してしまう（気づきにくい不整合）。
+//
+// KVが読めない場合のフォールバックは、正データから自動生成される
+// R2上のSnapshot（src/lib/spotSnapshot.ts）がブラウザ側で担う。
 const FALLBACK_DATA: Record<ContentType, unknown[]> = {
   localsPlaces,
   latestGuides,
-  destinations,
+  destinations: [],
   articles: [articleData],
   featuredArticleIds: [],
 };

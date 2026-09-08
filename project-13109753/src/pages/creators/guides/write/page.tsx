@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import CreatorNavbar from '@/components/feature/CreatorNavbar';
 import Footer from '@/components/feature/Footer';
 import { useAuth } from '@/context/AuthContext';
-import { destinations as fallbackDestinations } from '@/mocks/homeData';
+import { usePrefecturesFromSpots } from '@/hooks/useSpots';
 import { useAutoT } from '@/hooks/useAutoT';
 
 // TABI 3.0：日本人が慣れ親しんだ「旅行記」形式（フォートラベル等を参考にした、
@@ -37,9 +37,10 @@ export default function WriteTravelogueePage() {
   const [travelStartDate, setTravelStartDate] = useState('');
   const [travelEndDate, setTravelEndDate] = useState('');
   const [tagsInput, setTagsInput] = useState('');
-  const [prefectureOptions, setPrefectureOptions] = useState<string[]>(
-    Array.from(new Set(fallbackDestinations.map((d) => d.prefecture).filter(Boolean))) as string[]
-  );
+  // KV（正データ）→ R2のSnapshot の順で都道府県を導出する。
+  // 以前は mocks の367件から算出していたため、
+  // Import で新しい都道府県のSpotが増えても候補に出なかった。
+  const { prefectures: prefectureOptions } = usePrefecturesFromSpots();
   const [bodyJa, setBodyJa] = useState('');
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const photosRef = useRef<PhotoItem[]>([]);
@@ -59,29 +60,6 @@ export default function WriteTravelogueePage() {
     const current = photosRef.current;
     return () => {
       current.forEach((p) => URL.revokeObjectURL(p.previewUrl));
-    };
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-    async function fetchPrefectures() {
-      try {
-        const res = await fetch('/api/content?type=destinations');
-        if (!res.ok) throw new Error('failed');
-        const json = await res.json();
-        if (!cancelled && Array.isArray(json.data)) {
-          const prefs = Array.from(
-            new Set(json.data.map((d: { prefecture?: string }) => d.prefecture).filter(Boolean))
-          ) as string[];
-          setPrefectureOptions(prefs);
-        }
-      } catch {
-        // フォールバック（homeData.tsの静的データ）のまま
-      }
-    }
-    fetchPrefectures();
-    return () => {
-      cancelled = true;
     };
   }, []);
 

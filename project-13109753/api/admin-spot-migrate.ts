@@ -21,7 +21,6 @@
 // すべて管理者認証必須。
 
 import { kv } from '@vercel/kv';
-import { destinations as mockDestinations } from '../src/mocks/homeData.js';
 import { isAdminRequest, adminUnauthorized } from './_adminAuth.js';
 import {
   type Spot,
@@ -59,13 +58,14 @@ interface LegacySpot {
 /**
  * 移行元データを読む。
  *
- * 【重要】content:destinations は空の可能性がある。
- * /api/content の GET は `kv.get(...) ?? FALLBACK_DATA` という実装で、
- * KVが空のときは src/mocks/homeData.ts の値を返している。
- * つまり現在表示されている367件の正データは KV ではなくソースコードにある。
+ * 【経緯】移行前は content:destinations が空で、
+ * 367件の正データは src/mocks/homeData.ts にあった
+ * （/api/content の GET が mocks をフォールバックとして返していた）。
+ * そのため移行時は mocks も参照していた。
  *
- * そのため移行元は「KV → 無ければ mocks」の順で解決する。
- * これを間違えると0件を移して空振りする。
+ * 移行完了後は spot:{id} が正データとなり、mocks の destinations は削除した。
+ * このため現在の移行元は content:destinations（派生キャッシュ）のみとなる。
+ * 再移行が必要な場合は、バックアップから復元してから実行すること。
  */
 async function readLegacy(): Promise<{ list: LegacySpot[]; origin: 'kv' | 'mocks' | 'none' }> {
   try {
@@ -77,10 +77,8 @@ async function readLegacy(): Promise<{ list: LegacySpot[]; origin: 'kv' | 'mocks
     /* KVが読めない場合も mocks にフォールバックする */
   }
 
-  const fromMocks = mockDestinations as unknown as LegacySpot[];
-  if (Array.isArray(fromMocks) && fromMocks.length > 0) {
-    return { list: fromMocks, origin: 'mocks' };
-  }
+  // mocks の destinations は移行完了後に削除済み。
+  // ここに到達する場合は移行元が存在しないため、呼び出し側でエラーにする。
   return { list: [], origin: 'none' };
 }
 
