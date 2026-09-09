@@ -224,7 +224,7 @@ export default function AdminOsmPage() {
     }
   };
 
-
+  const input =
     'bg-white border border-background-200 rounded-md px-3 py-2 text-sm text-foreground-900 focus:outline-none focus:ring-2 focus:ring-primary-400';
 
   return (
