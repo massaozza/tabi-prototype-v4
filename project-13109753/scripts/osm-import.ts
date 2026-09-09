@@ -718,8 +718,8 @@ async function main(): Promise<void> {
   console.log(`REJECTED     : ${totals.REJECTED}（重複 ${duplicateOf.size} 件を含む）`);
   console.log('');
   console.log('NEW の Review優先度（旅行価値スコアによる）:');
-  console.log(`  high   (55以上): ${priorityCounts.high}  ← まず確認すべき候補`);
-  console.log(`  medium (35〜54): ${priorityCounts.medium}`);
+  console.log(`  high   (70以上): ${priorityCounts.high}  ← まず確認すべき候補`);
+  console.log(`  medium (35〜69): ${priorityCounts.medium}`);
   console.log(`  low    (34以下): ${priorityCounts.low}  ← 公開しない前提`);
   console.log('');
   console.log('除外理由:');

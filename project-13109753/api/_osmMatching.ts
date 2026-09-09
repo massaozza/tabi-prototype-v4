@@ -820,7 +820,7 @@ export function travelValueScore(
 
 /** Reviewの優先度。スコアから機械的に決める */
 export function reviewPriority(score: number): 'high' | 'medium' | 'low' {
-  if (score >= 55) return 'high';
+  if (score >= 70) return 'high';
   if (score >= 35) return 'medium';
   return 'low';
 }
