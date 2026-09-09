@@ -63,6 +63,24 @@ export function stagingPrefKey(prefecture: string): string {
 }
 
 /**
+ * 判定状態 × 優先度の複合索引。
+ *
+ * 【なぜ必要か】
+ * status索引だけだと、NEWが数万件になったときに「priority=highだけ見たい」
+ * という絞り込みでも一旦全件を個別取得してからJSでフィルタするしかなく、
+ * Edge Functionの実行時間上限（約25秒）を超えてタイムアウトする
+ * （実際に都道府県3つ目でNEW 14,714件になり発生した）。
+ * status × priority の組み合わせごとにSetを持たせておけば、
+ * SMEMBERSで絞り込み済みのidだけを取得できる。
+ */
+export function stagingStatusPriorityKey(
+  status: MatchStatus,
+  priority: 'high' | 'medium' | 'low'
+): string {
+  return `osm:staging:status:${status}:priority:${priority}`;
+}
+
+/**
  * OSM要素 → TABI47 Spot の逆引き。
  * これが冪等性の担保。同じOSM要素を二度取り込まない。
  */
@@ -186,6 +204,24 @@ export async function listStagingIds(status?: MatchStatus): Promise<string[]> {
   }
 }
 
+/**
+ * status＋priorityで絞り込んだid一覧。priorityを指定すると複合索引
+ * （stagingStatusPriorityKey）を使うため、対象がNEW数万件でも
+ * SMEMBERS一発で絞り込める。priority未指定時は従来のlistStagingIdsと同じ。
+ */
+export async function listStagingIdsFiltered(
+  status: MatchStatus,
+  priority?: 'high' | 'medium' | 'low'
+): Promise<string[]> {
+  if (!priority) return listStagingIds(status);
+  try {
+    const ids = await kv.smembers(stagingStatusPriorityKey(status, priority));
+    return ((ids || []).filter(Boolean) as string[]).sort();
+  } catch {
+    return [];
+  }
+}
+
 export async function getStagingRecords(ids: string[]): Promise<StagingRecord[]> {
   if (ids.length === 0) return [];
   const out: StagingRecord[] = [];
@@ -237,6 +273,7 @@ export async function bulkSaveStaging(records: StagingRecord[]): Promise<number>
   // 索引をまとめて更新する
   const byStatus = new Map<string, string[]>();
   const byPref = new Map<string, string[]>();
+  const byStatusPriority = new Map<string, string[]>();
   for (const r of ok) {
     const s = byStatus.get(r.matchStatus) || [];
     s.push(r.id);
@@ -246,6 +283,13 @@ export async function bulkSaveStaging(records: StagingRecord[]): Promise<number>
       const p = byPref.get(r.prefecture) || [];
       p.push(r.id);
       byPref.set(r.prefecture, p);
+    }
+
+    if (r.reviewPriority) {
+      const spKey = `${r.matchStatus}:${r.reviewPriority}`;
+      const sp = byStatusPriority.get(spKey) || [];
+      sp.push(r.id);
+      byStatusPriority.set(spKey, sp);
     }
   }
 
@@ -258,12 +302,21 @@ export async function bulkSaveStaging(records: StagingRecord[]): Promise<number>
   for (const [pref, ids] of byPref) {
     ops.push(kv.sadd(stagingPrefKey(pref), ids[0], ...ids.slice(1)));
   }
+  for (const [spKey, ids] of byStatusPriority) {
+    const [status, priority] = spKey.split(':') as [MatchStatus, 'high' | 'medium' | 'low'];
+    ops.push(kv.sadd(stagingStatusPriorityKey(status, priority), ids[0], ...ids.slice(1)));
+  }
 
   // 状態が変わったものは古い索引から外す
   for (let i = 0; i < records.length; i++) {
     const prev = existing[i];
     if (prev && prev.matchStatus !== records[i].matchStatus) {
       ops.push(kv.srem(stagingStatusKey(prev.matchStatus), records[i].id));
+      if (prev.reviewPriority) {
+        ops.push(
+          kv.srem(stagingStatusPriorityKey(prev.matchStatus, prev.reviewPriority), records[i].id)
+        );
+      }
     }
   }
 
@@ -291,6 +344,17 @@ export async function updateStaging(
   if (patch.matchStatus && patch.matchStatus !== existing.matchStatus) {
     await kv.srem(stagingStatusKey(existing.matchStatus), id).catch(() => null);
     await kv.sadd(stagingStatusKey(patch.matchStatus), id).catch(() => null);
+    // status × priority の複合索引も追従させる
+    if (existing.reviewPriority) {
+      await kv
+        .srem(stagingStatusPriorityKey(existing.matchStatus, existing.reviewPriority), id)
+        .catch(() => null);
+    }
+    if (merged.reviewPriority) {
+      await kv
+        .sadd(stagingStatusPriorityKey(patch.matchStatus, merged.reviewPriority), id)
+        .catch(() => null);
+    }
     // MATCHED/REJECTEDに移るものは POSSIBLE_MATCH/NEW のプールから抜けるため、
     // reviewed索引からも外す（プール内の「reviewed済み件数」としては数えない）
     await kv.srem(STAGING_REVIEWED_INDEX, id).catch(() => null);

@@ -723,11 +723,19 @@ async function main(): Promise<void> {
       );
 
       const byStatus = new Map<string, string[]>();
+      const byStatusPriority = new Map<string, string[]>();
       for (const r of slice) {
         const s = String(r.matchStatus);
         const arr = byStatus.get(s) || [];
         arr.push(String(r.id));
         byStatus.set(s, arr);
+
+        if (r.reviewPriority) {
+          const spKey = `${s}:${String(r.reviewPriority)}`;
+          const spArr = byStatusPriority.get(spKey) || [];
+          spArr.push(String(r.id));
+          byStatusPriority.set(spKey, spArr);
+        }
       }
       const idxCommands: unknown[][] = [
         ['SADD', 'osm:staging:index', ...slice.map((r) => String(r.id))],
@@ -735,6 +743,16 @@ async function main(): Promise<void> {
       ];
       for (const [status, ids] of byStatus) {
         idxCommands.push(['SADD', `osm:staging:status:${status}`, ...ids]);
+      }
+      // status × priority の複合索引。
+      // 【なぜ必要か】NEWが都道府県横断で万単位になると、Review画面で
+      // priority指定なしに全件を個別取得するとEdge Functionの実行時間
+      // 上限（約25秒）を超えてタイムアウトする（実際に3県目で発生した）。
+      // priorityごとに絞り込み済みのSetを持たせ、SMEMBERS一発で
+      // 対象idだけ取れるようにする。
+      for (const [spKey, ids] of byStatusPriority) {
+        const [status, priority] = spKey.split(':');
+        idxCommands.push(['SADD', `osm:staging:status:${status}:priority:${priority}`, ...ids]);
       }
       await kvPipeline(idxCommands);
 

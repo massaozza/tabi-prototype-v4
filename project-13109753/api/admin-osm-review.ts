@@ -32,6 +32,7 @@ import type { MatchStatus } from './_osmMatching.js';
 import {
   getStaging,
   listStagingIds,
+  listStagingIdsFiltered,
   getStagingRecords,
   updateStaging,
   linkOsmToSpot,
@@ -148,15 +149,40 @@ export default async function handler(req: Request): Promise<Response> {
       status = statusParam as MatchStatus;
     }
 
-    const ids = await listStagingIds(status);
+    // 優先度での絞り込み。低スコアのものを開かずに済むようにする
+    const priorityParam = url.searchParams.get('priority');
+    const priority =
+      priorityParam && ['high', 'medium', 'low'].includes(priorityParam)
+        ? (priorityParam as 'high' | 'medium' | 'low')
+        : undefined;
+
+    // 【重要】status × priority の複合索引がある場合はそれを使う。
+    // NEWは都道府県が増えると万単位になるため、priority指定なしで
+    // 全件を個別取得すると実行時間上限（約25秒）を超えてタイムアウトする
+    // （実際に3県目でNEW 14,714件になり発生した）。
+    let ids: string[];
+    if (status && priority) {
+      ids = await listStagingIdsFiltered(status, priority);
+    } else {
+      ids = await listStagingIds(status);
+    }
+
+    // 安全策：priority未指定でも際限なく個別取得しないよう上限をかける。
+    // これを超える場合はpriorityを指定して絞り込んでもらう。
+    const HARD_FETCH_CAP = 2000;
+    let truncated = false;
+    if (!priority && ids.length > HARD_FETCH_CAP) {
+      ids = ids.slice(0, HARD_FETCH_CAP);
+      truncated = true;
+    }
+
     let records = await getStagingRecords(ids);
 
     if (prefecture) records = records.filter((r) => r.prefecture === prefecture);
     if (onlyPending) records = records.filter((r) => !r.reviewedAt);
-
-    // 優先度での絞り込み。低スコアのものを開かずに済むようにする
-    const priority = url.searchParams.get('priority');
-    if (priority && ['high', 'medium', 'low'].includes(priority)) {
+    if (priority) {
+      // 複合索引で既に絞り込み済みだが、statusを指定していない
+      // （全件横断の）呼び出しに備えて念のためJS側でも絞る
       records = records.filter((r) => (r.reviewPriority || 'low') === priority);
     }
 
@@ -198,6 +224,7 @@ export default async function handler(req: Request): Promise<Response> {
         officialUrl: r.officialUrl,
       })),
       total: records.length,
+      truncated,
       summary,
       attribution: '© OpenStreetMap contributors (ODbL 1.0)',
     });
