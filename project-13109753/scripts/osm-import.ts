@@ -580,6 +580,74 @@ async function main(): Promise<void> {
   }
 
   // ───────────────────────────────────────────
+  // カテゴリを跨いだ重複除去
+  // ───────────────────────────────────────────
+  // 同一のOSM要素（同じosmType+osmId）が複数のカテゴリクエリに
+  // 引っかかることがある（例: 日光東照宮が Shrines & temples と
+  // Historic sites の両方でヒット）。この場合 allRecords に同じidの
+  // レコードが2件以上入り、totals/samples が水増しされ、Stagingへの
+  // 保存時も同じKVキーに上書きされるため実際の保存件数と集計値がずれる。
+  // MATCHED > POSSIBLE_MATCH > NEW の優先度で1件に統合する。
+  const statusRank: Record<string, number> = { MATCHED: 0, POSSIBLE_MATCH: 1, NEW: 2 };
+  const byRecordId = new Map<string, Record<string, unknown>>();
+  for (const r of allRecords) {
+    const id = String(r.id);
+    const prev = byRecordId.get(id);
+    if (!prev) {
+      byRecordId.set(id, r);
+      continue;
+    }
+    const prevRank = statusRank[String(prev.matchStatus)] ?? 99;
+    const nextRank = statusRank[String(r.matchStatus)] ?? 99;
+    if (
+      nextRank < prevRank ||
+      (nextRank === prevRank && Number(r.travelScore) > Number(prev.travelScore))
+    ) {
+      byRecordId.set(id, r);
+    }
+  }
+  const crossCategoryDuplicates = allRecords.length - byRecordId.size;
+  allRecords.length = 0;
+  allRecords.push(...byRecordId.values());
+  if (crossCategoryDuplicates > 0) {
+    console.log(
+      `  カテゴリ横断の重複: ${crossCategoryDuplicates} 件（同一施設が複数カテゴリで取得されたため統合）`
+    );
+  }
+
+  // totals と samples は統合前の件数で作っていたため、統合後の件数で作り直す
+  totals.MATCHED = 0;
+  totals.POSSIBLE_MATCH = 0;
+  totals.NEW = 0;
+  samples.MATCHED = [];
+  samples.POSSIBLE_MATCH = [];
+  samples.NEW = [];
+  for (const r of allRecords) {
+    const status = String(r.matchStatus) as 'MATCHED' | 'POSSIBLE_MATCH' | 'NEW';
+    if (status in totals) {
+      totals[status] += 1;
+    }
+    const bucket = samples[status];
+    const limit = status === 'POSSIBLE_MATCH' ? 100 : 10;
+    if (bucket && bucket.length < limit) {
+      bucket.push({
+        name: r.name,
+        aliases: r.aliases,
+        category: r.canonicalKey,
+        travelScore: r.travelScore,
+        matchedSpotId: r.matchedSpotId,
+        confidence: r.confidence,
+        reason: r.matchReason,
+        candidates: Array.isArray(r.candidates)
+          ? (r.candidates as Array<Record<string, unknown>>).map(
+              (c) => `${c.spotId} (${c.distance}m, sim=${c.nameSimilarity}, conf=${c.confidence})`
+            )
+          : [],
+      });
+    }
+  }
+
+  // ───────────────────────────────────────────
   // バッチ内の重複検出（カテゴリ横断）
   // ───────────────────────────────────────────
   // OSMは同じ施設に node（POI）と way（建物・敷地）の両方を持つことが多い。
