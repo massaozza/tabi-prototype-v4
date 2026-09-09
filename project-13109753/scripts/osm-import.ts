@@ -615,37 +615,9 @@ async function main(): Promise<void> {
     );
   }
 
-  // totals と samples は統合前の件数で作っていたため、統合後の件数で作り直す
-  totals.MATCHED = 0;
-  totals.POSSIBLE_MATCH = 0;
-  totals.NEW = 0;
-  samples.MATCHED = [];
-  samples.POSSIBLE_MATCH = [];
-  samples.NEW = [];
-  for (const r of allRecords) {
-    const status = String(r.matchStatus) as 'MATCHED' | 'POSSIBLE_MATCH' | 'NEW';
-    if (status in totals) {
-      totals[status] += 1;
-    }
-    const bucket = samples[status];
-    const limit = status === 'POSSIBLE_MATCH' ? 100 : 10;
-    if (bucket && bucket.length < limit) {
-      bucket.push({
-        name: r.name,
-        aliases: r.aliases,
-        category: r.canonicalKey,
-        travelScore: r.travelScore,
-        matchedSpotId: r.matchedSpotId,
-        confidence: r.confidence,
-        reason: r.matchReason,
-        candidates: Array.isArray(r.candidates)
-          ? (r.candidates as Array<Record<string, unknown>>).map(
-              (c) => `${c.spotId} (${c.distance}m, sim=${c.nameSimilarity}, conf=${c.confidence})`
-            )
-          : [],
-      });
-    }
-  }
+  // totals/samples の作り直しは、この後のバッチ内重複検出も終わってから
+  // まとめて行う（そうしないとログの「POSSIBLE_MATCH（N件）」の見出しと
+  // 「結果」セクションの集計値がずれてしまうため）。
 
   // ───────────────────────────────────────────
   // バッチ内の重複検出（カテゴリ横断）
@@ -702,6 +674,35 @@ async function main(): Promise<void> {
   totals.POSSIBLE_MATCH = finalCounts.POSSIBLE_MATCH;
   totals.NEW = finalCounts.NEW;
   totals.REJECTED = finalCounts.REJECTED;
+
+  // samples もここで作り直す。カテゴリ横断の重複統合・バッチ内重複検出の
+  // 両方が終わった後の最終的な matchStatus を反映することで、ログの
+  // 「POSSIBLE_MATCH（N件）」の見出しと「結果」セクションの集計値が
+  // 一致するようにする。
+  samples.MATCHED = [];
+  samples.POSSIBLE_MATCH = [];
+  samples.NEW = [];
+  for (const r of allRecords) {
+    const status = String(r.matchStatus) as 'MATCHED' | 'POSSIBLE_MATCH' | 'NEW';
+    const bucket = samples[status];
+    const limit = status === 'POSSIBLE_MATCH' ? 100 : 10;
+    if (bucket && bucket.length < limit) {
+      bucket.push({
+        name: r.name,
+        aliases: r.aliases,
+        category: r.canonicalKey,
+        travelScore: r.travelScore,
+        matchedSpotId: r.matchedSpotId,
+        confidence: r.confidence,
+        reason: r.matchReason,
+        candidates: Array.isArray(r.candidates)
+          ? (r.candidates as Array<Record<string, unknown>>).map(
+              (c) => `${c.spotId} (${c.distance}m, sim=${c.nameSimilarity}, conf=${c.confidence})`
+            )
+          : [],
+      });
+    }
+  }
 
   // ───────────────────────────────────────────
   // Stagingへ保存
