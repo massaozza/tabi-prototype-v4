@@ -23,7 +23,7 @@ on:
   workflow_dispatch:
     inputs:
       prefecture:
-        description: '都道府県（英語表記）例: Tochigi'
+        description: '都道府県（英語表記）。カンマ区切りで複数指定可 例: Akita,Yamagata,Miyagi'
         required: true
         default: 'Tochigi'
       groups:
@@ -42,8 +42,9 @@ permissions:
 jobs:
   import:
     runs-on: ubuntu-latest
-    # Overpassの待機とカテゴリ間の間隔を含めても収まる長さ
-    timeout-minutes: 60
+    # 複数県をまとめて回せるよう長めに取る（1県あたり数分 × 件数）。
+    # GitHub Actionsのジョブ上限は6時間（360分）。
+    timeout-minutes: 340
 
     defaults:
       run:
@@ -67,12 +68,37 @@ jobs:
           KV_REST_API_URL: ${{ secrets.KV_REST_API_URL }}
           KV_REST_API_TOKEN: ${{ secrets.KV_REST_API_TOKEN }}
         run: |
-          ARGS="--prefecture=${{ inputs.prefecture }}"
-          if [ -n "${{ inputs.groups }}" ]; then
-            ARGS="$ARGS --group=${{ inputs.groups }}"
+          # 【複数県まとめて実行】
+          # prefecture 入力をカンマ区切りで受け取り、1件ずつ npm run osm:import
+          # を呼ぶ。1つの都道府県が失敗しても、後続の都道府県は続けて処理する
+          # （途中で1県止まるより、他県分は進めておいたほうが良いため）。
+          # 失敗した県があれば最後にまとめて報告し、ジョブ自体は失敗として終える。
+          IFS=',' read -ra PREFS <<< "${{ inputs.prefecture }}"
+          FAILED=()
+          for RAW_PREF in "${PREFS[@]}"; do
+            PREF="$(echo "$RAW_PREF" | xargs)"
+            if [ -z "$PREF" ]; then
+              continue
+            fi
+
+            ARGS="--prefecture=$PREF"
+            if [ -n "${{ inputs.groups }}" ]; then
+              ARGS="$ARGS --group=${{ inputs.groups }}"
+            fi
+            if [ "${{ inputs.dryRun }}" = "true" ]; then
+              ARGS="$ARGS --dry-run"
+            fi
+
+            echo "::group::$PREF"
+            echo "実行: npm run osm:import -- $ARGS"
+            if ! npm run osm:import -- $ARGS; then
+              echo "$PREF の実行に失敗しました"
+              FAILED+=("$PREF")
+            fi
+            echo "::endgroup::"
+          done
+
+          if [ ${#FAILED[@]} -gt 0 ]; then
+            echo "失敗した都道府県: ${FAILED[*]}"
+            exit 1
           fi
-          if [ "${{ inputs.dryRun }}" = "true" ]; then
-            ARGS="$ARGS --dry-run"
-          fi
-          echo "実行: npm run osm:import -- $ARGS"
-          npm run osm:import -- $ARGS
