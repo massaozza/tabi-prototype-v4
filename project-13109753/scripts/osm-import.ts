@@ -137,14 +137,56 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 // KV（Upstash REST API）
 // ───────────────────────────────────────────────
 
-async function kvPipeline(commands: unknown[][]): Promise<unknown[]> {
-  const res = await fetch(`${KV_URL}/pipeline`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${KV_TOKEN}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(commands),
-  });
-  if (!res.ok) throw new Error(`KV pipeline failed: ${res.status} ${await res.text()}`);
-  const data = (await res.json()) as { result: unknown }[];
+async function kvPipeline(commands: unknown[][], attempt = 1): Promise<unknown[]> {
+  let res: Response;
+  try {
+    res = await fetch(`${KV_URL}/pipeline`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${KV_TOKEN}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(commands),
+    });
+  } catch (e) {
+    // ネットワーク自体の瞬断。実行時間はまだ十分あるはずなので、
+    // 少し待って最大2回まで再試行する（呼び出し元にまで伝播させると
+    // その都道府県が丸ごと失敗してしまうため）。
+    if (attempt < 3) {
+      console.log(`    KVへの接続に失敗。5秒待って再試行 (${attempt}/2): ${String(e).slice(0, 160)}`);
+      await sleep(5000);
+      return kvPipeline(commands, attempt + 1);
+    }
+    throw e;
+  }
+
+  if (!res.ok) {
+    if (attempt < 3) {
+      console.log(`    KV pipeline が ${res.status} を返しました。5秒待って再試行 (${attempt}/2)`);
+      await sleep(5000);
+      return kvPipeline(commands, attempt + 1);
+    }
+    throw new Error(`KV pipeline failed: ${res.status} ${await res.text()}`);
+  }
+
+  const data = (await res.json()) as { result?: unknown; error?: string }[];
+
+  // 【重要】UpstashのpipelineはHTTP自体は200でも、個々のコマンドが
+  // 失敗すると { error: "..." } を返す（{ result: ... } ではなく）。
+  // これを見ずに result だけ取り出すと undefined になり、呼び出し側の
+  // `|| []` 等のフォールバックで「0件」と誤認識してしまう
+  // （実際に本番で「公開Spot: 0件」という誤検知が発生した）。
+  const errors = data
+    .map((r, i) => (r && typeof r === 'object' && 'error' in r ? `[${i}] ${r.error}` : null))
+    .filter((e): e is string => Boolean(e));
+  if (errors.length > 0) {
+    if (attempt < 3) {
+      console.log(
+        `    KV pipelineの一部コマンドが失敗。5秒待って再試行 (${attempt}/2): ${errors[0]}`
+      );
+      await sleep(5000);
+      return kvPipeline(commands, attempt + 1);
+    }
+    throw new Error(`KV pipeline had ${errors.length} failing command(s): ${errors.join('; ')}`);
+  }
+
   return data.map((r) => r.result);
 }
 
