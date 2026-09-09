@@ -41,6 +41,22 @@ export function stagingStatusKey(status: MatchStatus): string {
   return `osm:staging:status:${status}`;
 }
 
+/**
+ * Review済み（reviewedAtが入った）だが、まだ POSSIBLE_MATCH / NEW の
+ * プールに留まっているレコードの索引（approveNew / defer の場合）。
+ * reject / merge のように matchStatus が変わるものはプールから抜けるため、
+ * この索引からも同時に外す。
+ *
+ * 【なぜ必要か】
+ * 以前は getStagingSummary() が POSSIBLE_MATCH + NEW の全レコードを
+ * 1件ずつ取得して reviewedAt の有無を数えていた。都道府県が増えて
+ * 対象が万単位になると、この個別取得だけでEdge Functionの実行時間
+ * 上限（約25秒）を超えてタイムアウトし、ダッシュボード・Review画面が
+ * 丸ごと空表示になる不具合が起きた。SCARD（O(1)）だけで数えられる
+ * よう、この専用索引で置き換える。
+ */
+export const STAGING_REVIEWED_INDEX = 'osm:staging:reviewed';
+
 /** 都道府県ごとの索引 */
 export function stagingPrefKey(prefecture: string): string {
   return `osm:staging:pref:${prefecture}`;
@@ -275,6 +291,12 @@ export async function updateStaging(
   if (patch.matchStatus && patch.matchStatus !== existing.matchStatus) {
     await kv.srem(stagingStatusKey(existing.matchStatus), id).catch(() => null);
     await kv.sadd(stagingStatusKey(patch.matchStatus), id).catch(() => null);
+    // MATCHED/REJECTEDに移るものは POSSIBLE_MATCH/NEW のプールから抜けるため、
+    // reviewed索引からも外す（プール内の「reviewed済み件数」としては数えない）
+    await kv.srem(STAGING_REVIEWED_INDEX, id).catch(() => null);
+  } else if (patch.reviewedAt) {
+    // approveNew / defer のように matchStatus を変えずにReviewだけ記録する場合
+    await kv.sadd(STAGING_REVIEWED_INDEX, id).catch(() => null);
   }
 
   return merged;
@@ -377,17 +399,29 @@ export async function getStagingSummary(): Promise<{
   }
 
   // Review待ちは POSSIBLE_MATCH と NEW（MATCHEDは自動、REJECTEDは対象外）
-  const pendingIds = [
-    ...(await listStagingIds('POSSIBLE_MATCH')),
-    ...(await listStagingIds('NEW')),
-  ];
-  const pending = await getStagingRecords(pendingIds);
-  const reviewed = pending.filter((r) => r.reviewedAt).length;
+  //
+  // 【以前の実装の問題】
+  // POSSIBLE_MATCH + NEW の全レコードを1件ずつ取得して reviewedAt の
+  // 有無を数えていた。都道府県が増えて対象が万単位になると、この
+  // 個別取得だけでEdge Functionの実行時間上限（約25秒）を超えて
+  // タイムアウトし、ダッシュボード・Review画面が丸ごと空表示になった。
+  // SCARD（O(1)）だけで数えられる専用索引（STAGING_REVIEWED_INDEX）に
+  // 置き換える。
+  const poolSize = byStatus.POSSIBLE_MATCH + byStatus.NEW;
+  let reviewed = 0;
+  try {
+    reviewed = Number(await kv.scard(STAGING_REVIEWED_INDEX));
+  } catch {
+    reviewed = 0;
+  }
+  // reviewed索引はプールを離れたレコードから都度除いているため、
+  // 理論上 poolSize を超えないはずだが、念のため下限をかける。
+  const pendingReview = Math.max(0, poolSize - reviewed);
 
   return {
     total,
     byStatus,
     reviewed,
-    pendingReview: pending.length - reviewed,
+    pendingReview,
   };
 }
