@@ -320,6 +320,65 @@ export function coreName(name: string): string {
   return s;
 }
 
+/**
+ * 日本語の一般語（神社・寺・公園などの種別語や、境内の付属建物名）。
+ *
+ * 【なぜ必要か】
+ * 部分文字列だけで類似度を判定すると、「白山神社」と「山神社」のように
+ * "山神社" という一般的な接尾語が偶然一致しただけで、全く別の神社
+ * （白山・月山・湯殿山神社のような、山の名前だけが違う別施設）を
+ * 誤って同一施設と判定してしまう。長い語から順に除去し、
+ * 残った固有部分（山の名前・地名など）で比較する。
+ * 神楽殿・手水舎・社務所などは同じ境内の付属施設なので、
+ * 「本体名＋付属施設名」の組み合わせは同一施設として扱ってよいため
+ * 含めている。
+ */
+const GENERIC_WORDS_JA = [
+  '総本宮',
+  '総本社',
+  '大神宮',
+  '神宮',
+  '大社',
+  '天満宮',
+  '八幡宮',
+  '手水舎',
+  '社務所',
+  '神楽殿',
+  '奥之院',
+  '奥の院',
+  '観音堂',
+  '薬師堂',
+  '不動堂',
+  '寺院',
+  '城跡',
+  '記念館',
+  '資料館',
+  '博物館',
+  '美術館',
+  '科学館',
+  '神社',
+  '寺',
+  '院',
+  '庵',
+  '宮',
+  '堂',
+  '城',
+  '公園',
+  '広場',
+  '温泉',
+];
+
+/** 日本語名から一般語を除いた固有部分を取り出す */
+function coreNameJa(name: string): string {
+  let s = normalizeName(name);
+  const sorted = [...GENERIC_WORDS_JA].sort((a, b) => b.length - a.length);
+  for (const w of sorted) {
+    s = s.split(w).join('');
+  }
+  return s;
+}
+
+
 /** 日本語（漢字・かな）を含むか */
 export function hasJapanese(s: string): boolean {
   return /[\u3040-\u30ff\u4e00-\u9fff]/.test(s || '');
@@ -343,10 +402,27 @@ export function nameSimilarity(a: string, b: string): number {
   // 日本語同士はそのまま比較する（ローマ字化は行わない）
   if (hasJapanese(a) && hasJapanese(b)) {
     if (na === nb) return 1;
-    if (na.includes(nb) || nb.includes(na)) {
-      const ratio = Math.min(na.length, nb.length) / Math.max(na.length, nb.length);
+
+    // 【重要】「神社」「公園」等の一般語を除いた固有部分で比較する。
+    // 除去せずに部分文字列だけで判定すると、"白山神社" と "山神社" が
+    // 一般的な接尾語 "山神社" の一致だけで似ていると判定されてしまい、
+    // 月山神社・湯殿山神社のような山の名前だけが違う別施設まで
+    // 誤って同一視してしまう。
+    const coreA = coreNameJa(a);
+    const coreB = coreNameJa(b);
+
+    // 固有部分が短すぎる場合は判定材料にしない（一般語だけの名称）
+    if (coreA.length < 2 || coreB.length < 2) return 0;
+
+    if (coreA === coreB) return 0.95;
+
+    if (coreA.includes(coreB) || coreB.includes(coreA)) {
+      const shorter = coreA.length < coreB.length ? coreA : coreB;
+      const longer = coreA.length < coreB.length ? coreB : coreA;
+      const ratio = shorter.length / longer.length;
       return ratio >= 0.6 ? 0.85 : 0.5;
     }
+
     return 0;
   }
 
