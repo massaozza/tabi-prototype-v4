@@ -597,7 +597,21 @@ export function shouldReject(
     return { reject: true, reason: 'Private access' };
   }
   // 廃止・解体済み
-  if (tags.abandoned || tags.disused || tags['demolished:building']) {
+  // 単純な abandoned=yes / disused=yes 以外に、OSMの「ライフサイクル接頭辞」
+  // （閉業した施設は元のキーに disused:/was:/ruins: 等の接頭辞を付けて
+  // 記録される。例: tourism=museum → disused:tourism=museum）も検出する。
+  // また end_date（廃止・閉店日）が入っている場合も廃止済みとみなす。
+  const LIFECYCLE_PREFIXES = ['disused:', 'was:', 'ruins:', 'demolished:', 'abandoned:', 'razed:'];
+  const hasLifecyclePrefixedTag = Object.keys(tags).some((key) =>
+    LIFECYCLE_PREFIXES.some((prefix) => key.startsWith(prefix))
+  );
+  if (
+    tags.abandoned ||
+    tags.disused ||
+    tags['demolished:building'] ||
+    hasLifecyclePrefixedTag ||
+    tags.end_date
+  ) {
     return { reject: true, reason: 'Abandoned or disused' };
   }
   // 名前が種別そのままのもの（「神社」「公園」だけ等）は識別できない
