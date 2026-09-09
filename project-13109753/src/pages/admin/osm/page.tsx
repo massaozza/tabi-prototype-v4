@@ -103,6 +103,7 @@ export default function AdminOsmPage() {
   const [runner, setRunner] = useState<{ workflow?: string; reason?: string } | null>(null);
 
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [bulkBusy, setBulkBusy] = useState(false);
   const [notice, setNotice] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -179,7 +180,51 @@ export default function AdminOsmPage() {
     }
   };
 
-  const input =
+  const bulkApprove = async () => {
+    if (priorityFilter === 'all') return;
+    if (statusFilter !== 'NEW') return;
+    const ok = window.confirm(
+      `Create drafts for ALL NEW spots with priority="${priorityFilter}" (individual review skipped)?\n\n` +
+        `They are created as drafts and will NOT be visible on the site until published separately.`
+    );
+    if (!ok) return;
+
+    setBulkBusy(true);
+    setNotice(null);
+    let totalCreated = 0;
+    let totalFailed = 0;
+    try {
+      // 1回のAPI呼び出しで最大80件ずつ処理する（Edge Functionの実行時間上限のため）。
+      // remainingAfterThisCall が0になるまで、または安全のため最大30回まで繰り返す。
+      for (let i = 0; i < 30; i++) {
+        const params = new URLSearchParams({
+          action: 'bulkApproveNew',
+          priority: priorityFilter,
+          limit: '80',
+        });
+        const res = await fetch(`/api/admin-osm-review?${params.toString()}`, { method: 'POST' });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data?.error || `Failed (${res.status})`);
+        totalCreated += data.created || 0;
+        totalFailed += data.failed || 0;
+        if (!data.remainingAfterThisCall) break;
+      }
+      setNotice({
+        type: 'success',
+        message: `Bulk approve complete: ${totalCreated} drafts created${
+          totalFailed ? `, ${totalFailed} failed` : ''
+        }.`,
+      });
+      loadQueue();
+      loadDashboard();
+    } catch (e) {
+      setNotice({ type: 'error', message: e instanceof Error ? e.message : 'Bulk approve failed' });
+    } finally {
+      setBulkBusy(false);
+    }
+  };
+
+
     'bg-white border border-background-200 rounded-md px-3 py-2 text-sm text-foreground-900 focus:outline-none focus:ring-2 focus:ring-primary-400';
 
   return (
@@ -320,6 +365,17 @@ export default function AdminOsmPage() {
             />
             Only unreviewed
           </label>
+          {statusFilter === 'NEW' && priorityFilter !== 'all' && (
+            <button
+              type="button"
+              onClick={bulkApprove}
+              disabled={bulkBusy}
+              className="whitespace-nowrap rounded-md bg-primary-600 px-3 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50 cursor-pointer"
+              title={`Create drafts for all NEW spots with priority="${priorityFilter}" without individual review`}
+            >
+              {bulkBusy ? 'Bulk approving…' : `Bulk approve all ${priorityFilter} (draft)`}
+            </button>
+          )}
         </div>
 
         {loading && <div className="h-40 bg-background-200 rounded-lg animate-pulse" />}

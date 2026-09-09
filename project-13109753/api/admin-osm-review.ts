@@ -100,6 +100,65 @@ function osmSourceOf(record: StagingRecord): SpotSource {
   };
 }
 
+/**
+ * Staging 1件からSpotを作成する（approveNew / bulkApproveNew 共通処理）。
+ * 成功したらslugを返す。
+ */
+async function createDraftSpotFromStaging(
+  record: StagingRecord,
+  opts: { publish: boolean; requestedSlug?: string | null; reviewNote: string }
+): Promise<string> {
+  const base = opts.requestedSlug
+    ? opts.requestedSlug.toLowerCase().replace(/[^a-z0-9-]/g, '-')
+    : makeSlug(record.name, record.prefecture);
+  const slug = await uniqueSlug(base);
+
+  const spot: Spot = {
+    id: slug,
+    title: record.name,
+    // カテゴリは canonical のみ設定する。
+    // 既存367件の表示用カテゴリ（「Culture & History」等）を
+    // 推測で当てはめると誤分類になるため、Reviewで人間が付ける。
+    category: '',
+    prefecture: record.prefecture,
+    // 【重要】説明文をAIや推測で生成しない（指示書17）。
+    // 事実でない説明を作るより、空のままにして後から人が書く。
+    description: '',
+    lat: record.lat,
+    lng: record.lng,
+    image: '',
+    city: record.city,
+    address: record.address,
+    officialUrl: record.officialUrl,
+    canonicalCategory: record.canonicalKey,
+    aliases: record.aliases.slice(0, 20),
+    status: opts.publish ? 'published' : 'draft',
+    sources: [osmSourceOf(record)],
+    fieldSources: {
+      title: 'OSM',
+      prefecture: 'OSM',
+      lat: 'OSM',
+      lng: 'OSM',
+      ...(record.city ? { city: 'OSM' as const } : {}),
+      ...(record.address ? { address: 'OSM' as const } : {}),
+      ...(record.officialUrl ? { officialUrl: 'OSM' as const } : {}),
+      ...(record.canonicalKey ? { canonicalCategory: 'OSM' as const } : {}),
+    },
+  };
+
+  await saveSpot(spot);
+  await linkOsmToSpot(record.osmType, record.osmId, slug);
+  await updateStaging(record.id, {
+    reviewedAt: new Date().toISOString(),
+    reviewAction: 'approved_new',
+    reviewNote: opts.reviewNote,
+    resultSpotId: slug,
+    matchedSpotId: slug,
+  });
+
+  return slug;
+}
+
 export default async function handler(req: Request): Promise<Response> {
   if (!(await isAdminRequest(req))) return adminUnauthorized();
 
@@ -231,9 +290,84 @@ export default async function handler(req: Request): Promise<Response> {
   }
 
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
-  if (!id) return json({ error: 'id query parameter is required' }, 400);
 
   const action = url.searchParams.get('action');
+
+  // ───────────────────────────────────────────
+  // bulkApproveNew: NEWのうち指定した優先度のものを、まとめてdraftとして作成する
+  // ───────────────────────────────────────────
+  // 【なぜ必要か】
+  // NEW×highだけで都道府県4県合計1,000件を超えており、1件ずつのReviewは
+  // 現実的でない。high優先度はWikidata/Wikipedia/公式サイトなど複数の
+  // 裏付けがある候補に限られ、これまで誤り（存在しない場所・閉業施設等）は
+  // 確認されていない。draft止まりで公開はされない（別途 publish=1 が必要）ため、
+  // 万一質の低いものが混ざっても表には出ない。
+  // POSSIBLE_MATCHは対象外（誤統合のリスクがあるため引き続き手動確認が必要）。
+  if (action === 'bulkApproveNew') {
+    const priorityParam = url.searchParams.get('priority') || 'high';
+    if (!['high', 'medium', 'low'].includes(priorityParam)) {
+      return json({ error: 'priority must be high, medium, or low' }, 400);
+    }
+    const priority = priorityParam as 'high' | 'medium' | 'low';
+    const prefecture = url.searchParams.get('prefecture');
+    const publish = url.searchParams.get('publish') === '1';
+    const limit = Math.min(Math.max(Number(url.searchParams.get('limit') || '80'), 1), 100);
+
+    const ids = await listStagingIdsFiltered('NEW', priority);
+    let candidates = await getStagingRecords(ids);
+    if (prefecture) candidates = candidates.filter((r) => r.prefecture === prefecture);
+    // 既にReview済み（前回呼び出しで処理済み等）は除く
+    candidates = candidates.filter((r) => !r.reviewedAt && !r.resultSpotId);
+
+    const remainingBefore = candidates.length;
+    const batch = candidates.slice(0, limit);
+
+    let created = 0;
+    let failed = 0;
+    const errors: string[] = [];
+
+    // Edge Functionの実行時間上限（約25秒）に収まるよう、少しずつ並列実行する
+    const CONCURRENCY = 10;
+    for (let i = 0; i < batch.length; i += CONCURRENCY) {
+      const chunk = batch.slice(i, i + CONCURRENCY);
+      const results = await Promise.allSettled(
+        chunk.map((record) =>
+          createDraftSpotFromStaging(record, {
+            publish,
+            reviewNote: `Bulk approved (priority=${priority}, no individual review)`,
+          })
+        )
+      );
+      for (const r of results) {
+        if (r.status === 'fulfilled') created += 1;
+        else {
+          failed += 1;
+          if (errors.length < 10) errors.push(String(r.reason));
+        }
+      }
+    }
+
+    const remainingAfter = Math.max(0, remainingBefore - batch.length);
+    return json({
+      success: true,
+      action: 'bulkApproveNew',
+      priority,
+      prefecture: prefecture || null,
+      created,
+      failed,
+      processedThisCall: batch.length,
+      remainingAfterThisCall: remainingAfter,
+      errors,
+      note:
+        `${created} spots created as ${publish ? 'published' : 'draft'}` +
+        (failed ? `, ${failed} failed` : '') +
+        (remainingAfter > 0
+          ? `. ${remainingAfter} more remain — call again to continue.`
+          : '. No more remaining for this filter.'),
+    });
+  }
+
+  if (!id) return json({ error: 'id query parameter is required' }, 400);
   const record = await getStaging(id);
   if (!record) return json({ error: 'Staging record not found' }, 404);
 
@@ -353,65 +487,22 @@ export default async function handler(req: Request): Promise<Response> {
     }
 
     const requestedSlug = url.searchParams.get('slug');
-    const base = requestedSlug
-      ? requestedSlug.toLowerCase().replace(/[^a-z0-9-]/g, '-')
-      : makeSlug(record.name, record.prefecture);
-    const slug = await uniqueSlug(base);
-
     // 【段階公開（指示書32）】既定は draft。
     // 旅行価値の低いSpotが大量に公開されるのを防ぐため、
     // 公開は明示的に publish=1 を付けたときだけにする。
     const publish = url.searchParams.get('publish') === '1';
 
-    const spot: Spot = {
-      id: slug,
-      title: record.name,
-      // カテゴリは canonical のみ設定する。
-      // 既存367件の表示用カテゴリ（「Culture & History」等）を
-      // 推測で当てはめると誤分類になるため、Reviewで人間が付ける。
-      category: '',
-      prefecture: record.prefecture,
-      // 【重要】説明文をAIや推測で生成しない（指示書17）。
-      // 事実でない説明を作るより、空のままにして後から人が書く。
-      description: '',
-      lat: record.lat,
-      lng: record.lng,
-      image: '',
-      city: record.city,
-      address: record.address,
-      officialUrl: record.officialUrl,
-      canonicalCategory: record.canonicalKey,
-      aliases: record.aliases.slice(0, 20),
-      status: publish ? 'published' : 'draft',
-      sources: [osmSourceOf(record)],
-      fieldSources: {
-        title: 'OSM',
-        prefecture: 'OSM',
-        lat: 'OSM',
-        lng: 'OSM',
-        ...(record.city ? { city: 'OSM' as const } : {}),
-        ...(record.address ? { address: 'OSM' as const } : {}),
-        ...(record.officialUrl ? { officialUrl: 'OSM' as const } : {}),
-        ...(record.canonicalKey ? { canonicalCategory: 'OSM' as const } : {}),
-      },
-    };
-
-    await saveSpot(spot);
-    await linkOsmToSpot(record.osmType, record.osmId, slug);
-
-    await updateStaging(id, {
-      reviewedAt: new Date().toISOString(),
-      reviewAction: 'approved_new',
+    const slug = await createDraftSpotFromStaging(record, {
+      publish,
+      requestedSlug,
       reviewNote: note,
-      resultSpotId: slug,
-      matchedSpotId: slug,
     });
 
     return json({
       success: true,
       action: 'approved_new',
       spotId: slug,
-      status: spot.status,
+      status: publish ? 'published' : 'draft',
       url: `/en/destinations/${slug}`,
       note: publish
         ? 'Spot published.'
@@ -420,7 +511,7 @@ export default async function handler(req: Request): Promise<Response> {
   }
 
   return json(
-    { error: 'Unknown action. Use approveNew / merge / reject / defer.' },
+    { error: 'Unknown action. Use approveNew / bulkApproveNew / merge / reject / defer.' },
     400
   );
 }

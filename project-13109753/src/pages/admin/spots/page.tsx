@@ -93,6 +93,8 @@ export default function AdminSpotsPage() {
   const [isNew, setIsNew] = useState(false);
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [publishing, setPublishing] = useState(false);
 
   const loadSpots = () => {
     setLoading(true);
@@ -223,7 +225,75 @@ export default function AdminSpotsPage() {
     }
   };
 
-  const input =
+  const toggleSelect = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  /**
+   * 選択したSpotをまとめて公開する。
+   *
+   * 【なぜ必要か】
+   * OSM一括インポートのbulkApproveNewはdraftまでしか作らない（意図的、
+   * 質の低いSpotがそのまま公開されるのを防ぐため）。draftになった候補を
+   * 人が見てから公開したいが、1件ずつ「Edit → status変更 → Save」は
+   * 数十〜数百件になると現実的でないため、選択→まとめて公開のボタンを用意する。
+   */
+  const publishSelected = async () => {
+    if (selected.size === 0) return;
+    const ok = window.confirm(`Publish ${selected.size} selected spot(s)?`);
+    if (!ok) return;
+
+    setPublishing(true);
+    setNotice(null);
+    const ids = [...selected];
+    let succeeded = 0;
+    let failed = 0;
+
+    // 数十〜数百件を想定し、少しずつ並列実行する
+    const CONCURRENCY = 8;
+    for (let i = 0; i < ids.length; i += CONCURRENCY) {
+      const chunk = ids.slice(i, i + CONCURRENCY);
+      const results = await Promise.allSettled(
+        chunk.map((id) =>
+          fetch(`/api/spots?id=${encodeURIComponent(id)}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'published' }),
+          }).then(async (res) => {
+            const data = await res.json().catch(() => null);
+            if (!res.ok) throw new Error(data?.error || `Failed (${res.status})`);
+            return data?.spot as Spot | undefined;
+          })
+        )
+      );
+      const updates = new Map<string, Spot>();
+      for (const r of results) {
+        if (r.status === 'fulfilled') {
+          succeeded += 1;
+          if (r.value) updates.set(r.value.id, r.value);
+        } else {
+          failed += 1;
+        }
+      }
+      if (updates.size > 0) {
+        setSpots((prev) => prev.map((s) => updates.get(s.id) || s));
+      }
+    }
+
+    setSelected(new Set());
+    setPublishing(false);
+    setNotice({
+      type: failed ? 'error' : 'success',
+      message: `Published ${succeeded} spot(s)${failed ? `, ${failed} failed` : ''}.`,
+    });
+    setTimeout(() => setNotice(null), 4000);
+  };
+
     'w-full bg-white border border-background-200 rounded-md px-3 py-2 text-sm text-foreground-900 focus:outline-none focus:ring-2 focus:ring-primary-400';
 
   return (
@@ -293,6 +363,16 @@ export default function AdminSpotsPage() {
         <span className="text-xs text-foreground-500 md:ml-auto self-center whitespace-nowrap">
           {filtered.length} shown
         </span>
+        {selected.size > 0 && (
+          <button
+            type="button"
+            onClick={publishSelected}
+            disabled={publishing}
+            className="whitespace-nowrap rounded-md bg-primary-600 px-3 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50 cursor-pointer"
+          >
+            {publishing ? 'Publishing…' : `Publish selected (${selected.size})`}
+          </button>
+        )}
       </div>
 
       {loading && <div className="h-40 bg-background-200 rounded-lg animate-pulse" />}
@@ -307,6 +387,24 @@ export default function AdminSpotsPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-xs text-foreground-500 border-b border-background-200">
+                <th className="py-3 px-3 font-medium w-8">
+                  <input
+                    type="checkbox"
+                    className="cursor-pointer"
+                    checked={filtered.length > 0 && filtered.every((s) => selected.has(s.id))}
+                    onChange={(e) => {
+                      setSelected((prev) => {
+                        const next = new Set(prev);
+                        if (e.target.checked) {
+                          for (const s of filtered) next.add(s.id);
+                        } else {
+                          for (const s of filtered) next.delete(s.id);
+                        }
+                        return next;
+                      });
+                    }}
+                  />
+                </th>
                 <th className="py-3 px-5 font-medium">Spot</th>
                 <th className="py-3 px-3 font-medium">Prefecture</th>
                 <th className="py-3 px-3 font-medium">Status</th>
@@ -317,13 +415,21 @@ export default function AdminSpotsPage() {
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-10 text-center text-sm text-foreground-500">
+                  <td colSpan={6} className="py-10 text-center text-sm text-foreground-500">
                     No spots match this filter.
                   </td>
                 </tr>
               ) : (
                 filtered.map((s) => (
                   <tr key={s.id} className="border-b border-background-100 last:border-0 hover:bg-background-100/50">
+                    <td className="py-3 px-3">
+                      <input
+                        type="checkbox"
+                        className="cursor-pointer"
+                        checked={selected.has(s.id)}
+                        onChange={() => toggleSelect(s.id)}
+                      />
+                    </td>
                     <td className="py-3 px-5 max-w-[280px]">
                       <p className="text-foreground-900 font-medium truncate">{s.title}</p>
                       <p className="text-xs text-foreground-400 truncate">/destinations/{s.id}</p>
