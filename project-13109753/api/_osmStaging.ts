@@ -91,6 +91,19 @@ export interface StagingRecord {
   /** 元のOSMタグ（判断材料として保持する。推測で埋めない） */
   osmTags: Record<string, string>;
 
+  /**
+   * 旅行価値スコア（0〜100）とその根拠。
+   * 除外の判断ではなく、Reviewの優先順位付けに使う。
+   * 栃木県の実測で NEW が2,459件になり、
+   * 優先順位なしでは人間が確認できる量ではなかった。
+   */
+  travelScore?: number;
+  travelSignals?: string[];
+  reviewPriority?: 'high' | 'medium' | 'low';
+
+  /** 同一Import内で重複と判定された場合、代表のID */
+  duplicateOf?: string;
+
   /** 判定結果 */
   matchStatus: MatchStatus;
   matchedSpotId: string | null;

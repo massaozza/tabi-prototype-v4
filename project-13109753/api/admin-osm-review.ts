@@ -154,9 +154,20 @@ export default async function handler(req: Request): Promise<Response> {
     if (prefecture) records = records.filter((r) => r.prefecture === prefecture);
     if (onlyPending) records = records.filter((r) => !r.reviewedAt);
 
-    // 判断が必要なものを上に。確信度が低いほど人間の確認が要る
+    // 優先度での絞り込み。低スコアのものを開かずに済むようにする
+    const priority = url.searchParams.get('priority');
+    if (priority && ['high', 'medium', 'low'].includes(priority)) {
+      records = records.filter((r) => (r.reviewPriority || 'low') === priority);
+    }
+
+    // 【並び順】
+    // 未Reviewを上に。そのうえで旅行価値スコアの高いものから見せる。
+    // NEWが数千件になるため、価値の高い候補から確認できないと運用できない。
     records.sort((a, b) => {
       if (Boolean(a.reviewedAt) !== Boolean(b.reviewedAt)) return a.reviewedAt ? 1 : -1;
+      const sa = a.travelScore ?? 0;
+      const sb = b.travelScore ?? 0;
+      if (sb !== sa) return sb - sa;
       return b.confidence - a.confidence;
     });
 
@@ -177,6 +188,10 @@ export default async function handler(req: Request): Promise<Response> {
         confidence: r.confidence,
         matchReason: r.matchReason,
         candidates: r.candidates,
+        travelScore: r.travelScore,
+        travelSignals: r.travelSignals,
+        reviewPriority: r.reviewPriority,
+        duplicateOf: r.duplicateOf,
         reviewedAt: r.reviewedAt,
         reviewAction: r.reviewAction,
         resultSpotId: r.resultSpotId,

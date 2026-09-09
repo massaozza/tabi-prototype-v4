@@ -50,6 +50,10 @@ interface StagingItem {
   reviewAction?: string;
   resultSpotId?: string;
   officialUrl?: string;
+  travelScore?: number;
+  travelSignals?: string[];
+  reviewPriority?: 'high' | 'medium' | 'low';
+  duplicateOf?: string;
 }
 
 interface ImportRun {
@@ -90,6 +94,8 @@ export default function AdminOsmPage() {
   const [items, setItems] = useState<StagingItem[]>([]);
   const [statusFilter, setStatusFilter] = useState<MatchStatus>('POSSIBLE_MATCH');
   const [onlyPending, setOnlyPending] = useState(true);
+  // NEWが数千件になるため、旅行価値スコアで絞れるようにする
+  const [priorityFilter, setPriorityFilter] = useState<'all' | 'high' | 'medium' | 'low'>('all');
   const [search, setSearch] = useState('');
 
   // Importの実行はGitHub Actionsが担うため、この画面では案内のみ表示する
@@ -118,6 +124,7 @@ export default function AdminOsmPage() {
     setLoading(true);
     const params = new URLSearchParams({ status: statusFilter });
     if (onlyPending) params.set('pending', '1');
+    if (priorityFilter !== 'all') params.set('priority', priorityFilter);
     fetch(`/api/admin-osm-review?${params.toString()}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
@@ -129,7 +136,7 @@ export default function AdminOsmPage() {
   };
 
   useEffect(loadDashboard, []);
-  useEffect(loadQueue, [statusFilter, onlyPending]);
+  useEffect(loadQueue, [statusFilter, onlyPending, priorityFilter]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -294,6 +301,16 @@ export default function AdminOsmPage() {
             placeholder="Search name"
             className={`${input} md:w-48`}
           />
+          <select
+            value={priorityFilter}
+            onChange={(e) => setPriorityFilter(e.target.value as 'all' | 'high' | 'medium' | 'low')}
+            className="bg-white border border-background-200 rounded-md px-3 py-2 text-sm text-foreground-900 focus:outline-none focus:ring-2 focus:ring-primary-400 cursor-pointer"
+          >
+            <option value="all">All priorities</option>
+            <option value="high">High value only</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+          </select>
           <label className="flex items-center gap-2 text-sm text-foreground-600 whitespace-nowrap cursor-pointer">
             <input
               type="checkbox"
@@ -336,6 +353,20 @@ export default function AdminOsmPage() {
                       <span className="text-xs text-foreground-400">
                         confidence {item.confidence}
                       </span>
+                      {item.travelScore !== undefined && (
+                        <span
+                          className={`text-xs font-semibold px-2 py-0.5 rounded-full border whitespace-nowrap ${
+                            item.reviewPriority === 'high'
+                              ? 'bg-green-50 text-green-700 border-green-200'
+                              : item.reviewPriority === 'medium'
+                                ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                : 'bg-background-100 text-foreground-500 border-background-200'
+                          }`}
+                          title={item.travelSignals?.join(' / ')}
+                        >
+                          value {item.travelScore}
+                        </span>
+                      )}
                     </div>
 
                     <p className="mt-2 font-semibold text-foreground-900">{item.name}</p>
@@ -356,6 +387,11 @@ export default function AdminOsmPage() {
                       </a>
                     </p>
                     <p className="text-xs text-foreground-600 mt-2">{item.matchReason}</p>
+                    {item.travelSignals && item.travelSignals.length > 0 && (
+                      <p className="text-xs text-foreground-400 mt-1">
+                        {item.travelSignals.join(' · ')}
+                      </p>
+                    )}
 
                     {item.candidates.length > 0 && (
                       <div className="mt-3 space-y-1">

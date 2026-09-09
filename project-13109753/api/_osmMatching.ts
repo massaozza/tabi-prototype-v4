@@ -607,3 +607,331 @@ export function shouldReject(
   }
   return { reject: false, reason: '' };
 }
+
+// ───────────────────────────────────────────────
+// 名称の整形（指示書のC）
+// ───────────────────────────────────────────────
+
+/**
+ * 社格・寺格を表す接頭辞。
+ * 「村社星宮神社」はSpot名としては「星宮神社」が適切で、
+ * 「村社」は明治期の社格制度の名残であり施設名の一部ではない。
+ */
+const RANK_PREFIXES = [
+  '官幣大社', '官幣中社', '官幣小社',
+  '國幣大社', '国幣大社', '國幣中社', '国幣中社', '國幣小社', '国幣小社',
+  '別格官幣社', '別表神社',
+  '県社', '縣社', '府社', '郷社', '鄉社', '村社', '無格社',
+];
+
+/**
+ * 表示名として使えるよう整形する。
+ *
+ * OSMの name はそのままでは品質にばらつきがある：
+ *   「村社星宮神社」  … 社格の接頭辞が付いている
+ *   "馬頭院<U+3000>金堂"  ... 全角スペースが入っている
+ * これらを機械的に直せる範囲で整える。
+ * ただし推測で情報を足すことはしない。
+ */
+export function cleanOsmName(name: string): string {
+  if (!name) return '';
+  let s = name
+    // 全角スペースを半角に
+    .replace(/\u3000/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  for (const prefix of RANK_PREFIXES) {
+    if (s.startsWith(prefix) && s.length > prefix.length + 1) {
+      s = s.slice(prefix.length).trim();
+      break;
+    }
+  }
+  return s;
+}
+
+/**
+ * name:en が機械的なローマ字転写で、表示名として不適切かを判定する。
+ *
+ * 例：「torinokosanshou jinjya」
+ *   - すべて小文字（固有名詞なのに大文字がない）
+ *   - 「jinjya」のような非標準の転写
+ * このような場合は、日本語名を使ったほうが良い。
+ * TABI47は表示時に自動翻訳を通すため、日本語名でも各言語に変換される。
+ */
+export function isLowQualityRomaji(name: string): boolean {
+  if (!name) return false;
+  // 日本語を含むならローマ字ではない
+  if (hasJapanese(name)) return false;
+  // ラテン文字が含まれない
+  if (!/[a-z]/i.test(name)) return false;
+
+  // 大文字が1つもない固有名詞は機械的な転写の可能性が高い
+  const hasUpperCase = /[A-Z]/.test(name);
+  if (!hasUpperCase) return true;
+
+  // 非標準の転写パターン
+  if (/\b(jinjya|jinjyа|tera\b|dera\b|otera|jinnja)\b/i.test(name)) return true;
+
+  return false;
+}
+
+// ───────────────────────────────────────────────
+// 旅行価値スコア（指示書のA）
+// ───────────────────────────────────────────────
+
+export interface TravelValue {
+  /** 0〜100。高いほど旅行Spotとして価値が高いと推定される */
+  score: number;
+  /** 判断の根拠。人間が確認できるようにする */
+  signals: string[];
+}
+
+/**
+ * 明らかに観光目的でない施設名のパターン。
+ * 栃木県だけで公園が987件取得されたが、その大半は
+ * 児童公園・街区公園といった地域住民向けの施設だった。
+ */
+const LOW_VALUE_NAME_PATTERNS: { pattern: RegExp; label: string; penalty: number }[] = [
+  { pattern: /児童(公園|遊園)/, label: 'Children\'s playground', penalty: 60 },
+  { pattern: /街区公園|近隣公園|ちびっこ広場|わんぱく広場/, label: 'Neighbourhood park', penalty: 55 },
+  { pattern: /(第[0-9０-９一二三四五六七八九十]+|[0-9０-９]+)(公園|児童)/, label: 'Numbered local park', penalty: 45 },
+  { pattern: /団地|社宅|集会所|自治会/, label: 'Residential facility', penalty: 60 },
+  { pattern: /墓地|霊園|納骨/, label: 'Cemetery', penalty: 50 },
+  { pattern: /^(祠|地蔵|道祖神|庚申塔|石仏|馬頭観音)$/, label: 'Small roadside shrine', penalty: 60 },
+  { pattern: /公民館|集落センター/, label: 'Community centre', penalty: 55 },
+];
+
+/**
+ * 旅行Spotとしての価値を推定する。
+ *
+ * 【なぜ除外ではなくスコアにするか】
+ * 機械的に捨てると、価値あるSpotも一緒に失われる。
+ * 「情報が少ない」ことと「価値がない」ことは別で、
+ * 無名でも実際に訪れる価値のある場所は存在する。
+ * そのため除外はせず、Reviewの優先順位付けに使う。
+ * 低スコアのものは staging に残り、公開されない。
+ *
+ * 【スコアの根拠】
+ * 「誰かが手をかけた形跡」を信号として使う。
+ * Wikipedia記事や文化財指定は第三者による認知の証拠であり、
+ * AIに観光価値を推測させるより確実で、事実に基づく。
+ */
+export function travelValueScore(
+  tags: Record<string, string>,
+  name: string,
+  canonicalKey: string | null
+): TravelValue {
+  let score = 20; // 基準点
+  const signals: string[] = [];
+
+  // ── 第三者による認知（最も強い信号） ──
+  if (tags.wikidata) {
+    score += 30;
+    signals.push('Has Wikidata entry');
+  }
+  if (tags.wikipedia || tags['wikipedia:ja'] || tags['wikipedia:en']) {
+    score += 25;
+    signals.push('Has Wikipedia article');
+  }
+
+  // ── 公的な指定 ──
+  if (tags.heritage || tags['heritage:operator'] || tags.ref_cultural_property) {
+    score += 25;
+    signals.push('Designated heritage');
+  }
+  if (tags.protect_class || tags.protection_title) {
+    score += 15;
+    signals.push('Protected site');
+  }
+
+  // ── 訪問者向けの整備 ──
+  if (tags['name:en']) {
+    score += 12;
+    signals.push('Has English name');
+  }
+  if (tags.website || tags['contact:website']) {
+    score += 12;
+    signals.push('Has website');
+  }
+  if (tags.opening_hours) {
+    score += 8;
+    signals.push('Has opening hours');
+  }
+  if (tags.fee || tags.charge) {
+    score += 5;
+    signals.push('Has admission info');
+  }
+  if (tags.image || tags.wikimedia_commons) {
+    score += 8;
+    signals.push('Has image');
+  }
+  if (tags.description || tags['description:en']) {
+    score += 5;
+    signals.push('Has description');
+  }
+
+  // ── 観光目的が明示されている ──
+  if (tags.tourism === 'attraction' || tags.tourism === 'museum' || tags.tourism === 'theme_park') {
+    score += 15;
+    signals.push(`tourism=${tags.tourism}`);
+  }
+  if (canonicalKey === 'castle') {
+    score += 20;
+    signals.push('Castle');
+  }
+  if (canonicalKey === 'onsen') {
+    score += 15;
+    signals.push('Onsen');
+  }
+  if (tags.historic === 'monument' || tags.historic === 'memorial') {
+    score += 5;
+    signals.push(`historic=${tags.historic}`);
+  }
+
+  // ── 規模の手がかり ──
+  if (tags['addr:full'] || tags['addr:street']) {
+    score += 3;
+    signals.push('Has address');
+  }
+  if (tags.phone || tags['contact:phone']) {
+    score += 3;
+    signals.push('Has phone');
+  }
+
+  // ── 減点 ──
+  for (const { pattern, label, penalty } of LOW_VALUE_NAME_PATTERNS) {
+    if (pattern.test(name)) {
+      score -= penalty;
+      signals.push(`- ${label}`);
+      break;
+    }
+  }
+
+  // 名前が短すぎる、情報がタグ名しかない
+  const tagCount = Object.keys(tags).filter((k) => !k.startsWith('name')).length;
+  if (tagCount <= 2) {
+    score -= 10;
+    signals.push('- Very few tags');
+  }
+
+  return { score: Math.max(0, Math.min(100, score)), signals };
+}
+
+/** Reviewの優先度。スコアから機械的に決める */
+export function reviewPriority(score: number): 'high' | 'medium' | 'low' {
+  if (score >= 55) return 'high';
+  if (score >= 35) return 'medium';
+  return 'low';
+}
+
+// ───────────────────────────────────────────────
+// バッチ内の重複検出（指示書14 / のB）
+// ───────────────────────────────────────────────
+
+export interface DedupeInput {
+  key: string;
+  osmType: string;
+  name: string;
+  aliases: string[];
+  lat: number;
+  lng: number;
+  canonicalKey: string | null;
+  tagCount: number;
+  score: number;
+}
+
+export interface DedupeResult {
+  /** 代表として残すキー */
+  representative: string;
+  /** 代表に統合されるキー */
+  duplicates: string[];
+  reason: string;
+}
+
+/**
+ * 同一バッチ内の重複を検出する。
+ *
+ * 【なぜ必要か】
+ * OSMは同じ施設に対して node（POI）と way（建物・敷地）の両方を
+ * 持つことが多い。実測で日光東照宮が2件取得された。
+ * これを検出しないと、承認時に同じSpotが2つできてしまう。
+ *
+ * 既存Spotとの照合（matchOsmCandidate）は候補と既存の比較であり、
+ * 候補同士は見ていなかった。
+ *
+ * 【代表の選び方】
+ * 情報量が多いもの、スコアが高いものを残す。
+ * way は敷地全体を表すことが多く座標が代表点になりやすいため、
+ * 同条件なら way を優先する。
+ */
+export function detectBatchDuplicates(items: DedupeInput[]): DedupeResult[] {
+  const results: DedupeResult[] = [];
+  const consumed = new Set<string>();
+
+  // 座標で粗く区切って総当たりを避ける（件数が数千になるため）
+  const cell = (lat: number, lng: number) => `${Math.floor(lat * 200)}:${Math.floor(lng * 200)}`;
+  const grid = new Map<string, DedupeInput[]>();
+  for (const it of items) {
+    const k = cell(it.lat, it.lng);
+    const arr = grid.get(k) || [];
+    arr.push(it);
+    grid.set(k, arr);
+  }
+
+  for (const item of items) {
+    if (consumed.has(item.key)) continue;
+
+    // 近傍セル（自セル＋周囲8）だけを見る
+    const baseLat = Math.floor(item.lat * 200);
+    const baseLng = Math.floor(item.lng * 200);
+    const neighbours: DedupeInput[] = [];
+    for (let dx = -1; dx <= 1; dx++) {
+      for (let dy = -1; dy <= 1; dy++) {
+        neighbours.push(...(grid.get(`${baseLat + dx}:${baseLng + dy}`) || []));
+      }
+    }
+
+    const threshold = distanceThresholdFor(item.canonicalKey);
+    const group: DedupeInput[] = [item];
+
+    for (const other of neighbours) {
+      if (other.key === item.key || consumed.has(other.key)) continue;
+
+      const d = distanceMeters(item.lat, item.lng, other.lat, other.lng);
+      if (d > threshold) continue;
+
+      // 名称が一致しなければ別施設として扱う。
+      // 距離だけで統合すると、境内の別の堂宇まで消えてしまう。
+      let sim = 0;
+      for (const a of [item.name, ...item.aliases]) {
+        for (const b of [other.name, ...other.aliases]) {
+          sim = Math.max(sim, nameSimilarity(a, b));
+        }
+      }
+      if (sim >= 0.85) group.push(other);
+    }
+
+    if (group.length === 1) continue;
+
+    // 代表を選ぶ：スコア → タグ数 → way優先
+    group.sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      if (b.tagCount !== a.tagCount) return b.tagCount - a.tagCount;
+      if (a.osmType !== b.osmType) return a.osmType === 'way' ? -1 : 1;
+      return a.key.localeCompare(b.key);
+    });
+
+    const rep = group[0];
+    const dups = group.slice(1);
+    for (const g of group) consumed.add(g.key);
+
+    results.push({
+      representative: rep.key,
+      duplicates: dups.map((d) => d.key),
+      reason: `Same place appears ${group.length} times in OSM (node/way duplication)`,
+    });
+  }
+
+  return results;
+}

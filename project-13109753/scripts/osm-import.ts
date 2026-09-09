@@ -29,8 +29,14 @@ import {
   matchOsmCandidate,
   shouldReject,
   guessCategoryKeyFromLegacy,
+  cleanOsmName,
+  isLowQualityRomaji,
+  travelValueScore,
+  reviewPriority,
+  detectBatchDuplicates,
   type ExistingSpotRef,
   type MatchStatus,
+  type DedupeInput,
 } from '../api/_osmMatching.js';
 
 // ───────────────────────────────────────────────
@@ -252,12 +258,24 @@ function coordsOf(el: OverpassElement): { lat: number; lng: number } | null {
  */
 function pickNames(tags: Record<string, string>): { name: string; aliases: string[] } {
   const en = tags['name:en'];
-  const ja = tags['name:ja'] || tags.name;
+  const ja = cleanOsmName(tags['name:ja'] || tags.name || '');
   const romaji = tags['name:ja-Latn'] || tags['name:ja_rm'];
-  const primary = en || romaji || ja || '';
-  const aliases = [ja, en, romaji, tags.int_name, tags.alt_name].filter(
-    (v): v is string => Boolean(v) && v !== primary
-  );
+
+  // 【表示名の選び方】
+  // name:en を優先するが、機械的なローマ字転写（例: "torinokosanshou jinjya"）は
+  // 表示名として不適切なので日本語名を使う。
+  // TABI47は表示時に自動翻訳を通すため、日本語名でも各言語に変換される。
+  // 質の低いローマ字より日本語のほうが翻訳の入力としても正確。
+  let primary = '';
+  if (en && !isLowQualityRomaji(en)) primary = cleanOsmName(en);
+  else if (ja) primary = ja;
+  else if (romaji && !isLowQualityRomaji(romaji)) primary = cleanOsmName(romaji);
+  else primary = cleanOsmName(en || romaji || '');
+
+  const aliases = [ja, en, romaji, tags.int_name, tags.alt_name]
+    .map((v) => (v ? cleanOsmName(v) : v))
+    .filter((v): v is string => Boolean(v) && v !== primary);
+
   return { name: primary, aliases: [...new Set(aliases)] };
 }
 
@@ -398,6 +416,8 @@ async function main(): Promise<void> {
   const allErrors: string[] = [];
   const runId = `${args.prefecture}-${Date.now()}`;
   const samples: Record<string, unknown[]> = { MATCHED: [], POSSIBLE_MATCH: [], NEW: [] };
+  // 重複検出はカテゴリを横断して行うため、いったん全件をためる
+  const allRecords: Record<string, unknown>[] = [];
 
   for (let gi = 0; gi < groups.length; gi++) {
     const group = groups[gi];
@@ -461,6 +481,11 @@ async function main(): Promise<void> {
     );
 
     // ── Matching ──
+    // 【重複検出のため、この段階では保存しない】
+    // OSMは同じ施設に node と way の両方を持つことが多く、
+    // 実測で日光東照宮が2件取得された。
+    // カテゴリを横断して重複を見る必要があるため、
+    // 全カテゴリの処理が終わってからまとめて判定する。
     const now = new Date().toISOString();
     const records: Record<string, unknown>[] = [];
 
@@ -482,6 +507,9 @@ async function main(): Promise<void> {
       );
 
       const addr = addressOf(u.tags);
+      // 旅行価値スコア。除外ではなくReviewの優先順位付けに使う
+      const value = travelValueScore(u.tags, u.name, u.canonicalKey);
+
       records.push({
         id: stagingId,
         osmType: u.el.type,
@@ -502,6 +530,9 @@ async function main(): Promise<void> {
         confidence: match.confidence,
         candidates: match.candidates.slice(0, 5),
         matchReason: match.reason,
+        travelScore: value.score,
+        travelSignals: value.signals,
+        reviewPriority: reviewPriority(value.score),
         importRunId: runId,
         createdAt: now,
         updatedAt: now,
@@ -510,12 +541,16 @@ async function main(): Promise<void> {
       totals[match.status] += 1;
 
       // 判定内容を確認できるようサンプルを残す
+      // POSSIBLE_MATCH は誤統合の危険があるため全件残す。
+      // MATCHED / NEW は件数が多いのでサンプルに留める。
       const bucket = samples[match.status];
-      if (bucket && bucket.length < 10) {
+      const limit = match.status === 'POSSIBLE_MATCH' ? 100 : 10;
+      if (bucket && bucket.length < limit) {
         bucket.push({
           name: u.name,
           aliases: u.aliases,
           category: u.canonicalKey,
+          travelScore: value.score,
           matchedSpotId: match.matchedSpotId,
           confidence: match.confidence,
           reason: match.reason,
@@ -535,47 +570,111 @@ async function main(): Promise<void> {
       `  判定: MATCHED=${counts.MATCHED || 0} POSSIBLE=${counts.POSSIBLE_MATCH || 0} NEW=${counts.NEW || 0}`
     );
 
-    // ── Stagingへ保存 ──
-    if (!args.dryRun && records.length > 0) {
-      const CHUNK = 50;
-      for (let i = 0; i < records.length; i += CHUNK) {
-        const slice = records.slice(i, i + CHUNK);
-        // 本体を保存
-        await kvPipeline(
-          slice.map((r) => [
-            'SET',
-            `osm:staging:${r.id}`,
-            JSON.stringify(r),
-            'EX',
-            String(STAGING_TTL),
-          ])
-        );
-        // 索引を更新
-        const byStatus = new Map<string, string[]>();
-        for (const r of slice) {
-          const s = String(r.matchStatus);
-          const arr = byStatus.get(s) || [];
-          arr.push(String(r.id));
-          byStatus.set(s, arr);
-        }
-        const idxCommands: unknown[][] = [
-          ['SADD', 'osm:staging:index', ...slice.map((r) => String(r.id))],
-          ['SADD', `osm:staging:pref:${args.prefecture}`, ...slice.map((r) => String(r.id))],
-        ];
-        for (const [status, ids] of byStatus) {
-          idxCommands.push(['SADD', `osm:staging:status:${status}`, ...ids]);
-        }
-        await kvPipeline(idxCommands);
-      }
-      totals.staged += records.length;
-      console.log(`  Stagingへ保存: ${records.length} 件`);
-    }
+    allRecords.push(...records);
 
     // Overpassへの連続アクセスを避ける
     if (gi < groups.length - 1) {
       console.log(`  ${DELAY_BETWEEN_GROUPS_MS / 1000}秒待機...`);
       await sleep(DELAY_BETWEEN_GROUPS_MS);
     }
+  }
+
+  // ───────────────────────────────────────────
+  // バッチ内の重複検出（カテゴリ横断）
+  // ───────────────────────────────────────────
+  // OSMは同じ施設に node（POI）と way（建物・敷地）の両方を持つことが多い。
+  // 検出しないと、承認時に同じSpotが2つできてしまう。
+  console.log('\n重複を検出中...');
+  const dedupeInput: DedupeInput[] = allRecords.map((r) => ({
+    key: String(r.id),
+    osmType: String(r.osmType),
+    name: String(r.name),
+    aliases: Array.isArray(r.aliases) ? (r.aliases as string[]) : [],
+    lat: Number(r.lat),
+    lng: Number(r.lng),
+    canonicalKey: (r.canonicalKey as string) ?? null,
+    tagCount: Object.keys((r.osmTags as Record<string, string>) || {}).length,
+    score: Number(r.travelScore) || 0,
+  }));
+
+  const dupGroups = detectBatchDuplicates(dedupeInput);
+  const duplicateOf = new Map<string, string>();
+  for (const g of dupGroups) {
+    for (const d of g.duplicates) duplicateOf.set(d, g.representative);
+  }
+  console.log(`  重複グループ: ${dupGroups.length} / 統合される件数: ${duplicateOf.size}`);
+
+  const byId = new Map(allRecords.map((r) => [String(r.id), r]));
+  for (const [dupId, repId] of duplicateOf) {
+    const rec = byId.get(dupId);
+    if (!rec) continue;
+    // 削除はせず、代表への参照を持たせてStagingに残す。
+    // 判断の履歴を残すため、また誤検出だった場合に戻せるようにするため。
+    rec.duplicateOf = repId;
+    rec.matchStatus = 'REJECTED';
+    rec.matchReason = `Duplicate of ${repId} within the same OSM import`;
+  }
+
+  // 統合後の件数を数え直す
+  const finalCounts: Record<string, number> = {
+    MATCHED: 0,
+    POSSIBLE_MATCH: 0,
+    NEW: 0,
+    REJECTED: 0,
+  };
+  const priorityCounts: Record<string, number> = { high: 0, medium: 0, low: 0 };
+  for (const r of allRecords) {
+    finalCounts[String(r.matchStatus)] = (finalCounts[String(r.matchStatus)] || 0) + 1;
+    if (r.matchStatus === 'NEW') {
+      const p = String(r.reviewPriority);
+      priorityCounts[p] = (priorityCounts[p] || 0) + 1;
+    }
+  }
+  totals.MATCHED = finalCounts.MATCHED;
+  totals.POSSIBLE_MATCH = finalCounts.POSSIBLE_MATCH;
+  totals.NEW = finalCounts.NEW;
+  totals.REJECTED = finalCounts.REJECTED;
+
+  // ───────────────────────────────────────────
+  // Stagingへ保存
+  // ───────────────────────────────────────────
+  if (!args.dryRun && allRecords.length > 0) {
+    console.log('\nStagingへ保存中...');
+    const CHUNK = 50;
+    for (let i = 0; i < allRecords.length; i += CHUNK) {
+      const slice = allRecords.slice(i, i + CHUNK);
+      await kvPipeline(
+        slice.map((r) => [
+          'SET',
+          `osm:staging:${r.id}`,
+          JSON.stringify(r),
+          'EX',
+          String(STAGING_TTL),
+        ])
+      );
+
+      const byStatus = new Map<string, string[]>();
+      for (const r of slice) {
+        const s = String(r.matchStatus);
+        const arr = byStatus.get(s) || [];
+        arr.push(String(r.id));
+        byStatus.set(s, arr);
+      }
+      const idxCommands: unknown[][] = [
+        ['SADD', 'osm:staging:index', ...slice.map((r) => String(r.id))],
+        ['SADD', `osm:staging:pref:${args.prefecture}`, ...slice.map((r) => String(r.id))],
+      ];
+      for (const [status, ids] of byStatus) {
+        idxCommands.push(['SADD', `osm:staging:status:${status}`, ...ids]);
+      }
+      await kvPipeline(idxCommands);
+
+      if ((i / CHUNK) % 10 === 0) {
+        process.stdout.write(`\r  保存: ${Math.min(i + CHUNK, allRecords.length)}/${allRecords.length}`);
+      }
+    }
+    console.log(`\r  保存: ${allRecords.length}/${allRecords.length}`);
+    totals.staged = allRecords.length;
   }
 
   // ── Import記録を残す（処理をブラックボックスにしない） ──
@@ -616,6 +715,12 @@ async function main(): Promise<void> {
   console.log(`MATCHED      : ${totals.MATCHED}`);
   console.log(`POSSIBLE     : ${totals.POSSIBLE_MATCH}`);
   console.log(`NEW          : ${totals.NEW}`);
+  console.log(`REJECTED     : ${totals.REJECTED}（重複 ${duplicateOf.size} 件を含む）`);
+  console.log('');
+  console.log('NEW の Review優先度（旅行価値スコアによる）:');
+  console.log(`  high   (55以上): ${priorityCounts.high}  ← まず確認すべき候補`);
+  console.log(`  medium (35〜54): ${priorityCounts.medium}`);
+  console.log(`  low    (34以下): ${priorityCounts.low}  ← 公開しない前提`);
   console.log('');
   console.log('除外理由:');
   for (const [reason, count] of Object.entries(allRejectReasons).sort((a, b) => b[1] - a[1])) {
@@ -628,13 +733,57 @@ async function main(): Promise<void> {
     for (const e of allErrors.slice(0, 10)) console.log(`  ${e}`);
   }
 
-  // 判定サンプルを出す。Matchingが妥当かを人間が確認できるようにする
-  for (const status of ['MATCHED', 'POSSIBLE_MATCH', 'NEW'] as MatchStatus[]) {
-    const list = samples[status];
-    if (!list || list.length === 0) continue;
+  // ── 判定内容を確認できるように出力する ──
+  // POSSIBLE_MATCH は誤統合の危険があるため最初に、全件出す。
+  const possible = samples.POSSIBLE_MATCH || [];
+  console.log('');
+  console.log('#'.repeat(60));
+  console.log(`# POSSIBLE_MATCH （要確認・${possible.length}件）`);
+  console.log('#'.repeat(60));
+  console.log(
+    possible.length === 0
+      ? '  なし'
+      : JSON.stringify(possible, null, 2)
+  );
+
+  const matched = samples.MATCHED || [];
+  console.log('');
+  console.log('#'.repeat(60));
+  console.log(`# MATCHED （既存Spotに統合・サンプル${matched.length}件）`);
+  console.log('#'.repeat(60));
+  console.log(matched.length === 0 ? '  なし' : JSON.stringify(matched, null, 2));
+
+  // NEW は件数が多いので、旅行価値スコアの高いものだけを出す
+  const highValueNew = allRecords
+    .filter((r) => r.matchStatus === 'NEW' && r.reviewPriority === 'high')
+    .sort((a, b) => Number(b.travelScore) - Number(a.travelScore))
+    .slice(0, 30)
+    .map((r) => ({
+      name: r.name,
+      aliases: r.aliases,
+      category: r.canonicalKey,
+      travelScore: r.travelScore,
+      signals: r.travelSignals,
+    }));
+
+  console.log('');
+  console.log('#'.repeat(60));
+  console.log(`# NEW / 優先度high （上位${highValueNew.length}件）`);
+  console.log('#'.repeat(60));
+  console.log(highValueNew.length === 0 ? '  なし' : JSON.stringify(highValueNew, null, 2));
+
+  // 重複として統合されたもの
+  if (dupGroups.length > 0) {
     console.log('');
-    console.log(`--- ${status} のサンプル (最大10件) ---`);
-    console.log(JSON.stringify(list, null, 2));
+    console.log('#'.repeat(60));
+    console.log(`# 重複として統合（${dupGroups.length}グループ・上位20件）`);
+    console.log('#'.repeat(60));
+    const dupSamples = dupGroups.slice(0, 20).map((g) => ({
+      representative: byId.get(g.representative)?.name,
+      representativeId: g.representative,
+      duplicates: g.duplicates.map((d) => `${byId.get(d)?.name} (${d})`),
+    }));
+    console.log(JSON.stringify(dupSamples, null, 2));
   }
 
   console.log('');
