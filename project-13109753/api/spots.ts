@@ -141,9 +141,27 @@ export default async function handler(req: Request): Promise<Response> {
       if (!VALID_STATUS.includes(status as SpotStatus)) {
         return json({ error: 'Invalid status' }, 400);
       }
-      const ids = ((await kv.smembers(statusIndexKey(status as SpotStatus))) || []) as string[];
-      const spots = await getSpots(ids.filter(Boolean));
-      return json({ spots: spots.map(withLevel), count: spots.length });
+
+      const ids = (((await kv.smembers(statusIndexKey(status as SpotStatus))) || []) as string[])
+        .filter(Boolean)
+        .sort();
+
+      const limitParam = url.searchParams.get('limit');
+      // 【重要】draftが万単位になると、全件を毎回個別取得する従来の
+      // 実装ではEdge Functionの実行時間上限（約25秒）を超えてタイムアウト
+      // し、管理画面が空表示になる（実際に発生した）。limitを指定した
+      // 場合はページ分だけ取得する。limit未指定は既存呼び出しとの
+      // 後方互換のため、これまで通り全件返す（件数が少ないstatusで使う想定）。
+      if (limitParam) {
+        const limit = Math.min(Math.max(Number(limitParam) || 50, 1), 200);
+        const offset = Math.max(Number(url.searchParams.get('offset')) || 0, 0);
+        const pageIds = ids.slice(offset, offset + limit);
+        const spots = await getSpots(pageIds);
+        return json({ spots: spots.map(withLevel), count: spots.length, total: ids.length });
+      }
+
+      const spots = await getSpots(ids);
+      return json({ spots: spots.map(withLevel), count: spots.length, total: ids.length });
     }
 
     if (prefecture || category) {

@@ -101,20 +101,37 @@ export default function AdminSpotsPage() {
 
   const loadSpots = () => {
     setLoading(true);
-    // 管理画面では下書き・却下も見たいので、状態ごとに取得して結合する
+    // 管理画面では下書き・却下も見たいので、状態ごとに取得して結合する。
+    // 【重要】draftが万単位になると、全件を毎回個別取得する従来の
+    // やり方ではEdge Functionの実行時間上限（約25秒）を超えて
+    // タイムアウトし、管理画面が空表示になる（実際に発生した）。
+    // 状態ごとに上限を付けて取得する（新しいもの・IDの若い順に一部だけ）。
+    const PER_STATUS_LIMIT = 500;
     Promise.all(
       STATUSES.map((s) =>
-        fetch(`/api/spots?status=${s}`)
-          .then((r) => (r.ok ? r.json() : { spots: [] }))
-          .then((d) => (Array.isArray(d.spots) ? d.spots : []))
-          .catch(() => [])
+        fetch(`/api/spots?status=${s}&limit=${PER_STATUS_LIMIT}&offset=0`)
+          .then((r) => (r.ok ? r.json() : { spots: [], total: 0 }))
+          .then((d) => ({
+            spots: Array.isArray(d.spots) ? d.spots : [],
+            total: typeof d.total === 'number' ? d.total : 0,
+          }))
+          .catch(() => ({ spots: [], total: 0 }))
       )
     )
       .then((groups) => {
         const merged = new Map<string, Spot>();
-        for (const g of groups) for (const s of g) merged.set(s.id, s);
+        let truncated = false;
+        for (const g of groups) {
+          for (const s of g.spots) merged.set(s.id, s);
+          if (g.total > g.spots.length) truncated = true;
+        }
         setSpots([...merged.values()]);
         setError('');
+        if (truncated) {
+          console.warn(
+            `[admin/spots] 件数が多いため、状態ごとに最大${PER_STATUS_LIMIT}件までを表示しています。`
+          );
+        }
       })
       .catch((e) => setError(String(e)))
       .finally(() => setLoading(false));
