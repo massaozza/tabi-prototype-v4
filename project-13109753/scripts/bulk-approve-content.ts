@@ -80,15 +80,27 @@ async function main() {
   }
 
   if (args.dryRun) {
-    // dry-runでは実際の件数把握のため、都道府県別の内訳だけ出す
-    const sample = await getStagingRecords(unreviewedIds.slice(0, Math.min(unreviewedIds.length, 5000)));
-    const byPref = new Map<string, number>();
-    for (const r of sample) {
-      byPref.set(r.prefecture, (byPref.get(r.prefecture) || 0) + 1);
-    }
-    console.log('\n都道府県別の内訳（先頭5000件のサンプルから集計）:');
-    for (const [pref, count] of [...byPref.entries()].sort((a, b) => b[1] - a[1])) {
-      console.log(`  ${pref}: ${count} 件`);
+    if (args.prefecture) {
+      // 都道府県指定時は、その都道府県だけに絞った実際の対象件数を出す。
+      // サンプリングではなく全件を都道府県で絞り込む（実行時と同じ絞り込み）。
+      const all = await getStagingRecords(unreviewedIds);
+      const matched = all.filter((r) => r.prefecture === args.prefecture);
+      console.log(`\n${args.prefecture} の未Review件数: ${matched.length} 件`);
+      const willProcess = Math.min(matched.length, args.limit);
+      console.log(`今回の上限（--limit=${args.limit === Infinity ? '無制限' : args.limit}）で処理される件数: ${willProcess} 件`);
+    } else {
+      // 都道府県未指定時は、全国の内訳をサンプルから出す
+      const sample = await getStagingRecords(unreviewedIds.slice(0, Math.min(unreviewedIds.length, 5000)));
+      const byPref = new Map<string, number>();
+      for (const r of sample) {
+        byPref.set(r.prefecture, (byPref.get(r.prefecture) || 0) + 1);
+      }
+      console.log('\n都道府県別の内訳（先頭5000件のサンプルから集計）:');
+      for (const [pref, count] of [...byPref.entries()].sort((a, b) => b[1] - a[1])) {
+        console.log(`  ${pref}: ${count} 件`);
+      }
+      const willProcess = Math.min(unreviewedIds.length, args.limit);
+      console.log(`\n今回の上限（--limit=${args.limit === Infinity ? '無制限' : args.limit}）で処理される件数: ${willProcess} 件`);
     }
     console.log('\ndry-run のため作成は行っていません。');
     return;
