@@ -31,11 +31,14 @@ import {
   getSpot,
   getSpots,
   listPublishedSpots,
+  listPublishedSpotsPage,
+  getOrderedPrefectureIds,
   saveSpot,
   patchSpot,
   deleteSpot,
   prefIndexKey,
   statusIndexKey,
+  categoryIndexKey,
   deriveEnrichmentLevel,
 } from './_spotStore.js';
 import { buildWikiContent, fetchOsmTagsById } from './_wikiContent.js';
@@ -129,6 +132,7 @@ export default async function handler(req: Request): Promise<Response> {
     }
 
     const prefecture = url.searchParams.get('prefecture');
+    const category = url.searchParams.get('category');
     const status = url.searchParams.get('status');
 
     // 状態指定は管理者専用（下書きや却下データを公開しない）
@@ -142,12 +146,68 @@ export default async function handler(req: Request): Promise<Response> {
       return json({ spots: spots.map(withLevel), count: spots.length });
     }
 
-    if (prefecture) {
-      const ids = ((await kv.smembers(prefIndexKey(prefecture))) || []) as string[];
-      const all = await getSpots(ids.filter(Boolean));
-      const isAdmin = await isAdminRequest(req);
-      const spots = isAdmin ? all : all.filter((s) => !s.status || s.status === 'published');
-      return json({ spots: spots.map(withLevel), count: spots.length });
+    if (prefecture || category) {
+      const limitParam = url.searchParams.get('limit');
+      // 【重要】limit未指定なら従来通り全件返す（既存の呼び出し側との
+      // 後方互換のため）。limitを指定した呼び出し側だけがページネーション
+      // を使う、という opt-in にしている。
+      if (limitParam) {
+        const limit = Math.min(Math.max(Number(limitParam) || 24, 1), 100);
+        const offset = Math.max(Number(url.searchParams.get('offset')) || 0, 0);
+        const isAdmin = await isAdminRequest(req);
+        if (isAdmin) {
+          // 管理者向け：全件を並べてからページ分だけ返す
+          // （下書き等も見えるため、公開限定のpageヘルパーは使わない）
+          let ids: string[];
+          if (prefecture && category) {
+            ids = ((await kv.sinter(prefIndexKey(prefecture), categoryIndexKey(category))) ||
+              []) as string[];
+            ids = ids.filter(Boolean).sort();
+          } else if (category) {
+            ids = ((await kv.smembers(categoryIndexKey(category))) || []) as string[];
+            ids = ids.filter(Boolean).sort();
+          } else {
+            // 【重要】画像優先・人気順の並び替えは、公開向けと同じ関数を
+            // 使う。管理者だけ別ロジック（単純なid順）だと、管理者として
+            // 確認している間は並び替えが反映されないという不具合になる
+            // （実際に発生した）。
+            ids = await getOrderedPrefectureIds(prefecture as string);
+          }
+          const sorted = ids;
+          const pageIds = sorted.slice(offset, offset + limit);
+          const spots = await getSpots(pageIds);
+          return json({ spots: spots.map(withLevel), count: spots.length, total: sorted.length });
+        }
+        const { spots, total } = await listPublishedSpotsPage({
+          prefecture: prefecture || undefined,
+          category: category || undefined,
+          limit,
+          offset,
+        });
+        return json({ spots: spots.map(withLevel), count: spots.length, total });
+      }
+
+      // limit未指定（従来互換）は prefecture のみ対応。category単体・組み合わせは
+      // 新しい絞り込み軸のため、必ず limit を指定してもらう。
+      if (prefecture && !category) {
+        const ids = ((await kv.smembers(prefIndexKey(prefecture))) || []) as string[];
+        const all = await getSpots(ids.filter(Boolean));
+        const isAdmin = await isAdminRequest(req);
+        const spots = isAdmin ? all : all.filter((s) => !s.status || s.status === 'published');
+        return json({ spots: spots.map(withLevel), count: spots.length });
+      }
+
+      return json({ error: 'category filtering requires a limit parameter' }, 400);
+    }
+
+    {
+      const limitParam = url.searchParams.get('limit');
+      if (limitParam) {
+        const limit = Math.min(Math.max(Number(limitParam) || 24, 1), 100);
+        const offset = Math.max(Number(url.searchParams.get('offset')) || 0, 0);
+        const { spots, total } = await listPublishedSpotsPage({ limit, offset });
+        return json({ spots: spots.map(withLevel), count: spots.length, total });
+      }
     }
 
     const spots = await listPublishedSpots();

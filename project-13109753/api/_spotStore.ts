@@ -271,6 +271,48 @@ export async function listPublishedSpots(): Promise<Spot[]> {
  * 「毎回同じ順序で、ページを送れば重複や欠落なく全件を辿れる」
  * ことだけを保証する。
  */
+/**
+ * 都道府県内のSpotを「画像ありを先に、その中はGoogleクチコミ数順、
+ * 画像なしは最後」の順で並べたid一覧を返す。
+ *
+ * 【なぜ独立した関数にしたか】
+ * /api/spots の管理者向けルートが、この並び替えを経由しない
+ * 別コードパス（下書きも見せるための素朴な実装）を通っていたため、
+ * 管理者としてログインした状態で確認すると並び替えが反映されない
+ * という不具合があった。両方から同じ関数を呼ぶようにする。
+ */
+export async function getOrderedPrefectureIds(prefecture: string): Promise<string[]> {
+  const [withImgRaw, noImgRaw] = await Promise.all([
+    kv.smembers(prefImageIndexKey(prefecture, true)),
+    kv.smembers(prefImageIndexKey(prefecture, false)),
+  ]);
+  const withImg = ((withImgRaw || []) as string[]).filter(Boolean).sort();
+  const noImg = ((noImgRaw || []) as string[]).filter(Boolean).sort();
+
+  // 【人気順（Googleクチコミ数）で並べる】
+  // spot-rating:{id} は /api/spot-rating が閲覧時にGoogle Places APIの
+  // 結果をキャッシュしたもの（未閲覧のSpotにはまだ存在しない）。
+  // mgetは1回の往復で済むため、都道府県単位（数百〜数千件）なら
+  // 全件取得しても問題にならない。クチコミ数が無いものは後方に回すが、
+  // 画像なしの後ろにはしない（画像の有無を最優先する）。
+  const sortByPopularity = async (ids: string[]) => {
+    if (ids.length === 0) return ids;
+    try {
+      const ratings = await kv.mget<Array<{ userRatingCount?: number } | null>>(
+        ...ids.map((id) => `spot-rating:${id}`)
+      );
+      return ids
+        .map((id, i) => ({ id, count: ratings?.[i]?.userRatingCount ?? -1 }))
+        .sort((a, b) => b.count - a.count)
+        .map((x) => x.id);
+    } catch {
+      return ids;
+    }
+  };
+
+  return [...(await sortByPopularity(withImg)), ...(await sortByPopularity(noImg))];
+}
+
 export async function listPublishedSpotsPage(
   opts: { prefecture?: string; category?: string; limit: number; offset: number }
 ): Promise<{ spots: Spot[]; total: number }> {
@@ -290,39 +332,7 @@ export async function listPublishedSpotsPage(
       const ids = (await kv.smembers(categoryIndexKey(opts.category))) || [];
       allIds = (ids as string[]).filter(Boolean).sort();
     } else if (opts.prefecture) {
-      // 【画像ありを先に、画像なしを最後に】
-      // OSM一括インポートでは、Wikidataに写真が無かった候補は画像なしで
-      // 作られる。一覧の見栄えのため、画像ありの索引から先に埋め、
-      // 画像なしは常に末尾に回す。
-      const [withImgRaw, noImgRaw] = await Promise.all([
-        kv.smembers(prefImageIndexKey(opts.prefecture, true)),
-        kv.smembers(prefImageIndexKey(opts.prefecture, false)),
-      ]);
-      const withImg = ((withImgRaw || []) as string[]).filter(Boolean).sort();
-      const noImg = ((noImgRaw || []) as string[]).filter(Boolean).sort();
-
-      // 【人気順（Googleクチコミ数）で並べる】
-      // spot-rating:{id} は /api/spot-rating が閲覧時にGoogle Places APIの
-      // 結果をキャッシュしたもの（未閲覧のSpotにはまだ存在しない）。
-      // mgetは1回の往復で済むため、都道府県単位（数百〜数千件）なら
-      // 全件取得しても問題にならない。クチコミ数が無いものは後方に回すが、
-      // 画像なしの後ろにはしない（画像の有無を最優先する）。
-      const sortByPopularity = async (ids: string[]) => {
-        if (ids.length === 0) return ids;
-        try {
-          const ratings = await kv.mget<Array<{ userRatingCount?: number } | null>>(
-            ...ids.map((id) => `spot-rating:${id}`)
-          );
-          return ids
-            .map((id, i) => ({ id, count: ratings?.[i]?.userRatingCount ?? -1 }))
-            .sort((a, b) => b.count - a.count)
-            .map((x) => x.id);
-        } catch {
-          return ids;
-        }
-      };
-
-      allIds = [...(await sortByPopularity(withImg)), ...(await sortByPopularity(noImg))];
+      allIds = await getOrderedPrefectureIds(opts.prefecture);
     } else {
       allIds = (((await kv.smembers(statusIndexKey('published'))) || []) as string[])
         .filter(Boolean)
