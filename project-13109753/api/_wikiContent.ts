@@ -163,17 +163,20 @@ async function rewriteForInboundTourists(
   apiKey: string
 ): Promise<string | null> {
   const model = process.env.GEMINI_MODEL || 'gemini-3.6-flash';
-  const prompt = `You are writing a short destination description for an English-language travel website aimed at inbound tourists visiting Japan.
+  const prompt = `You are a local travel writer creating a destination guide entry for inbound tourists visiting Japan for the first time. They have never been to Japan and don't know Japanese history, religion, or culture.
 
-Source (factual, from Wikipedia, about "${spotName}"):
+Source material (factual, from Wikipedia, about "${spotName}"):
 """
 ${extract}
 """
 
-Rewrite this into a concise, engaging 2-3 paragraph description for travelers. Rules:
-- Do NOT invent facts that are not in the source text above.
-- Keep it factually accurate; you may simplify or reorder for readability.
-- Write in a warm, inviting tone suitable for a travel guide.
+Using ONLY the facts in the source above, write a 2-3 paragraph description that helps a foreign traveler decide whether to visit and know what to expect. Do this, not a shortened summary of the source:
+- Lead with what makes this place worth visiting and what a visitor would actually see, do, or experience there — not a chronological history recap.
+- When the source mentions Japanese cultural, historical, or religious concepts a foreigner wouldn't know (e.g. a shrine type, an era name, a title, a festival), briefly explain what it means in plain English, in your own words, as long as that explanation is a reasonable inference from the source's context (don't invent specific facts, numbers, or claims that aren't supported by the source).
+- If the source describes distinctive visual or sensory details (architecture, scenery, atmosphere, seasonal features), foreground those — they matter more to a traveler than administrative history.
+- Historical background can appear, but only in service of explaining significance to a visitor, not as the main content.
+- Do NOT invent practical information (hours, prices, access, dates) that is not in the source.
+- Write in a warm, vivid, inviting tone, as if recommending this to a friend planning their trip — not an encyclopedia tone.
 - Do not include citation markers, brackets, or references.
 - Return ONLY the description text, no markdown, no headings, no preamble.`;
 
