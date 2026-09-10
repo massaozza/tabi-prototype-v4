@@ -17,17 +17,9 @@ import {
 import { linkOsmToSpot, updateStaging, type StagingRecord } from './_osmStaging.js';
 import { buildWikiContent } from './_wikiContent.js';
 
-/**
- * SpotのIDになるslugを作る。
- *
- * 【IDは変更できない前提で作る】
- * SpotのIDはURLとリレーションの両方を兼ねるため、後から変えられない。
- * そのため生成時点で読みやすいslugにする。
- * タイムスタンプ由来のIDにすると /destinations/mg8x2k-a3f9j のような
- * 無意味なURLになり、SEO上も不利になる。
- */
-export function makeSlug(name: string, prefecture: string): string {
-  const base = name
+/** 1つの文字列をslug用に変換する（ラテン文字化できなければ空文字を返す） */
+function toSlugCandidate(s: string): string {
+  return s
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
@@ -37,8 +29,31 @@ export function makeSlug(name: string, prefecture: string): string {
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-')
     .replace(/^-|-$/g, '');
+}
 
+/**
+ * SpotのIDになるslugを作る。
+ *
+ * 【IDは変更できない前提で作る】
+ * SpotのIDはURLとリレーションの両方を兼ねるため、後から変えられない。
+ * そのため生成時点で読みやすいslugにする。
+ * タイムスタンプ由来のIDにすると /destinations/mg8x2k-a3f9j のような
+ * 無意味なURLになり、SEO上も不利になる。
+ *
+ * 【aliasesも試す理由】
+ * 表示名（name）が日本語のみの場合でも、OSMの name:ja-Latn 等の
+ * ローマ字表記が aliases に残っていることが多い（表示名としては
+ * 「質の低いローマ字転写」として採用しなかったものでも、slugとしては
+ * "tochigi-spot-2" のような無意味な名前よりずっと良い）。
+ */
+export function makeSlug(name: string, prefecture: string, aliases: string[] = []): string {
+  const base = toSlugCandidate(name);
   if (base.length >= 3) return base.slice(0, 80);
+
+  for (const alias of aliases) {
+    const candidate = toSlugCandidate(alias);
+    if (candidate.length >= 3) return candidate.slice(0, 80);
+  }
 
   // ラテン文字が取れない場合は都道府県名を接頭辞にする
   const pref = prefecture.toLowerCase().replace(/[^a-z]/g, '');
@@ -86,7 +101,7 @@ export async function createDraftSpotFromStaging(
 ): Promise<string> {
   const base = opts.requestedSlug
     ? opts.requestedSlug.toLowerCase().replace(/[^a-z0-9-]/g, '-')
-    : makeSlug(record.name, record.prefecture);
+    : makeSlug(record.name, record.prefecture, record.aliases);
   const slug = await uniqueSlug(base);
 
   // 【説明文・写真について】
