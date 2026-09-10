@@ -1,0 +1,101 @@
+name: Bulk approve content
+
+# NEW（OSM由来の新規Spot候補）を、指定した優先度でまとめてdraft化する。
+# Wikidata/Wikipedia/AIによる説明文・写真の生成をこのジョブが行う。
+#
+# 【なぜGitHub Actionsで実行するか】
+# 1件ごとに複数の外部API（Overpassは使わないが、Wikidata/Wikipedia/Gemini）
+# を呼ぶため、数千〜数万件を処理すると実行時間はVercelの
+# Edge/Serverless Functionの上限（約25秒）を大きく超える。
+# Actionsなら最大6時間まで使える。
+#
+# 【Productionへの影響について】
+# 既定（publish未指定）ではdraftとして作成されるだけで、
+# サイト上には表示されない。実際に公開するかどうかは
+# /admin/spots の「Publish selected」で人が選んで行う想定。
+# publish=true を指定した場合のみ、作成と同時に公開状態にする。
+
+on:
+  workflow_dispatch:
+    inputs:
+      priority:
+        description: '対象の優先度'
+        required: true
+        type: choice
+        options:
+          - high
+          - medium
+          - low
+        default: 'high'
+      prefecture:
+        description: '都道府県で絞り込む（空欄なら全都道府県が対象）例: Tochigi'
+        required: false
+        default: ''
+      limit:
+        description: '今回処理する件数の上限（空欄または0なら残り全件）'
+        required: false
+        default: '2000'
+      concurrency:
+        description: '並列実行数（Wikidata/Wikipedia/Geminiへの負荷に関わる）'
+        required: false
+        default: '8'
+      publish:
+        description: '作成と同時に公開する（既定はdraftのまま）'
+        required: false
+        type: boolean
+        default: false
+      dryRun:
+        description: '対象件数の確認だけ行い、実際には作成しない'
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  bulk-approve:
+    runs-on: ubuntu-latest
+    # 数千件規模を想定し、長めに取る（GitHub Actionsのジョブ上限は6時間）
+    timeout-minutes: 340
+
+    defaults:
+      run:
+        working-directory: project-13109753
+
+    steps:
+      - name: リポジトリを取得
+        uses: actions/checkout@v4
+
+      - name: Node.jsを準備
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: 依存関係をインストール
+        run: npm ci
+
+      - name: 一括コンテンツ生成を実行
+        env:
+          KV_REST_API_URL: ${{ secrets.KV_REST_API_URL }}
+          KV_REST_API_TOKEN: ${{ secrets.KV_REST_API_TOKEN }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          ARGS="--priority=${{ inputs.priority }}"
+          if [ -n "${{ inputs.prefecture }}" ]; then
+            ARGS="$ARGS --prefecture=${{ inputs.prefecture }}"
+          fi
+          if [ -n "${{ inputs.limit }}" ]; then
+            ARGS="$ARGS --limit=${{ inputs.limit }}"
+          fi
+          if [ -n "${{ inputs.concurrency }}" ]; then
+            ARGS="$ARGS --concurrency=${{ inputs.concurrency }}"
+          fi
+          if [ "${{ inputs.publish }}" = "true" ]; then
+            ARGS="$ARGS --publish"
+          fi
+          if [ "${{ inputs.dryRun }}" = "true" ]; then
+            ARGS="$ARGS --dry-run"
+          fi
+          echo "実行: npm run bulk-approve -- $ARGS"
+          npm run bulk-approve -- $ARGS
