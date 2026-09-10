@@ -235,11 +235,14 @@ export async function buildWikiContent(
     const extract = await fetchWikipediaExtract(lang, title);
     if (extract) {
       const apiKey = process.env.GEMINI_API_KEY;
-      const rewritten = apiKey ? await rewriteForInboundTourists(spotName, extract, apiKey) : null;
-      // AIでの整形に失敗しても、事実ベースのWikipedia要約をそのまま使う
-      // （descriptionを空のままにするより望ましい）
-      description = rewritten || extract;
-      descriptionSourceUrl = `https://${lang}.wikipedia.org/wiki/${encodeURIComponent(title)}`;
+      // 【重要】AIによる整形は必須。Wikipediaの原文をそのまま載せることは
+      // しない（文体・引用形式がそのまま公開向けの文章として不適切なため）。
+      // 整形に失敗した場合は description を空のままにする
+      // （原文にフォールバックしない）。
+      description = apiKey ? await rewriteForInboundTourists(spotName, extract, apiKey) : null;
+      if (description) {
+        descriptionSourceUrl = `https://${lang}.wikipedia.org/wiki/${encodeURIComponent(title)}`;
+      }
     }
   }
 
