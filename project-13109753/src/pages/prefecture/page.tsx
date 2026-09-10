@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Navbar from '@/components/feature/Navbar';
 import Footer from '@/components/feature/Footer';
-import { useSpots } from '@/hooks/useSpots';
+import { useSpotsPage } from '@/hooks/useSpotsPage';
 import { PREFECTURE_REGIONS } from '@/mocks/prefectureData';
 import type { Guide } from '@/pages/guides/page';
 import { useAutoT, useAutoText } from '@/hooks/useAutoT';
@@ -42,7 +42,10 @@ function DestinationImage({ dest }: { dest: Destination }) {
   const [failed, setFailed] = useState(false);
   const placeholder = getPlaceholder(dest.category);
 
-  if (failed) {
+  // image が空文字の場合、<img src=""> はブラウザによって onError が
+  // 確実に発火せず、壊れた画像アイコンがそのまま出てしまうことがある。
+  // 空の場合はそもそも<img>を描画せず、最初からプレースホルダーを出す。
+  if (failed || !dest.image) {
     return (
       <div
         className={`w-full h-full flex items-center justify-center bg-gradient-to-br ${placeholder.bg}`}
@@ -66,9 +69,17 @@ export default function PrefecturePage() {
   const tx = useAutoText();
   const t = useAutoT();
   const { name } = useParams<{ name: string }>();
-  // KV（正データ）→ R2のSnapshot の順で解決する。
-  // 以前は mocks の367件を初期値にしていたため、取得失敗時に古いデータが出ていた。
-  const { spots: destinations } = useSpots();
+  // 【重要】以前はuseSpots()（全公開Spotの一括取得）から都道府県で
+  // filterしていたが、公開Spotが数万件規模になると全件取得が成り立たない。
+  // useSpotsPage は都道府県索引から必要な分だけをページ単位で取得する。
+  const {
+    spots: prefDestinations,
+    total: prefTotal,
+    loading: prefLoading,
+    hasMore: prefHasMore,
+    loadMore: loadMorePrefDestinations,
+    loadingMore: prefLoadingMore,
+  } = useSpotsPage({ prefecture: name, pageSize: 24 });
   const [guides, setGuides] = useState<Guide[]>([]);
 
   useEffect(() => {
@@ -96,7 +107,6 @@ export default function PrefecturePage() {
   }, [name]);
 
   const region = PREFECTURE_REGIONS.find((r) => r.prefectures.includes(name || ''));
-  const prefDestinations = destinations.filter((d) => d.prefecture === name);
 
   // Spotコンテンツのバッチ翻訳
   const prefGuides = guides.filter((g) => g.spots.some((s) => s.prefecture === name));
@@ -168,11 +178,16 @@ export default function PrefecturePage() {
           </h1>
           <p className="text-foreground-600 text-base max-w-2xl mb-10">
             {prefDestinations.length > 0
-              ? `${t('pref_popularIn', 'Popular destinations and experiences in')} ${name}.`
+              ? `${t('pref_popularIn', 'Popular destinations and experiences in')} ${name}${
+                  prefTotal > prefDestinations.length ? ` (${prefTotal} total)` : ''
+                }.`
+              : prefLoading
+              ? ''
               : `We're still building out destinations for ${name}.`}
           </p>
 
           {prefDestinations.length > 0 ? (
+            <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {prefDestinations.map((dest) => (
                 <article
@@ -203,7 +218,20 @@ export default function PrefecturePage() {
                 </article>
               ))}
             </div>
-          ) : (
+            {prefHasMore && (
+              <div className="flex justify-center mt-8">
+                <button
+                  type="button"
+                  onClick={loadMorePrefDestinations}
+                  disabled={prefLoadingMore}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-background-50 border border-background-200 hover:border-background-300 text-foreground-700 text-sm font-semibold rounded-lg transition-colors cursor-pointer disabled:opacity-50 whitespace-nowrap"
+                >
+                  {prefLoadingMore ? 'Loading…' : 'Load more'}
+                </button>
+              </div>
+            )}
+            </>
+          ) : prefLoading ? null : (
             <div className="bg-background-50 border border-background-200 rounded-xl p-10 text-center">
               <i className="ri-map-pin-line text-3xl text-foreground-300 block mb-3"></i>
               <p className="text-foreground-600 text-sm mb-4 max-w-sm mx-auto">

@@ -135,12 +135,14 @@ export default function DestinationPage() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [activeTab, setActiveTab] = useState<TabKey>('overview');
+  const [heroImageFailed, setHeroImageFailed] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     setNotFound(false);
     setDestination(null);
+    setHeroImageFailed(false);
     setExperiences([]);
     setGuides([]);
     setTrips([]);
@@ -149,6 +151,26 @@ export default function DestinationPage() {
     setActiveTab('overview');
 
     async function fetchData() {
+      // 【重要】個別取得を先に試す。
+      // /api/content?type=destinations（content:destinations）は
+      // 公開Spotが DERIVED_CACHE_MAX（1500件）を超えると更新が止まる
+      // 派生キャッシュのため、全件をこの配列から探す方式だと
+      // それ以降に公開したSpotが永久に見つからなくなる。
+      // /api/spots?id=xxx はKVから直接1件引くため件数に依存しない。
+      let found: Destination | null = null;
+      try {
+        const soloRes = await fetch(`/api/spots?id=${encodeURIComponent(id || '')}`);
+        if (soloRes.ok) {
+          const soloJson = await soloRes.json();
+          if (soloJson.spot) found = soloJson.spot as Destination;
+        }
+      } catch {
+        // 下のフォールバックで処理する
+      }
+
+      // 全件キャッシュ。Similar Spotsの算出、および個別取得が失敗した
+      // 場合のフォールバックに使う（1500件超では最新のSpotを含まない
+      // ことがあるが、Similar Spotsは無くても致命的ではない）。
       let list: Destination[] = [];
 
       try {
@@ -172,7 +194,9 @@ export default function DestinationPage() {
 
       if (cancelled) return;
 
-      const found = list.find((d) => d.id === id);
+      if (!found) {
+        found = list.find((d) => d.id === id) || null;
+      }
       if (found) {
         setDestination(found);
         fetch('/api/track-view', {
@@ -380,13 +404,20 @@ export default function DestinationPage() {
             </div>
 
             <div className="max-w-[1140px] mx-auto px-6 md:px-10">
-              <div className="w-full aspect-[16/9] overflow-hidden rounded-2xl border border-background-200">
-                <img
-                  src={destination.image}
-                  alt={`${destination.title} — ${destination.category}`}
-                  title={`${destination.title} travel experience — TABI`}
-                  className="w-full h-full object-cover object-top"
-                />
+              <div className="w-full aspect-[16/9] overflow-hidden rounded-2xl border border-background-200 bg-background-100">
+                {destination.image && !heroImageFailed ? (
+                  <img
+                    src={destination.image}
+                    alt={`${destination.title} — ${destination.category}`}
+                    title={`${destination.title} travel experience — TABI`}
+                    onError={() => setHeroImageFailed(true)}
+                    className="w-full h-full object-cover object-top"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <i className="ri-map-pin-line text-5xl text-foreground-300"></i>
+                  </div>
+                )}
               </div>
               {destination.imageCredit && (
                 <p className="mt-1.5 text-xs text-foreground-400">
