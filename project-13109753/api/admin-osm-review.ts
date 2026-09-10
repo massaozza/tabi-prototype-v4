@@ -34,6 +34,7 @@ import {
   getStaging,
   listStagingIds,
   listStagingIdsFiltered,
+  listUnreviewedStagingIds,
   getStagingRecords,
   updateStaging,
   linkOsmToSpot,
@@ -271,11 +272,15 @@ export default async function handler(req: Request): Promise<Response> {
       ids = await listStagingIds(status);
     }
 
-    // 安全策：priority未指定でも際限なく個別取得しないよう上限をかける。
-    // これを超える場合はpriorityを指定して絞り込んでもらう。
-    const HARD_FETCH_CAP = 2000;
+    // 安全策：件数に際限なく個別取得しないよう上限をかける。
+    // 【なぜpriority指定時にも必要になったか】
+    // 47都道府県分になると、priorityで絞り込んでもなお数千件になり、
+    // 全件個別取得してからJSで並び替え・上位200件に絞る、という
+    // 従来のやり方では実行時間上限（約25秒）を超えてタイムアウトする
+    // ようになった（実際に発生した）。
+    const HARD_FETCH_CAP = 1000;
     let truncated = false;
-    if (!priority && ids.length > HARD_FETCH_CAP) {
+    if (ids.length > HARD_FETCH_CAP) {
       ids = ids.slice(0, HARD_FETCH_CAP);
       truncated = true;
     }
@@ -356,15 +361,27 @@ export default async function handler(req: Request): Promise<Response> {
     const priority = priorityParam as 'high' | 'medium' | 'low';
     const prefecture = url.searchParams.get('prefecture');
     const publish = url.searchParams.get('publish') === '1';
-    const limit = Math.min(Math.max(Number(url.searchParams.get('limit') || '80'), 1), 100);
+    // 【重要】各件がWikidata/Wikipedia/Gemini呼び出しを伴うようになったため、
+    // 以前（KV書き込みのみ）より1件あたりの処理コストが大きい。
+    // Edge Functionの実行時間上限（約25秒）に収まるよう、
+    // 既定・上限とも小さめにする。
+    const limit = Math.min(Math.max(Number(url.searchParams.get('limit') || '15'), 1), 20);
 
-    const ids = await listStagingIdsFiltered('NEW', priority);
+    // 【重要】reviewed済みを含む全件を取得してからJSで除外するのではなく、
+    // Redis側のSDIFFで「まだreviewされていないもの」だけを先に絞り込む。
+    // こうしないと、処理が進むほど「先頭側は全部reviewed済み」という
+    // 状態になり、後方に候補が残っているのに0件と誤判定してしまう。
+    const unreviewedIds = await listUnreviewedStagingIds('NEW', priority);
+    // prefectureで絞り込む可能性があるため、limitより余裕を持って取得する
+    // （全件ではなく、それでも安全な範囲に収める）
+    const FETCH_CAP = Math.min(unreviewedIds.length, Math.max(limit * 10, 100));
+    const ids = unreviewedIds.slice(0, FETCH_CAP);
     let candidates = await getStagingRecords(ids);
     if (prefecture) candidates = candidates.filter((r) => r.prefecture === prefecture);
-    // 既にReview済み（前回呼び出しで処理済み等）は除く
+    // SDIFFの時点で除外しているはずだが、念のため二重チェックしておく
     candidates = candidates.filter((r) => !r.reviewedAt && !r.resultSpotId);
 
-    const remainingBefore = candidates.length;
+    const remainingBefore = unreviewedIds.length;
     const batch = candidates.slice(0, limit);
 
     let created = 0;

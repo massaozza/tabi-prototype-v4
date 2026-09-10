@@ -222,6 +222,30 @@ export async function listStagingIdsFiltered(
   }
 }
 
+/**
+ * status × priority のうち、まだReview（reviewedAt）されていないものだけを返す。
+ *
+ * 【なぜ必要か】
+ * bulkApproveNewを繰り返し呼ぶ運用（全国分を少しずつ処理する）では、
+ * 「全件取得してからJSでreviewed済みを除外」だと、処理済みが増えるほど
+ * 同じ先頭のIDばかり取得して毎回捨てることになり、いずれ
+ * 「先頭N件が全部reviewed済みで、まだ手つかずの候補が後ろに
+ * 大量に残っているのに0件と誤判定する」状態になる。
+ * SDIFF（差集合）をRedis側で計算させれば、reviewed済みのIDは
+ * そもそも返ってこないので、この問題が起きない。
+ */
+export async function listUnreviewedStagingIds(
+  status: MatchStatus,
+  priority: 'high' | 'medium' | 'low'
+): Promise<string[]> {
+  try {
+    const ids = await kv.sdiff(stagingStatusPriorityKey(status, priority), STAGING_REVIEWED_INDEX);
+    return ((ids || []).filter(Boolean) as string[]).sort();
+  } catch {
+    return [];
+  }
+}
+
 export async function getStagingRecords(ids: string[]): Promise<StagingRecord[]> {
   if (ids.length === 0) return [];
   const out: StagingRecord[] = [];
