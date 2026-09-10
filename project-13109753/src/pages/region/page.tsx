@@ -5,17 +5,72 @@ import { useParams, Link } from 'react-router-dom';
 import { useLocalizedNavigate } from '@/hooks/useLocalizedNavigate';
 import Navbar from '@/components/feature/Navbar';
 import Footer from '@/components/feature/Footer';
-import { useSpots } from '@/hooks/useSpots';
+import { useSpotsPage } from '@/hooks/useSpotsPage';
 import { PREFECTURE_REGIONS, getRegionBySlug } from '@/mocks/prefectureData';
 import { useAutoT, useAutoText } from '@/hooks/useAutoT';
 
-interface Destination {
-  id: string;
-  title: string;
-  category: string;
-  prefecture?: string;
-  description: string;
-  image: string;
+/**
+ * 地方ページの都道府県カード1つ分。
+ *
+ * 【なぜ別コンポーネントにしたか】
+ * 以前はページ全体でuseSpots()（全公開Spot）を1回取得し、
+ * .map() の中でJS側filterしていた。公開Spotが数万件規模になると
+ * 全件取得が成り立たないため、都道府県ごとに
+ * 「サンプル1件＋総件数」だけをAPIから取る方式に変える必要がある。
+ * フックは.map()のコールバック内では呼べない（Rules of Hooks）ため、
+ * カード自体を独立したコンポーネントにしている。
+ */
+function PrefectureCard({
+  pref,
+  t,
+}: {
+  pref: string;
+  t: (key: string, fallback: string) => string;
+}) {
+  // 画像サンプル1件と総件数だけあればよいため pageSize は最小限にする
+  const { spots, total, loading } = useSpotsPage({ prefecture: pref, pageSize: 1 });
+  const hasContent = !loading && total > 0;
+  const sample = spots[0];
+
+  return (
+    <LocalizedLink
+      to={`/prefectures/${encodeURIComponent(pref)}`}
+      className="bg-background-50 border border-background-200 rounded-xl overflow-hidden flex flex-col hover:border-background-300 transition-colors cursor-pointer"
+    >
+      {hasContent && sample ? (
+        <div className="relative w-full h-36 overflow-hidden">
+          <img
+            src={sample.image}
+            alt={pref}
+            className="w-full h-full object-cover object-top"
+          />
+        </div>
+      ) : (
+        <div className="w-full h-36 bg-background-100 flex items-center justify-center">
+          <i className="ri-map-pin-line text-3xl text-foreground-300"></i>
+        </div>
+      )}
+
+      <div className="p-4 flex flex-col flex-1">
+        <h3 className="font-heading font-bold text-base text-foreground-900 mb-1.5">{pref}</h3>
+        {hasContent ? (
+          <p className="text-foreground-500 text-xs">
+            {total}{' '}
+            {total === 1 ? t('region_destination', 'destination') : t('region_destinations', 'destinations')}{' '}
+            {t('region_onTabi', 'on TABI')}
+          </p>
+        ) : (
+          <p className="text-foreground-400 text-xs">
+            {loading ? '' : t('region_noDestinations', 'No destinations posted yet')}
+          </p>
+        )}
+        <span className="mt-auto pt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-primary-500 whitespace-nowrap">
+          {t('region_explore', 'Explore')} {pref}
+          <i className="ri-arrow-right-s-line"></i>
+        </span>
+      </div>
+    </LocalizedLink>
+  );
 }
 
 export default function RegionPage() {
@@ -23,9 +78,6 @@ export default function RegionPage() {
   const t = useAutoT();
   const { slug } = useParams<{ slug: string }>();
   const navigate = useLocalizedNavigate();
-  // KV（正データ）→ R2のSnapshot の順で解決する。
-  // 以前は mocks の367件を初期値にしていたため、取得失敗時に古いデータが出ていた。
-  const { spots: destinations } = useSpots();
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -108,53 +160,9 @@ export default function RegionPage() {
           <p className="text-foreground-600 text-base max-w-2xl mb-10">{tx(region.description)}</p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {region.prefectures.map((pref) => {
-              const prefDestinations = destinations.filter((d) => d.prefecture === pref);
-              const hasContent = prefDestinations.length > 0;
-
-              return (
-                <LocalizedLink
-                  key={pref}
-                  to={`/prefectures/${encodeURIComponent(pref)}`}
-                  className="bg-background-50 border border-background-200 rounded-xl overflow-hidden flex flex-col hover:border-background-300 transition-colors cursor-pointer"
-                >
-                  {hasContent ? (
-                    <div className="relative w-full h-36 overflow-hidden">
-                      <img
-                        src={prefDestinations[0].image}
-                        alt={pref}
-                        className="w-full h-full object-cover object-top"
-                      />
-                    </div>
-                  ) : (
-                    <div className="w-full h-36 bg-background-100 flex items-center justify-center">
-                      <i className="ri-map-pin-line text-3xl text-foreground-300"></i>
-                    </div>
-                  )}
-
-                  <div className="p-4 flex flex-col flex-1">
-                    <h3 className="font-heading font-bold text-base text-foreground-900 mb-1.5">
-                      {pref}
-                    </h3>
-                    {hasContent ? (
-                      <p className="text-foreground-500 text-xs">
-                        {prefDestinations.length}{' '}
-                        {prefDestinations.length === 1
-                          ? t('region_destination', 'destination')
-                          : t('region_destinations', 'destinations')}{' '}
-                        {t('region_onTabi', 'on TABI')}
-                      </p>
-                    ) : (
-                      <p className="text-foreground-400 text-xs">{t('region_noDestinations', 'No destinations posted yet')}</p>
-                    )}
-                    <span className="mt-auto pt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-primary-500 whitespace-nowrap">
-                      {t('region_explore', 'Explore')} {pref}
-                      <i className="ri-arrow-right-s-line"></i>
-                    </span>
-                  </div>
-                </LocalizedLink>
-              );
-            })}
+            {region.prefectures.map((pref) => (
+              <PrefectureCard key={pref} pref={pref} t={t} />
+            ))}
           </div>
         </div>
       </section>

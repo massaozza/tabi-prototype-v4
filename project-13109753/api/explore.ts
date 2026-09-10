@@ -66,24 +66,53 @@ function baseUrl(req: VercelRequest): string {
   return `${proto}://${host}`;
 }
 
-async function fetchSpots(req: VercelRequest): Promise<ExploreResult[]> {
+async function fetchSpots(
+  req: VercelRequest,
+  filters: { area?: string; category?: string }
+): Promise<ExploreResult[]> {
+  const toResult = (d: DestinationItem): ExploreResult => ({
+    id: d.id,
+    contentType: 'spot' as const,
+    title: d.title,
+    image: d.image,
+    area: d.prefecture,
+    summary: d.description,
+    href: `/destinations/${d.id}`,
+    lat: d.lat,
+    lng: d.lng,
+    category: d.category,
+  });
+
+  // 【重要】地域・カテゴリのどちらかが指定されている場合は、
+  // KVの索引（都道府県／カテゴリ）で絞り込み済みのページネーションAPIを使う。
+  // これなら公開Spotが何件あっても、この呼び出し自体は軽いまま。
+  // 一方、両方とも未指定（＝全件対象のキーワード検索・閲覧数順ソート）は、
+  // 索引だけでは絞り込めないため、当面は content:destinations
+  // （DERIVED_CACHE_MAX=1500件まで）に依存したままにしている。
+  // 全件対象の自由キーワード検索を件数無制限で高速化するには、
+  // Algolia/Meilisearch等の専用検索エンジンが別途必要
+  // （現時点ではスコープ外として保留している）。
+  if (filters.area || filters.category) {
+    try {
+      const params = new URLSearchParams({ limit: '500', offset: '0' });
+      if (filters.area) params.set('prefecture', filters.area);
+      if (filters.category) params.set('category', filters.category);
+      const res = await fetch(`${baseUrl(req)}/api/spots?${params.toString()}`);
+      if (!res.ok) return [];
+      const json = await res.json();
+      const items: DestinationItem[] = Array.isArray(json?.spots) ? json.spots : [];
+      return items.map(toResult);
+    } catch {
+      return [];
+    }
+  }
+
   try {
     const res = await fetch(`${baseUrl(req)}/api/content?type=destinations`);
     if (!res.ok) return [];
     const json = await res.json();
     const items: DestinationItem[] = Array.isArray(json?.data) ? json.data : [];
-    return items.map((d) => ({
-      id: d.id,
-      contentType: 'spot' as const,
-      title: d.title,
-      image: d.image,
-      area: d.prefecture,
-      summary: d.description,
-      href: `/destinations/${d.id}`,
-      lat: d.lat,
-      lng: d.lng,
-      category: d.category,
-    }));
+    return items.map(toResult);
   } catch {
     return [];
   }
@@ -167,6 +196,9 @@ export default async function handler(
     | 'all'
     | ContentType;
   const area = (typeof req.query.area === 'string' ? req.query.area : '').trim().toLowerCase();
+  // KVの都道府県索引は大文字始まりの正式表記（例: "Tochigi"）で
+  // キー化されているため、大文字小文字を保持した値も別途持っておく。
+  const areaRaw = (typeof req.query.area === 'string' ? req.query.area : '').trim();
   const category = (typeof req.query.category === 'string' ? req.query.category : '').trim();
   const sort = (typeof req.query.sort === 'string' ? req.query.sort : 'popular') as
     | 'popular'
@@ -176,7 +208,7 @@ export default async function handler(
   try {
     // TripのエリアをSpot経由で推測するため、typeの絞り込みに関わらず
     // Spot一覧は常に取得しておく（結果に含めるかどうかは別途判定する）
-    const allSpots = await fetchSpots(req);
+    const allSpots = await fetchSpots(req, { area: areaRaw || undefined, category: category || undefined });
     const spotPrefectureById = new Map<string, string>(
       allSpots.filter((s) => s.area).map((s) => [s.id, s.area as string])
     );

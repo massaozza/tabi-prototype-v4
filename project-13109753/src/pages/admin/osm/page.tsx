@@ -196,11 +196,14 @@ export default function AdminOsmPage() {
     try {
       // 1回のAPI呼び出しで最大80件ずつ処理する（Edge Functionの実行時間上限のため）。
       // remainingAfterThisCall が0になるまで、または安全のため最大30回まで繰り返す。
-      for (let i = 0; i < 30; i++) {
+      // 【重要】各件がWikidata/Wikipedia/Gemini呼び出しを伴うようになったため、
+      // 1回あたりの処理件数を小さくし（サーバー側の上限に合わせて15件）、
+      // その分ループ回数の上限を増やしている。
+      for (let i = 0; i < 200; i++) {
         const params = new URLSearchParams({
           action: 'bulkApproveNew',
           priority: priorityFilter,
-          limit: '80',
+          limit: '15',
         });
         const res = await fetch(`/api/admin-osm-review?${params.toString()}`, { method: 'POST' });
         const data = await res.json();
