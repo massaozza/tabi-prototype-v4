@@ -127,6 +127,10 @@ async function main() {
   const targetCount = Math.min(queue.length, args.limit);
   console.log(`\n処理予定: ${targetCount} 件（並列度: ${args.concurrency}）\n`);
 
+  // この実行全体で共有する。並列処理中のslug競合（同じ候補が同時に
+  // "空いている" と判定されて片方がもう片方を上書きする）を防ぐため。
+  const reservedSlugs = new Set<string>();
+
   const CHUNK = args.concurrency;
   for (let i = 0; i < targetCount; i += CHUNK) {
     const idsSlice = queue.slice(i, Math.min(i + CHUNK, targetCount));
@@ -142,6 +146,7 @@ async function main() {
           // 大量処理のため、1件ごとの派生キャッシュ再構築は行わない。
           // publish時は最後に1回だけ再構築する。
           rebuildCache: false,
+          reservedSlugs,
         }).then(
           (slug) => ({ ok: true as const, name: record.name, slug }),
           (err) => Promise.reject({ name: record.name, err })

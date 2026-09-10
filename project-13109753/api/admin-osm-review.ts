@@ -242,6 +242,10 @@ export default async function handler(req: Request): Promise<Response> {
     let failed = 0;
     const errors: string[] = [];
 
+    // このバッチ全体で共有する。並列処理中のslug競合（同じ候補が同時に
+    // "空いている" と判定されて片方がもう片方を上書きする）を防ぐため。
+    const reservedSlugs = new Set<string>();
+
     // Edge Functionの実行時間上限（約25秒）に収まるよう、少しずつ並列実行する
     const CONCURRENCY = 10;
     for (let i = 0; i < batch.length; i += CONCURRENCY) {
@@ -252,6 +256,7 @@ export default async function handler(req: Request): Promise<Response> {
             publish,
             reviewNote: `Bulk approved (priority=${priority}, no individual review)`,
             rebuildCache: false,
+            reservedSlugs,
           })
         )
       );

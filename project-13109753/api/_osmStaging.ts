@@ -390,6 +390,46 @@ export async function updateStaging(
   return merged;
 }
 
+/**
+ * Review済み扱いを取り消し、未Reviewのプールに戻す。
+ *
+ * 【なぜ必要か】
+ * 一括処理中のslug競合バグにより、承認済み（reviewedAt/resultSpotId設定済み）
+ * と記録されているのに、実際にはSpotが作られていない・別のSpotに
+ * 上書きされてしまった、というレコードが発生した。matchStatusは
+ * 'NEW'のままなので、Reviewの記録だけを取り消せば、次回の一括処理で
+ * 再度対象にできる。
+ */
+export async function resetStagingReview(id: string): Promise<StagingRecord | null> {
+  const existing = await getStaging(id);
+  if (!existing) return null;
+
+  const merged: StagingRecord = {
+    ...existing,
+    reviewedAt: undefined,
+    reviewAction: undefined,
+    reviewNote: undefined,
+    resultSpotId: undefined,
+    matchedSpotId: undefined,
+    updatedAt: new Date().toISOString(),
+  };
+
+  await kv.set(stagingKey(id), merged, { ex: STAGING_TTL_SECONDS });
+  await kv.srem(STAGING_REVIEWED_INDEX, id).catch(() => null);
+
+  return merged;
+}
+
+/** Review済み（reviewedAtが入っている）が、まだプールに残っているid一覧 */
+export async function listReviewedStagingIds(): Promise<string[]> {
+  try {
+    const ids = (await kv.smembers(STAGING_REVIEWED_INDEX)) || [];
+    return (ids as string[]).filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
 /** OSM要素が既にSpotへ紐づいているか */
 export async function getLinkedSpotId(
   osmType: string,

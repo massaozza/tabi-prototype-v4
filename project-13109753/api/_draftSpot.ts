@@ -60,14 +60,34 @@ export function makeSlug(name: string, prefecture: string, aliases: string[] = [
   return `${pref}-spot`.slice(0, 80);
 }
 
-/** 同名slugが既にある場合に連番を付ける */
-export async function uniqueSlug(base: string): Promise<string> {
-  if (!(await getSpot(base))) return base;
+/**
+ * 同名slugが既にある場合に連番を付ける。
+ *
+ * 【reservedについて（重要）】
+ * KVへの存在チェック（getSpot）は非同期のため、同時に複数件を並列処理すると、
+ * 「同じslug候補が2件同時に "空いている" と判定され、片方が後からもう片方を
+ * 上書きしてしまう」競合が起きる。実際にconcurrency=8での一括実行で
+ * 発生し、報告された成功件数より実際のSpot件数が少なくなる不具合になった。
+ * 呼び出し元が同一バッチ内で共有するSetを渡せば、プロセス内の同期的な
+ * Set操作（JSはシングルスレッドなので競合しない）で確定させてから
+ * KVに書き込むため、この競合を防げる。
+ */
+export async function uniqueSlug(base: string, reserved?: Set<string>): Promise<string> {
+  const claim = (candidate: string): boolean => {
+    if (!reserved) return true;
+    if (reserved.has(candidate)) return false;
+    reserved.add(candidate);
+    return true;
+  };
+
+  if (!(await getSpot(base)) && claim(base)) return base;
   for (let i = 2; i <= 20; i++) {
     const candidate = `${base}-${i}`;
-    if (!(await getSpot(candidate))) return candidate;
+    if (!(await getSpot(candidate)) && claim(candidate)) return candidate;
   }
-  return `${base}-${Date.now().toString(36)}`;
+  const fallback = `${base}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+  claim(fallback);
+  return fallback;
 }
 
 export function osmSourceOf(record: StagingRecord): SpotSource {
@@ -97,12 +117,20 @@ export async function createDraftSpotFromStaging(
      * 全件処理し終えた後に1回だけ再構築する。
      */
     rebuildCache?: boolean;
+    /**
+     * 同一バッチ内でslugの競合を避けるための共有Set。
+     * 【なぜ必要か】並列処理中に複数件が同じslug候補（ローマ字名が無い
+     * 施設同士など）を同時にチェックすると、両方とも「空いている」と
+     * 判定されて片方がもう片方を上書きしてしまう。バッチを呼び出す側は
+     * 1つのSetを全件で使い回すこと。
+     */
+    reservedSlugs?: Set<string>;
   }
 ): Promise<string> {
   const base = opts.requestedSlug
     ? opts.requestedSlug.toLowerCase().replace(/[^a-z0-9-]/g, '-')
     : makeSlug(record.name, record.prefecture, record.aliases);
-  const slug = await uniqueSlug(base);
+  const slug = await uniqueSlug(base, opts.reservedSlugs);
 
   // 【説明文・写真について】
   // AIに一から作文させることはしない（事実でない説明文を生む恐れがある）。

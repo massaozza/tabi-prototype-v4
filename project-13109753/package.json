@@ -52,7 +52,8 @@
     "type-check:api": "tsc --noEmit --project tsconfig.api.json",
     "snapshot:spots": "node scripts/generate-spot-snapshot.mjs",
     "osm:import": "esbuild scripts/osm-import.ts --bundle --platform=node --format=esm --target=node20 --outfile=.tmp/osm-import.mjs --log-level=warning && node .tmp/osm-import.mjs",
-    "bulk-approve": "esbuild scripts/bulk-approve-content.ts --bundle --platform=node --format=esm --target=node20 --outfile=.tmp/bulk-approve-content.mjs --log-level=warning && node .tmp/bulk-approve-content.mjs"
+    "bulk-approve": "esbuild scripts/bulk-approve-content.ts --bundle --platform=node --format=esm --target=node20 --outfile=.tmp/bulk-approve-content.mjs --log-level=warning && node .tmp/bulk-approve-content.mjs",
+    "repair-lost-drafts": "esbuild scripts/repair-lost-drafts.ts --bundle --platform=node --format=esm --target=node20 --outfile=.tmp/repair-lost-drafts.mjs --log-level=warning && node .tmp/repair-lost-drafts.mjs"
   },
   "type": "module",
   "version": "0.0.0"
