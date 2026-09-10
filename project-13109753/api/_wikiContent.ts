@@ -170,13 +170,15 @@ Source material (factual, from Wikipedia, about "${spotName}"):
 ${extract}
 """
 
-Using ONLY the facts in the source above, write a 2-3 paragraph description that helps a foreign traveler decide whether to visit and know what to expect. Do this, not a shortened summary of the source:
-- Lead with what makes this place worth visiting and what a visitor would actually see, do, or experience there — not a chronological history recap.
+Using ONLY the facts in the source above, write a description (about the same length as the source, do not pad it out) that clearly tells a foreign traveler what this place actually is, and makes them want to visit. Rules:
+- Open with a plain, concrete statement of what this place is (a shrine, a museum, a gorge, etc.) and what makes it distinctive — do NOT open with "If you..." or any other generic conditional/invitational phrase. Vary your opening across different write-ups; do not default to a template.
+- Avoid formulaic travel-writing filler ("nestled in", "a hidden gem", "a must-visit", "steeped in history") — write like a knowledgeable local person describing a real place to a friend, not a brochure.
+- Lead with what a visitor would actually see, do, or experience there — not a chronological history recap.
 - When the source mentions Japanese cultural, historical, or religious concepts a foreigner wouldn't know (e.g. a shrine type, an era name, a title, a festival), briefly explain what it means in plain English, in your own words, as long as that explanation is a reasonable inference from the source's context (don't invent specific facts, numbers, or claims that aren't supported by the source).
 - If the source describes distinctive visual or sensory details (architecture, scenery, atmosphere, seasonal features), foreground those — they matter more to a traveler than administrative history.
 - Historical background can appear, but only in service of explaining significance to a visitor, not as the main content.
 - Do NOT invent practical information (hours, prices, access, dates) that is not in the source.
-- Write in a warm, vivid, inviting tone, as if recommending this to a friend planning their trip — not an encyclopedia tone.
+- Keep it concise — roughly the same length as the source material above, not longer. Do not add filler sentences just to reach a target length.
 - Do not include citation markers, brackets, or references.
 - Return ONLY the description text, no markdown, no headings, no preamble.`;
 

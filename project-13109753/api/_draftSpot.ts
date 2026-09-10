@@ -45,8 +45,21 @@ function toSlugCandidate(s: string): string {
  * ローマ字表記が aliases に残っていることが多い（表示名としては
  * 「質の低いローマ字転写」として採用しなかったものでも、slugとしては
  * "tochigi-spot-2" のような無意味な名前よりずっと良い）。
+ *
+ * 【最終フォールバックについて】
+ * ローマ字表記が一切取れない場合、以前は "{都道府県}-spot"（連番で
+ * 衝突回避）としていたが、"tochigi-spot-14" のような無機質な名前に
+ * なっていた。カテゴリ（神社なら shrine 等）と、OSM要素固有のID
+ * （施設ごとに必ず異なる）を組み合わせることで、まだ味気なくはあるが
+ * 無意味な連番よりは施設の性質が分かり、衝突もしにくい形にする。
  */
-export function makeSlug(name: string, prefecture: string, aliases: string[] = []): string {
+export function makeSlug(
+  name: string,
+  prefecture: string,
+  aliases: string[] = [],
+  canonicalKey?: string | null,
+  osmId?: string
+): string {
   const base = toSlugCandidate(name);
   if (base.length >= 3) return base.slice(0, 80);
 
@@ -55,9 +68,13 @@ export function makeSlug(name: string, prefecture: string, aliases: string[] = [
     if (candidate.length >= 3) return candidate.slice(0, 80);
   }
 
-  // ラテン文字が取れない場合は都道府県名を接頭辞にする
-  const pref = prefecture.toLowerCase().replace(/[^a-z]/g, '');
-  return `${pref}-spot`.slice(0, 80);
+  const pref = prefecture.toLowerCase().replace(/[^a-z]/g, '') || 'japan';
+  const category = (canonicalKey || 'place').replace(/[^a-z0-9]+/gi, '-').toLowerCase();
+  // OSMのID（施設ごとに一意）の末尾を使う。連番より衝突しにくく、
+  // 同じ施設なら常に同じ値になるため再実行時も安定する。
+  const idPart = osmId ? osmId.replace(/\D/g, '').slice(-6) : '';
+
+  return `${pref}-${category}${idPart ? `-${idPart}` : ''}`.slice(0, 80);
 }
 
 /**
@@ -129,7 +146,7 @@ export async function createDraftSpotFromStaging(
 ): Promise<string> {
   const base = opts.requestedSlug
     ? opts.requestedSlug.toLowerCase().replace(/[^a-z0-9-]/g, '-')
-    : makeSlug(record.name, record.prefecture, record.aliases);
+    : makeSlug(record.name, record.prefecture, record.aliases, record.canonicalKey, record.osmId);
   const slug = await uniqueSlug(base, opts.reservedSlugs);
 
   // 【説明文・写真について】
