@@ -39,7 +39,11 @@ function DestinationImage({ dest }: { dest: Destination }) {
   const [failed, setFailed] = useState(false);
   const placeholder = getPlaceholder(dest.category);
 
-  if (failed) {
+  // 【重要】image が空文字の場合、<img src=""> はブラウザによって
+  // onError が確実に発火せず、壊れた画像アイコンがそのまま表示されて
+  // しまうことがある。空の場合はそもそも<img>を描画せず、
+  // 最初からプレースホルダーを出す。
+  if (failed || !dest.image) {
     return (
       <div
         className={`w-full h-full flex items-center justify-center bg-gradient-to-br ${placeholder.bg}`}
@@ -94,7 +98,13 @@ export default function DestinationsSection() {
     return () => { cancelled = true; };
   }, []);
 
-  const displayedDestinations = destinations.slice(0, DISPLAY_LIMIT);
+  // 【画像ありを先に、画像なしを後ろに】
+  // OSM一括インポートでは、Wikidataに写真が無かった候補は画像なしで
+  // 作られる。トップページのおすすめ枠は件数が少ないため、画像なしが
+  // 混ざると見栄えが悪い。画像ありを優先して選ぶ。
+  const displayedDestinations = [...destinations]
+    .sort((a, b) => (b.image ? 1 : 0) - (a.image ? 1 : 0))
+    .slice(0, DISPLAY_LIMIT);
 
   return (
     <section id="destinations" className="py-16 md:py-24 px-6 md:px-10 lg:px-20 bg-background-50">

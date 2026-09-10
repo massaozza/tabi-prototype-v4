@@ -124,6 +124,36 @@ export function prefIndexKey(prefecture: string): string {
 export function statusIndexKey(status: SpotStatus): string {
   return `spots:status:${status}`;
 }
+/**
+ * カテゴリ索引のキー。
+ *
+ * 【なぜ category と canonicalCategory の両方を見るか】
+ * OSM一括インポートで作るSpotは、既存カテゴリ体系（"Culture & History"等の
+ * 表示用文言）を推測で当てはめると誤分類になるため category は空のまま作り、
+ * canonicalCategory（shrine_temple, museum 等の機械的な分類）だけを持つ。
+ * 一方、既存367件は category のみを持つ。
+ * 絞り込みの軸として両方を1つの索引に統合しておく。
+ */
+export function categoryIndexKey(category: string): string {
+  return `spots:category:${category}`;
+}
+export function categoryOf(spot: Spot): string | null {
+  return spot.canonicalCategory || spot.category || null;
+}
+/**
+ * 都道府県 × 画像の有無 の索引キー。
+ *
+ * 【なぜ必要か】
+ * OSM一括インポートでは、Wikidataに写真が無い候補は image が空のまま
+ * 作られる。一覧で画像なしのSpotが上位に出ると見栄えが悪いため、
+ * 「画像ありを先に、画像なしは最後に」表示したい。数千〜数万件を
+ * 都度全件取得して image の有無でソートするのは高コストなので、
+ * 保存時にどちらの索引に入れるかを決めておき、一覧取得時は
+ * 画像ありの索引から先に埋める。
+ */
+export function prefImageIndexKey(prefecture: string, hasImage: boolean): string {
+  return `spots:pref:${prefecture}:${hasImage ? 'img' : 'noimg'}`;
+}
 export function backupKey(stamp: string): string {
   return `backup:destinations:${stamp}`;
 }
@@ -224,6 +254,76 @@ export async function listPublishedSpots(): Promise<Spot[]> {
   }
 }
 
+/**
+ * ページ単位でSpotを取得する。
+ *
+ * 【なぜ必要か】
+ * listPublishedSpots() や content:destinations は、公開Spotが
+ * 数万〜数十万件になると、全件を毎回KVから引く／配列として持つのが
+ * 現実的でなくなる（実行時間・メモリの両方で）。
+ * 都道府県ごとの索引（prefIndexKey）は既に存在するため、
+ * 「そのページに必要な分だけ」idを絞ってから個別取得する。
+ *
+ * 【並び順について】
+ * Redis Setは順序を保証しないため、安定した並び順にするために
+ * idをソートしてから offset/limit を適用する。真の「新着順」等は
+ * 別途ソート済み索引（Sorted Set）が必要になるため、ここでは
+ * 「毎回同じ順序で、ページを送れば重複や欠落なく全件を辿れる」
+ * ことだけを保証する。
+ */
+export async function listPublishedSpotsPage(
+  opts: { prefecture?: string; category?: string; limit: number; offset: number }
+): Promise<{ spots: Spot[]; total: number }> {
+  try {
+    let allIds: string[];
+
+    if (opts.prefecture && opts.category) {
+      // 両方指定時はRedis側の積集合（SINTER）で絞り込む。
+      // 全件取得してJS側で交差を取ると、件数が多いカテゴリ・都道府県では
+      // また同じ「全件個別取得」問題に戻ってしまうため。
+      const inter = await kv.sinter(
+        prefIndexKey(opts.prefecture),
+        categoryIndexKey(opts.category)
+      );
+      allIds = ((inter || []) as string[]).filter(Boolean).sort();
+    } else if (opts.category) {
+      const ids = (await kv.smembers(categoryIndexKey(opts.category))) || [];
+      allIds = (ids as string[]).filter(Boolean).sort();
+    } else if (opts.prefecture) {
+      // 【画像ありを先に、画像なしを最後に】
+      // OSM一括インポートでは、Wikidataに写真が無かった候補は画像なしで
+      // 作られる。一覧の見栄えのため、画像ありの索引から先に埋め、
+      // 画像なしは常に末尾に回す。
+      const [withImg, noImg] = await Promise.all([
+        kv.smembers(prefImageIndexKey(opts.prefecture, true)),
+        kv.smembers(prefImageIndexKey(opts.prefecture, false)),
+      ]);
+      allIds = [
+        ...((withImg || []) as string[]).filter(Boolean).sort(),
+        ...((noImg || []) as string[]).filter(Boolean).sort(),
+      ];
+    } else {
+      allIds = (((await kv.smembers(statusIndexKey('published'))) || []) as string[])
+        .filter(Boolean)
+        .sort();
+    }
+
+    const total = allIds.length;
+
+    // prefecture/category索引はstatus索引ではないため、draft/rejected等も
+    // 混ざりうる。公開分だけに絞るには、ページ分だけ取得してからstatusを
+    // 見てフィルタする（このページ分のみの個別取得なので全件取得にはならない）。
+    const pageIds = allIds.slice(opts.offset, opts.offset + opts.limit);
+    let spots = await getSpots(pageIds);
+    if (opts.prefecture || opts.category) {
+      spots = spots.filter((s) => !s.status || s.status === 'published');
+    }
+    return { spots, total };
+  } catch {
+    return { spots: [], total: 0 };
+  }
+}
+
 export async function isMigrated(): Promise<boolean> {
   try {
     return Boolean(await kv.get(MIGRATION_FLAG));
@@ -302,8 +402,13 @@ export async function saveSpot(spot: Spot, rebuild = true): Promise<void> {
 
   await kv.set(spotKey(spot.id), record);
   await kv.sadd(SPOTS_INDEX, spot.id);
-  if (spot.prefecture) await kv.sadd(prefIndexKey(spot.prefecture), spot.id);
+  if (spot.prefecture) {
+    await kv.sadd(prefIndexKey(spot.prefecture), spot.id);
+    await kv.sadd(prefImageIndexKey(spot.prefecture, Boolean(spot.image)), spot.id);
+  }
   await kv.sadd(statusIndexKey(status), spot.id);
+  const category = categoryOf(record);
+  if (category) await kv.sadd(categoryIndexKey(category), spot.id);
 
   // 状態が変わった場合は古い索引から外す
   if (existing?.status && existing.status !== status) {
@@ -312,6 +417,17 @@ export async function saveSpot(spot: Spot, rebuild = true): Promise<void> {
   // 都道府県が変わった場合も同様
   if (existing?.prefecture && existing.prefecture !== spot.prefecture) {
     await kv.srem(prefIndexKey(existing.prefecture), spot.id);
+    await kv.srem(prefImageIndexKey(existing.prefecture, Boolean(existing.image)), spot.id);
+  } else if (existing && spot.prefecture && Boolean(existing.image) !== Boolean(spot.image)) {
+    // 都道府県は変わらないが、画像の有無だけ変わった場合
+    // （Regenerate content等で後から画像が付いた場合）は、
+    // 反対側の索引から外す。
+    await kv.srem(prefImageIndexKey(spot.prefecture, !spot.image), spot.id);
+  }
+  // カテゴリが変わった場合も同様
+  const existingCategory = existing ? categoryOf(existing) : null;
+  if (existingCategory && existingCategory !== category) {
+    await kv.srem(categoryIndexKey(existingCategory), spot.id);
   }
 
   if (rebuild) await rebuildDerivedCache();
@@ -391,9 +507,10 @@ export async function bulkSaveSpots(
 
   const ok = records.filter((_, i) => writes[i].status === 'fulfilled');
 
-  // 4. 索引はまとめて1回ずつ（都道府県・状態ごとにグループ化）
+  // 4. 索引はまとめて1回ずつ（都道府県・状態・カテゴリごとにグループ化）
   const byPref = new Map<string, string[]>();
   const byStatus = new Map<string, string[]>();
+  const byCategory = new Map<string, string[]>();
   for (const r of ok) {
     if (r.prefecture) {
       const arr = byPref.get(r.prefecture) || [];
@@ -404,6 +521,13 @@ export async function bulkSaveSpots(
     const arr2 = byStatus.get(st) || [];
     arr2.push(r.id);
     byStatus.set(st, arr2);
+
+    const cat = categoryOf(r);
+    if (cat) {
+      const arr3 = byCategory.get(cat) || [];
+      arr3.push(r.id);
+      byCategory.set(cat, arr3);
+    }
   }
 
   const indexOps: Promise<unknown>[] = [];
@@ -415,6 +539,9 @@ export async function bulkSaveSpots(
   }
   for (const [st, ids] of byStatus) {
     indexOps.push(kv.sadd(statusIndexKey(st as SpotStatus), ids[0], ...ids.slice(1)));
+  }
+  for (const [cat, ids] of byCategory) {
+    indexOps.push(kv.sadd(categoryIndexKey(cat), ids[0], ...ids.slice(1)));
   }
   await Promise.all(indexOps.map((p) => p.catch(() => null)));
 
@@ -455,8 +582,13 @@ export async function deleteSpot(id: string, rebuild = true): Promise<boolean> {
 
   await kv.del(spotKey(id));
   await kv.srem(SPOTS_INDEX, id);
-  if (existing.prefecture) await kv.srem(prefIndexKey(existing.prefecture), id);
+  if (existing.prefecture) {
+    await kv.srem(prefIndexKey(existing.prefecture), id);
+    await kv.srem(prefImageIndexKey(existing.prefecture, Boolean(existing.image)), id);
+  }
   if (existing.status) await kv.srem(statusIndexKey(existing.status), id);
+  const existingCategory = categoryOf(existing);
+  if (existingCategory) await kv.srem(categoryIndexKey(existingCategory), id);
 
   if (rebuild) await rebuildDerivedCache();
   return true;
