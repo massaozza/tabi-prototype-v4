@@ -188,11 +188,6 @@ Rewrite this into a concise, engaging 2-3 paragraph description for travelers. R
           generationConfig: {
             temperature: 0.4,
             maxOutputTokens: 768,
-            // 【重要】thinkingConfigを省略するとthinkingトークンが出力バジェットを
-            // 消費し、応答本文が空になることがある。明示的に0にする。
-            // generationConfigの中に入れる必要がある（トップレベルだと
-            // "Unknown name thinkingConfig" で400になる）。
-            thinkingConfig: { thinkingBudget: 0 },
           },
         }),
       }
@@ -240,7 +235,10 @@ export async function buildWikiContent(
     const extract = await fetchWikipediaExtract(lang, title);
     if (extract) {
       const apiKey = process.env.GEMINI_API_KEY;
-      description = apiKey ? await rewriteForInboundTourists(spotName, extract, apiKey) : extract;
+      const rewritten = apiKey ? await rewriteForInboundTourists(spotName, extract, apiKey) : null;
+      // AIでの整形に失敗しても、事実ベースのWikipedia要約をそのまま使う
+      // （descriptionを空のままにするより望ましい）
+      description = rewritten || extract;
       descriptionSourceUrl = `https://${lang}.wikipedia.org/wiki/${encodeURIComponent(title)}`;
     }
   }
