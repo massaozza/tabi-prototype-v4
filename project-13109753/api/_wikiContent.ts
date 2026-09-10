@@ -187,7 +187,12 @@ Rewrite this into a concise, engaging 2-3 paragraph description for travelers. R
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
             temperature: 0.4,
-            maxOutputTokens: 768,
+            // 【重要】このモデルはthinkingConfigでの無効化を受け付けず
+            // （試したところ400エラーになった）、内部の思考トークンが
+            // 出力バジェットを消費する。上限が低いと、可視の回答部分が
+            // 文の途中から始まる／途中で切れる形で返ってきてしまう
+            // （実際に発生した不具合）。thinking分も見込んで大きめに取る。
+            maxOutputTokens: 4096,
           },
         }),
       }
@@ -197,8 +202,23 @@ Rewrite this into a concise, engaging 2-3 paragraph description for travelers. R
       return null;
     }
     const data = await res.json();
+    const finishReason = data?.candidates?.[0]?.finishReason;
+    if (finishReason === 'MAX_TOKENS') {
+      console.error('[_wikiContent] Gemini response hit MAX_TOKENS, likely truncated');
+    }
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    return typeof text === 'string' && text.trim().length > 0 ? text.trim() : null;
+    if (typeof text !== 'string' || text.trim().length === 0) return null;
+    const trimmed = text.trim();
+
+    // 【重要】文の途中から始まっている（＝出力が途切れて先頭が欠けている）
+    // ような断片は、公開する文章としては不適切なので破棄する。
+    // 大文字・引用符・数字以外で始まる場合は断片とみなす。
+    if (!/^[A-Z0-9"'“]/.test(trimmed)) {
+      console.error('[_wikiContent] Rewritten text looks truncated/fragmentary, discarding:', trimmed.slice(0, 80));
+      return null;
+    }
+
+    return trimmed;
   } catch (e) {
     console.error('[_wikiContent] Gemini call failed:', e);
     return null;
@@ -259,3 +279,32 @@ export async function buildWikiContent(
 
   return { description, descriptionSourceUrl, image };
 }
+
+/**
+ * 既存Spotの説明文・写真がAI整形の失敗等で埋まらなかった場合に、
+ * 後からやり直せるよう、単一のOSM要素のタグだけを取得する。
+ * （Staging側は一度Reviewすると使い切りになるため、Spot側から
+ * 直接やり直せる経路が必要）
+ */
+export async function fetchOsmTagsById(
+  osmType: string,
+  osmId: string
+): Promise<Record<string, string> | null> {
+  const query = `[out:json][timeout:15];${osmType}(${osmId});out tags;`;
+  try {
+    const res = await fetch('https://overpass-api.de/api/interpreter', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'User-Agent': 'TABI47/1.0 (https://www.tabi47.com; content regeneration)',
+      },
+      body: `data=${encodeURIComponent(query)}`,
+    });
+    if (!res.ok) return null;
+    const data = (await res.json()) as { elements?: Array<{ tags?: Record<string, string> }> };
+    return data.elements?.[0]?.tags || null;
+  } catch {
+    return null;
+  }
+}
+

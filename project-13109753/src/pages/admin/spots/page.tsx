@@ -44,6 +44,8 @@ interface Spot {
   completeness?: Completeness;
   enrichmentLevel?: number;
   updatedAt?: string;
+  sources?: { type: string; id?: string; url?: string }[];
+  imageCredit?: { author?: string; license?: string; licenseUrl?: string; sourceUrl: string };
 }
 
 const STATUSES = ['published', 'draft', 'staging', 'rejected'] as const;
@@ -95,6 +97,7 @@ export default function AdminSpotsPage() {
   const [notice, setNotice] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [publishing, setPublishing] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
 
   const loadSpots = () => {
     setLoading(true);
@@ -292,6 +295,40 @@ export default function AdminSpotsPage() {
       message: `Published ${succeeded} spot(s)${failed ? `, ${failed} failed` : ''}.`,
     });
     setTimeout(() => setNotice(null), 4000);
+  };
+
+  /**
+   * OSM由来のSpotについて、説明文・写真をやり直す。
+   *
+   * 【なぜ必要か】
+   * Create as draft 時にWikidata/Wikipediaの取得やAI整形が失敗すると
+   * description/image が空のまま作成される。OSM Staging側は一度
+   * Reviewすると使い切りになりやり直せないため、Spot側からこの処理を
+   * 個別にリトライできるようにする。
+   */
+  const regenerateContent = async () => {
+    if (!editing) return;
+    setRegenerating(true);
+    setNotice(null);
+    try {
+      const res = await fetch(
+        `/api/spots?id=${encodeURIComponent(editing.id)}&action=regenerateContent`,
+        { method: 'POST' }
+      );
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || `Failed (${res.status})`);
+      if (!data.success) {
+        setNotice({ type: 'error', message: data.note || 'Could not regenerate content.' });
+      } else if (data.spot) {
+        setEditing(data.spot as Spot);
+        setSpots((prev) => prev.map((s) => (s.id === data.spot.id ? data.spot : s)));
+        setNotice({ type: 'success', message: 'Content regenerated from Wikidata/Wikipedia.' });
+      }
+    } catch (e) {
+      setNotice({ type: 'error', message: e instanceof Error ? e.message : 'Failed to regenerate content' });
+    } finally {
+      setRegenerating(false);
+    }
   };
 
   const input =
@@ -570,7 +607,20 @@ export default function AdminSpotsPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-foreground-600 mb-1">Description</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-medium text-foreground-600">Description</label>
+                  {editing.sources?.some((s) => s.type === 'OSM') && (
+                    <button
+                      type="button"
+                      onClick={regenerateContent}
+                      disabled={regenerating}
+                      className="text-xs text-primary-600 hover:text-primary-700 underline cursor-pointer disabled:opacity-50"
+                      title="Re-fetch Wikidata/Wikipedia and regenerate description + image via AI"
+                    >
+                      {regenerating ? 'Regenerating…' : 'Regenerate content from OSM'}
+                    </button>
+                  )}
+                </div>
                 <textarea
                   value={editing.description}
                   onChange={(e) => setEditing({ ...editing, description: e.target.value })}

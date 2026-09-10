@@ -38,6 +38,7 @@ import {
   statusIndexKey,
   deriveEnrichmentLevel,
 } from './_spotStore.js';
+import { buildWikiContent, fetchOsmTagsById } from './_wikiContent.js';
 
 export const config = { runtime: 'edge' };
 
@@ -155,6 +156,71 @@ export default async function handler(req: Request): Promise<Response> {
 
   // ── ここから先は管理者のみ ──
   if (!(await isAdminRequest(req))) return adminUnauthorized();
+
+  // ── POST ?action=regenerateContent: OSM由来の説明文・写真をやり直す ──
+  //
+  // 【なぜ必要か】
+  // OSM StagingからCreate as draftする際、Wikidata/Wikipediaの取得や
+  // AIによる整形が失敗すると description/image が空のまま作成される。
+  // Staging側は一度Reviewすると使い切りになり、同じ候補で
+  // やり直すことができない。既存Spotのsourcesに残るOSM出典情報
+  // （osmType/osmId）から、直接タグを取り直してこの処理をやり直せる
+  // ようにする。
+  if (req.method === 'POST' && url.searchParams.get('action') === 'regenerateContent') {
+    if (!id) return json({ error: 'id query parameter is required' }, 400);
+
+    const spot = await getSpot(id);
+    if (!spot) return json({ error: 'Spot not found' }, 404);
+
+    const osmSource = (spot.sources || []).find((s) => s.type === 'OSM' && s.id);
+    if (!osmSource?.id) {
+      return json({ error: 'This spot has no OSM source to regenerate content from' }, 400);
+    }
+    const [osmType, osmId] = osmSource.id.split('/');
+    if (!osmType || !osmId) {
+      return json({ error: `Malformed OSM source id: "${osmSource.id}"` }, 400);
+    }
+
+    const tags = await fetchOsmTagsById(osmType, osmId);
+    if (!tags) {
+      return json({ error: 'Could not fetch OSM tags for this element (Overpass unavailable or element not found)' }, 502);
+    }
+
+    const wiki = await buildWikiContent(spot.title, tags);
+    if (!wiki) {
+      return json({
+        success: false,
+        note: 'No Wikidata/Wikipedia content found, or AI rewrite failed. Spot left unchanged.',
+      });
+    }
+
+    const patch: Partial<Spot> = {
+      description: wiki.description,
+      fieldSources: { ...(spot.fieldSources || {}), description: 'AI_DERIVED' },
+      sources: [
+        ...(spot.sources || []).filter((s) => s.type !== 'AI_DERIVED' && s.type !== 'WIKIMEDIA'),
+        { type: 'AI_DERIVED', url: wiki.descriptionSourceUrl, syncedAt: new Date().toISOString() },
+      ],
+    };
+    if (wiki.image) {
+      patch.image = wiki.image.url;
+      patch.imageCredit = {
+        author: wiki.image.author,
+        license: wiki.image.license,
+        licenseUrl: wiki.image.licenseUrl,
+        sourceUrl: wiki.image.sourceUrl,
+      };
+      patch.sources!.push({
+        type: 'WIKIMEDIA',
+        url: wiki.image.sourceUrl,
+        syncedAt: new Date().toISOString(),
+      });
+      patch.fieldSources!.image = 'WIKIMEDIA';
+    }
+
+    const updated = await patchSpot(id, patch);
+    return json({ success: true, spot: updated ? withLevel(updated) : null });
+  }
 
   // ── POST: 新規作成 ──
   if (req.method === 'POST') {
