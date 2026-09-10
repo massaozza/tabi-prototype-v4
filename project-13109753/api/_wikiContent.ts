@@ -185,10 +185,15 @@ Rewrite this into a concise, engaging 2-3 paragraph description for travelers. R
         headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.4, maxOutputTokens: 768 },
-          // 【重要】thinkingConfigを省略するとthinkingトークンが出力バジェットを
-          // 消費し、応答本文が空になることがある。明示的に0にする。
-          thinkingConfig: { thinkingBudget: 0 },
+          generationConfig: {
+            temperature: 0.4,
+            maxOutputTokens: 768,
+            // 【重要】thinkingConfigを省略するとthinkingトークンが出力バジェットを
+            // 消費し、応答本文が空になることがある。明示的に0にする。
+            // generationConfigの中に入れる必要がある（トップレベルだと
+            // "Unknown name thinkingConfig" で400になる）。
+            thinkingConfig: { thinkingBudget: 0 },
+          },
         }),
       }
     );
