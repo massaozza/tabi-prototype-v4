@@ -35,7 +35,8 @@ export type SourceType =
   | 'OSM'
   | 'CREATOR'
   | 'TRAVELER'
-  | 'AI_DERIVED';
+  | 'AI_DERIVED'
+  | 'WIKIMEDIA';
 
 export interface SpotSource {
   type: SourceType;
@@ -94,6 +95,17 @@ export interface Spot {
   completeness?: SpotCompleteness;
   createdAt?: string;
   updatedAt?: string;
+  /**
+   * 画像の出典表示（Wikimedia Commons由来の画像はライセンス上、
+   * 撮影者・ライセンスの明記が必要なことが多い）。
+   * フロントエンドの画像表示部分でこの情報をクレジット表示する。
+   */
+  imageCredit?: {
+    author?: string;
+    license?: string;
+    licenseUrl?: string;
+    sourceUrl: string;
+  };
 }
 
 // ───────────────────────────────────────────────
@@ -235,6 +247,9 @@ function toLegacyShape(spot: Spot) {
     lat: spot.lat,
     lng: spot.lng,
     image: spot.image,
+    // 追加フィールド。既存フィールドの構成・順序は変えていないため、
+    // これを見ないコンシューマには影響しない。
+    ...(spot.imageCredit ? { imageCredit: spot.imageCredit } : {}),
   };
 }
 

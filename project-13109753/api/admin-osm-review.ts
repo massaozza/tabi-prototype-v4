@@ -28,6 +28,7 @@ import {
   type Spot,
   type SpotSource,
 } from './_spotStore.js';
+import { buildWikiContent } from './_wikiContent.js';
 import type { MatchStatus } from './_osmMatching.js';
 import {
   getStaging,
@@ -113,6 +114,60 @@ async function createDraftSpotFromStaging(
     : makeSlug(record.name, record.prefecture);
   const slug = await uniqueSlug(base);
 
+  // 【説明文・写真について】
+  // AIに一から作文させることはしない（事実でない説明文を生む恐れがある）。
+  // 代わりに、OSMタグにWikidata/Wikipediaの紐づけがあれば、その事実ベースの
+  // 要約を取得し、AIには「訪日旅行者向けに読みやすく整える」役割だけを
+  // 担わせる（新しい事実は付け加えさせない）。取得できなければ、
+  // 無理に埋めず空のままにする。
+  let description = '';
+  let image = '';
+  let imageCredit: Spot['imageCredit'];
+  const sources: SpotSource[] = [osmSourceOf(record)];
+  const fieldSources: Record<string, SpotSource['type']> = {
+    title: 'OSM',
+    prefecture: 'OSM',
+    lat: 'OSM',
+    lng: 'OSM',
+    ...(record.city ? { city: 'OSM' as const } : {}),
+    ...(record.address ? { address: 'OSM' as const } : {}),
+    ...(record.officialUrl ? { officialUrl: 'OSM' as const } : {}),
+    ...(record.canonicalKey ? { canonicalCategory: 'OSM' as const } : {}),
+  };
+
+  try {
+    const wiki = await buildWikiContent(record.name, record.osmTags || {});
+    if (wiki) {
+      description = wiki.description;
+      sources.push({
+        type: 'AI_DERIVED',
+        url: wiki.descriptionSourceUrl,
+        syncedAt: new Date().toISOString(),
+      });
+      fieldSources.description = 'AI_DERIVED';
+
+      if (wiki.image) {
+        image = wiki.image.url;
+        imageCredit = {
+          author: wiki.image.author,
+          license: wiki.image.license,
+          licenseUrl: wiki.image.licenseUrl,
+          sourceUrl: wiki.image.sourceUrl,
+        };
+        sources.push({
+          type: 'WIKIMEDIA',
+          url: wiki.image.sourceUrl,
+          syncedAt: new Date().toISOString(),
+        });
+        fieldSources.image = 'WIKIMEDIA';
+      }
+    }
+  } catch (e) {
+    // 取得・生成に失敗しても下書き作成自体は止めない。
+    // description/image は空のまま作成し、後からReviewで人が埋められる。
+    console.error(`[createDraftSpotFromStaging] wiki content enrichment failed for ${slug}:`, e);
+  }
+
   const spot: Spot = {
     id: slug,
     title: record.name,
@@ -121,29 +176,19 @@ async function createDraftSpotFromStaging(
     // 推測で当てはめると誤分類になるため、Reviewで人間が付ける。
     category: '',
     prefecture: record.prefecture,
-    // 【重要】説明文をAIや推測で生成しない（指示書17）。
-    // 事実でない説明を作るより、空のままにして後から人が書く。
-    description: '',
+    description,
     lat: record.lat,
     lng: record.lng,
-    image: '',
+    image,
+    imageCredit,
     city: record.city,
     address: record.address,
     officialUrl: record.officialUrl,
     canonicalCategory: record.canonicalKey,
     aliases: record.aliases.slice(0, 20),
     status: opts.publish ? 'published' : 'draft',
-    sources: [osmSourceOf(record)],
-    fieldSources: {
-      title: 'OSM',
-      prefecture: 'OSM',
-      lat: 'OSM',
-      lng: 'OSM',
-      ...(record.city ? { city: 'OSM' as const } : {}),
-      ...(record.address ? { address: 'OSM' as const } : {}),
-      ...(record.officialUrl ? { officialUrl: 'OSM' as const } : {}),
-      ...(record.canonicalKey ? { canonicalCategory: 'OSM' as const } : {}),
-    },
+    sources,
+    fieldSources,
   };
 
   await saveSpot(spot);

@@ -17,6 +17,13 @@ interface Destination {
   image: string;
   lat?: number;
   lng?: number;
+  /** Wikimedia Commons由来の画像等、出典表示が必要な場合に入る */
+  imageCredit?: {
+    author?: string;
+    license?: string;
+    licenseUrl?: string;
+    sourceUrl: string;
+  };
 }
 
 interface Guide {
@@ -381,6 +388,39 @@ export default function DestinationPage() {
                   className="w-full h-full object-cover object-top"
                 />
               </div>
+              {destination.imageCredit && (
+                <p className="mt-1.5 text-xs text-foreground-400">
+                  Photo:{' '}
+                  {destination.imageCredit.author ? `${destination.imageCredit.author}, ` : ''}
+                  <a
+                    href={destination.imageCredit.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline hover:text-foreground-600"
+                  >
+                    Wikimedia Commons
+                  </a>
+                  {destination.imageCredit.license && (
+                    <>
+                      {' '}
+                      (
+                      {destination.imageCredit.licenseUrl ? (
+                        <a
+                          href={destination.imageCredit.licenseUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline hover:text-foreground-600"
+                        >
+                          {destination.imageCredit.license}
+                        </a>
+                      ) : (
+                        destination.imageCredit.license
+                      )}
+                      )
+                    </>
+                  )}
+                </p>
+              )}
             </div>
           </section>
 
