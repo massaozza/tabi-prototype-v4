@@ -9,13 +9,25 @@
 // 全ユーザーの個人情報を読み、全コンテンツを上書きできた。
 // このモジュールは、その境界をサーバー側に移すためのもの。
 //
-// 【設計】
+// 【設計（KVでの失効管理あり）】
 // - 管理者パスワードは環境変数 ADMIN_PASSWORD（サーバー側のみ）に置く。
 //   クライアントのバンドルには一切含めない。
-// - ログインに成功したら HMAC-SHA256 で署名したトークンを
-//   HttpOnly Cookie に入れる。KVに保存しないので失効管理は有効期限のみ。
-// - 署名鍵は ADMIN_SESSION_SECRET。未設定なら認証を常に失敗させる
-//   （設定漏れで「誰でも通る」状態になるのを防ぐため、fail-closed にしている）。
+// - ログイン成功時に crypto.randomUUID() でランダムなセッションIDを
+//   発行し、KVに { createdAt, expiresAt } をTTL付きで保存する。
+//   Cookieには「セッションID + HMAC-SHA256署名」を入れる
+//   （署名は改ざん検知の一次防御、実際の有効性はKVへの問い合わせで
+//   最終確認する）。
+// - こうすることで、ログアウト時・Cookie漏洩時・パスワード変更時に
+//   サーバー側からそのセッション（または全セッション）を即座に
+//   無効化できる（以前は有効期限が来るまで止められなかった）。
+// - 署名鍵は ADMIN_SESSION_SECRET。32文字未満、またはよくある弱い値
+//   （all-same-char等）は拒否し、未設定時と同様に認証を常に
+//   失敗させる（fail-closed）。
+//
+// 【KV障害時の挙動について】
+// セッション検証がKVの読み取りに依存するため、KVが落ちていると
+// 管理者は一時的にログインできなくなる（fail-closed）。認証という
+// 高コストな失敗を許容できない処理では、可用性より安全側に倒す。
 //
 // 【重要】ファイル名を "_" で始めているのは、Vercelがこれを
 // APIエンドポイントとして公開しないようにするため（共有モジュール扱い）。
@@ -23,14 +35,26 @@
 // Edge Runtime / Node.js Runtime のどちらからも使えるよう、
 // Web Crypto API のみを使い、Cookie文字列を引数で受け取る形にしている。
 
+import { kv } from '@vercel/kv';
+
 export const ADMIN_COOKIE_NAME = 'tabi47_admin';
 
 /** 管理者セッションの有効期間（8時間） */
 export const ADMIN_SESSION_SECONDS = 8 * 60 * 60;
 
+/** セッションIDごとのKVキー。値は存在すれば有効（TTLで自動失効） */
+function sessionKey(sessionId: string): string {
+  return `admin:session:${sessionId}`;
+}
+
+/** 発行済みセッションIDの一覧（「全セッション失効」用）。個別のTTL失効とは独立して管理する */
+const ADMIN_ACTIVE_SESSIONS_SET = 'admin:sessions:active';
+
 function getSecret(): string | null {
   const secret = process.env.ADMIN_SESSION_SECRET;
-  if (!secret || secret.length < 16) return null;
+  if (!secret || secret.length < 32) return null;
+  // "aaaaaaaa...", "00000000..." のような明らかに弱い値も拒否する
+  if (/^(.)\1+$/.test(secret)) return null;
   return secret;
 }
 
@@ -61,33 +85,99 @@ function safeEqual(a: string, b: string): boolean {
   return diff === 0;
 }
 
-/** 管理者トークンを発行する。形式: {exp}.{署名} */
+/**
+ * 新しい管理者セッションを作る。
+ * ランダムなセッションIDをKVに保存し、「セッションID.署名」を返す。
+ * KVへの書き込みに失敗した場合は null（＝ログイン自体を失敗させる）。
+ */
 export async function createAdminToken(): Promise<string | null> {
   const secret = getSecret();
   if (!secret) return null;
-  const exp = Math.floor(Date.now() / 1000) + ADMIN_SESSION_SECONDS;
-  const payload = String(exp);
-  const sig = await hmac(payload, secret);
-  return `${payload}.${sig}`;
+
+  const sessionId = crypto.randomUUID();
+  try {
+    await kv.set(sessionKey(sessionId), { createdAt: Date.now() }, { ex: ADMIN_SESSION_SECONDS });
+    await kv.sadd(ADMIN_ACTIVE_SESSIONS_SET, sessionId);
+  } catch {
+    return null;
+  }
+
+  const sig = await hmac(sessionId, secret);
+  return `${sessionId}.${sig}`;
 }
 
-/** トークンの署名と有効期限を検証する */
+/**
+ * トークンの署名を検証し、KV上でそのセッションがまだ有効か確認する。
+ * どちらか一方でも失敗したら未認証扱いにする。
+ */
 export async function verifyAdminToken(token: string | null | undefined): Promise<boolean> {
   const secret = getSecret();
-  // 鍵が未設定なら誰も通さない（設定漏れで開放されるのを防ぐ）
   if (!secret || !token) return false;
 
   const dot = token.lastIndexOf('.');
   if (dot <= 0) return false;
 
-  const payload = token.slice(0, dot);
+  const sessionId = token.slice(0, dot);
   const sig = token.slice(dot + 1);
 
-  const exp = parseInt(payload, 10);
-  if (!Number.isFinite(exp) || exp * 1000 < Date.now()) return false;
+  // UUID以外の値が紛れ込んでいないか軽く検証する（KVクエリの前に弾く）
+  if (!/^[0-9a-f-]{16,64}$/i.test(sessionId)) return false;
 
-  const expected = await hmac(payload, secret);
-  return safeEqual(sig, expected);
+  const expected = await hmac(sessionId, secret);
+  if (!safeEqual(sig, expected)) return false;
+
+  try {
+    const record = await kv.get(sessionKey(sessionId));
+    return record !== null && record !== undefined;
+  } catch {
+    // KV障害時はfail-closed（安全側）にする
+    return false;
+  }
+}
+
+/** ログアウト時・不正利用検知時に、指定したトークンのセッションだけを失効させる */
+export async function revokeAdminToken(token: string | null | undefined): Promise<void> {
+  if (!token) return;
+  const dot = token.lastIndexOf('.');
+  if (dot <= 0) return;
+  const sessionId = token.slice(0, dot);
+  try {
+    await kv.del(sessionKey(sessionId));
+    await kv.srem(ADMIN_ACTIVE_SESSIONS_SET, sessionId);
+  } catch {
+    /* ログアウト自体は続行する（Cookie削除だけでも一定の効果はある） */
+  }
+}
+
+/**
+ * 発行済みの全管理者セッションを失効させる。
+ * パスワード変更時・Cookie漏洩が疑われる場合に使う「緊急停止」用。
+ *
+ * 【制約】個別セッションのTTL失効とは別にこのSetを維持しているため、
+ * 自然にTTL切れしたセッションIDがこのSetに残り続けることがある
+ * （実害はない。srem対象が既に存在しなくてもエラーにはならない）。
+ * 定期的な掃除は行っていないため、Setのサイズは緩やかに増える可能性がある。
+ */
+export async function revokeAllAdminSessions(): Promise<number> {
+  try {
+    const ids = ((await kv.smembers(ADMIN_ACTIVE_SESSIONS_SET)) || []) as string[];
+    if (ids.length === 0) return 0;
+    await Promise.all(ids.map((id) => kv.del(sessionKey(id)).catch(() => null)));
+    await kv.del(ADMIN_ACTIVE_SESSIONS_SET);
+    return ids.length;
+  } catch {
+    return 0;
+  }
+}
+
+/** 管理者パスワードを照合する */
+export async function checkAdminPassword(password: unknown): Promise<boolean> {
+  const expected = process.env.ADMIN_PASSWORD;
+  if (!expected || typeof password !== 'string' || !password) return false;
+  // 生の比較ではなくハッシュ同士を比べ、長さの違いを漏らさない
+  const secret = getSecret() || 'fallback-compare-only';
+  const [a, b] = await Promise.all([hmac(password, secret), hmac(expected, secret)]);
+  return safeEqual(a, b);
 }
 
 /** Cookieヘッダ文字列から値を取り出す */
@@ -109,16 +199,6 @@ export async function isAdminNodeRequest(req: {
 }): Promise<boolean> {
   const token = readCookie(req.headers?.cookie, ADMIN_COOKIE_NAME);
   return verifyAdminToken(token);
-}
-
-/** 管理者パスワードを照合する */
-export async function checkAdminPassword(password: unknown): Promise<boolean> {
-  const expected = process.env.ADMIN_PASSWORD;
-  if (!expected || typeof password !== 'string' || !password) return false;
-  // 生の比較ではなくハッシュ同士を比べ、長さの違いを漏らさない
-  const secret = getSecret() || 'fallback-compare-only';
-  const [a, b] = await Promise.all([hmac(password, secret), hmac(expected, secret)]);
-  return safeEqual(a, b);
 }
 
 /** Set-Cookie ヘッダ値を組み立てる */
@@ -151,3 +231,4 @@ export function adminUnauthorized(): Response {
     headers: { 'Content-Type': 'application/json' },
   });
 }
+

@@ -6,13 +6,21 @@
 //
 // 必要な環境変数（いずれもサーバー側のみ。クライアントには渡らない）：
 //   ADMIN_PASSWORD        … 管理画面のパスワード
-//   ADMIN_SESSION_SECRET  … セッショントークンの署名鍵（32文字以上を推奨）
+//   ADMIN_SESSION_SECRET  … セッショントークンの署名鍵。32文字以上必須
+//                            （同じ文字の繰り返し等、明らかに弱い値も拒否）
 //
-// どちらか未設定の場合は認証を常に失敗させる（fail-closed）。
+// どちらか未設定・不十分な場合は認証を常に失敗させる（fail-closed）。
 //
-// POST   /api/admin-auth  body: { password }  → 成功なら HttpOnly Cookie を発行
-// GET    /api/admin-auth                      → { authenticated: boolean }
-// DELETE /api/admin-auth                      → Cookie を破棄
+// POST   /api/admin-auth          body: { password } → 成功なら HttpOnly Cookie を発行
+// GET    /api/admin-auth                              → { authenticated: boolean }
+// DELETE /api/admin-auth                               → このセッションのCookieを破棄・KVから失効
+// DELETE /api/admin-auth?all=1                         → 発行済み全管理者セッションを失効
+//                                                          （要：現在有効な管理者セッション）
+//
+// 【セッション管理】
+// ログイン成功時にランダムなセッションIDをKVへ保存し、Cookieには
+// 「セッションID + HMAC署名」を入れる。各リクエストでKV上の存在を
+// 確認するため、ログアウト・Cookie漏洩時にサーバー側から即時失効できる。
 //
 // ブルートフォース対策として、失敗時はIP単位で回数を数え、
 // 一定回数を超えたら一時的に受け付けなくする。
@@ -24,6 +32,10 @@ import {
   isAdminRequest,
   adminCookieHeader,
   clearAdminCookieHeader,
+  readCookie,
+  revokeAdminToken,
+  revokeAllAdminSessions,
+  ADMIN_COOKIE_NAME,
 } from './_adminAuth.js';
 
 export const config = { runtime: 'edge' };
@@ -54,7 +66,24 @@ export default async function handler(req: Request): Promise<Response> {
   }
 
   // ── ログアウト ──
+  // ?all=1 を付けると、このセッションだけでなく発行済みの全管理者
+  // セッションを失効させる（Cookie漏洩が疑われる場合・パスワード変更後の
+  // 緊急停止用）。呼び出し時点で有効な管理者セッションが必要。
   if (req.method === 'DELETE') {
+    const url = new URL(req.url);
+    const token = readCookie(req.headers.get('cookie'), ADMIN_COOKIE_NAME);
+
+    if (url.searchParams.get('all') === '1') {
+      if (!(await isAdminRequest(req))) {
+        return json({ error: 'Admin authentication required' }, 401);
+      }
+      const count = await revokeAllAdminSessions();
+      return json({ success: true, revokedSessions: count }, 200, {
+        'Set-Cookie': clearAdminCookieHeader(),
+      });
+    }
+
+    await revokeAdminToken(token);
     return json({ success: true }, 200, { 'Set-Cookie': clearAdminCookieHeader() });
   }
 
