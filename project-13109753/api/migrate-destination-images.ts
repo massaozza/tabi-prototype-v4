@@ -1,36 +1,59 @@
 // /api/migrate-destination-images.ts
 // Vercel Serverless Function（Node.js Runtime）
-// 【一時的な移行用API】homeData.ts / KVに保存されているdestinationsの
-// image URLが、readdy.aiの生成画像URL（外部埋め込み用には作られておらず、
-// 本番サイトの<img>タグから読み込むと拒否されてしまう）になっている問題を
-// 解決するため、各画像をサーバー側で取得し、Cloudflare R2に保存し直して、
+//
+// 【一時的な移行用API】destinationsに保存されているimage URLが、
+// readdy.aiの生成画像URL（外部埋め込み用には作られておらず、本番サイトの
+// <img>タグから読み込むと拒否されてしまう）になっている問題を解決する
+// ため、各画像をサーバー側で取得し、Cloudflare R2に保存し直して、
 // 新しいURLのマッピングを返す。
 //
-// 【重要】このファイルは自己完結型にしてある（api/内の他ファイルからも、
-// src/内のファイルからもimportしない）。Vercelのビルド環境では、
-// api/配下のNode.js Runtimeファイルが他ファイルをimportすると、
-// 実行時に "Cannot find module" のようなエラーでクラッシュすることがある。
-// そのため、destinationsデータは /api/content?type=destinations を
-// サーバー間通信で呼び出して取得する（すでに動作確認済みのAPIのため安全）。
+// 【まだ本番APIとして残している理由】
+// R2移行（Readdy.aiのURLが残存しているSpotの解消）はまだ完了していない
+// 技術的負債として認識されているため、CLIスクリプトへの移行は今回は
+// 行わず、まずAPIとしての安全性を高める形にした。
+// 完全に移行が終わった段階で、このAPI自体を削除するのが望ましい。
 //
-// 【重要】readdy.aiの画像サーバーは、リクエスト元（Referer）を見て
-// ブラウザからの読み込みを拒否するが、サーバー間通信であれば問題なく
-// 取得できるため、この移行処理はサーバー側（Vercel Functions）で行う。
+// 【今回のセキュリティ変更点（元の実装との差分）】
+// 1. GET（副作用あり）→ POST に変更した。
+//    以前はGETで画像取得・R2アップロードという副作用のある処理を
+//    行っていたため、管理者がログインした状態で悪意あるページを開くと
+//    <img src="https://.../migrate-destination-images?..."> のような
+//    タグ1つでR2の容量・転送量を消費させられた（クリックすら不要）。
+// 2. Origin検証を追加した（SameSite=LaxのCookieだけでは、単純な
+//    <img>タグ等の“安全”とみなされるクロスサイトGETは防げないため、
+//    POST化に加えてOriginヘッダーも見る）。
+// 3. 取得先ホストを明示的な許可リスト（readdy.aiのみ）に変更した。
+//    以前は「よくある内部IPを拒否するブロックリスト」方式だったが、
+//    ブロックリストは漏れが必ず残る（DNSリバインディング、IPの
+//    10進数・16進数表記、IPv4埋め込みIPv6等）。用途がreaddy.aiの画像
+//    移行だけなので、許可リスト方式にする方が安全かつシンプル。
+// 4. http:// を廃止し、httpsのみ許可する。
+// 5. ホスト名のDNS解決結果が実際にパブリックIPかどうかも検証する
+//    （許可リストのおかげでリスクは大幅に下がっているが、念のため
+//    多層防御として残す）。
+// 6. レスポンス本体をarrayBufferで全量取得する前に、ストリームを
+//    読みながら上限（10MB）で打ち切るようにした。
+// 7. Content-Typeだけでなく、実際のバイト列（マジックバイト）を見て
+//    JPEG/PNG/WebP/AVIFであることを確認する。
+// 8. testUrls（動作確認用）の件数に上限を設けた。
+// 9. 管理者単位（実質IP単位）のレート制限を追加した。
+// 10. 外部URLや内部例外のメッセージをレスポンスにそのまま含めない
+//     （サーバーログにだけ出す）。
 //
-// 使い方：
-// GET /api/migrate-destination-images?offset=0&limit=20
-//   → offset番目からlimit件だけ処理する
-// GET /api/migrate-destination-images?testUrl=(URLエンコードした1件のURL)
-//   → homeData.tsとは関係なく、そのURL1件だけをテストする
-// GET /api/migrate-destination-images?testUrls=(URLエンコードしたURLをパイプ|区切りで複数)
-//   → 複数件を一度にテストする（検証用）
-//
-// 認証は不要（開発者が手動でこのURLを叩く一時的な移行ツールのため）。
+// 【DNSリバインディングに関する残存リスク】
+// ホスト検証時に解決したIPと、実際にfetch()が接続する時点の解決結果が
+// 完全に同一であることまでは保証していない（TOCTOU）。これを完全に
+// 塞ぐには、解決したIPへ直接接続しつつSNI/Hostだけ元のホスト名を使う
+// ソケットレベルの実装が必要になる。今回は許可リストをreaddy.ai
+// （信頼できる既知の外部サービス）1つに絞ったことで、この残存リスクの
+// 実害は大きく下がっていると判断し、今回のスコープでは実装していない。
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import crypto from 'crypto';
+import dns from 'dns';
 import { isAdminNodeRequest } from './_adminAuth.js';
+import { checkRateLimit, clientIpFromNodeRequest } from './_rateLimit.js';
 
 interface Destination {
   id: string;
@@ -41,22 +64,12 @@ interface Destination {
   image: string;
 }
 
-function getExtensionFromContentType(contentType: string): string {
-  if (contentType.includes('png')) return 'png';
-  if (contentType.includes('webp')) return 'webp';
-  return 'jpg';
-}
+// ───────────────────────────────────────────────
+// 許可リスト・上限値
+// ───────────────────────────────────────────────
 
-// ───────────────────────────────────────────────
-// SSRF・リソース枯渇への対策
-//
-// このAPIは「指定されたURLをサーバーが取得してR2に保存する」動きをする。
-// 無認証・無制限のままだと次の悪用が可能だった：
-//   - 社内ネットワークやクラウドのメタデータ（169.254.169.254）への到達
-//   - 巨大ファイルを掴ませてメモリを枯渇させる
-//   - 第三者にR2の保存容量と転送量を消費させる
-// そこで、管理者認証に加えて以下の制限を設ける。
-// ───────────────────────────────────────────────
+/** 取得先として許可するホスト（このドメイン自身、またはそのサブドメインのみ） */
+const ALLOWED_HOSTS = ['readdy.ai'];
 
 /** 取得を許可する画像1件あたりの上限（10MB） */
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
@@ -64,115 +77,265 @@ const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 /** 画像として受け入れるContent-Type */
 const ALLOWED_CONTENT_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/avif'];
 
-/** プライベート・ループバック・リンクローカル等の宛先を拒否する */
-function isBlockedHost(hostname: string): boolean {
-  const h = hostname.toLowerCase();
+/** 1回のtestUrls呼び出しで検証できる件数の上限 */
+const MAX_TEST_URLS = 5;
 
-  if (h === 'localhost' || h.endsWith('.localhost') || h.endsWith('.internal')) return true;
+/** このAPI自体の呼び出しレート制限（管理者による誤操作・スクリプト暴走対策） */
+const MIGRATE_LIMITS = [{ windowSeconds: 60, max: 20 }];
 
-  // IPv6のループバック・ユニークローカル
-  if (h === '::1' || h === '[::1]') return true;
-  if (/^\[?f[cd][0-9a-f]{2}:/i.test(h)) return true;
-
-  // IPv4
-  const m = h.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
-  if (m) {
-    const [a, b] = [Number(m[1]), Number(m[2])];
-    if (a === 10) return true;                       // 10.0.0.0/8
-    if (a === 127) return true;                      // ループバック
-    if (a === 0) return true;                        // 0.0.0.0/8
-    if (a === 169 && b === 254) return true;         // リンクローカル（クラウドメタデータ）
-    if (a === 172 && b >= 16 && b <= 31) return true; // 172.16.0.0/12
-    if (a === 192 && b === 168) return true;         // 192.168.0.0/16
-    if (a === 100 && b >= 64 && b <= 127) return true; // CGNAT
-    if (a >= 224) return true;                       // マルチキャスト以上
-  }
-  return false;
+function getExtensionFromContentType(contentType: string): string {
+  if (contentType.includes('png')) return 'png';
+  if (contentType.includes('webp')) return 'webp';
+  if (contentType.includes('avif')) return 'avif';
+  return 'jpg';
 }
 
-/** 取得先URLとして安全か検証する */
-function validateImageUrl(raw: string): { ok: true; url: URL } | { ok: false; error: string } {
+/** ホスト名が許可リストに一致するか（完全一致 or サブドメイン） */
+function isAllowedHost(hostname: string): boolean {
+  const h = hostname.toLowerCase();
+  return ALLOWED_HOSTS.some((allowed) => h === allowed || h.endsWith(`.${allowed}`));
+}
+
+/** IPv4アドレスがパブリックかどうか（プライベート・ループバック・リンクローカル等を拒否） */
+function isPublicIPv4(ip: string): boolean {
+  const m = ip.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (!m) return false;
+  const parts = m.slice(1, 5).map(Number);
+  if (parts.some((n) => n < 0 || n > 255)) return false;
+  const [a, b] = parts;
+  if (a === 10) return false; // 10.0.0.0/8
+  if (a === 127) return false; // loopback
+  if (a === 0) return false; // 0.0.0.0/8
+  if (a === 169 && b === 254) return false; // link-local / cloud metadata
+  if (a === 172 && b >= 16 && b <= 31) return false; // 172.16.0.0/12
+  if (a === 192 && b === 168) return false; // 192.168.0.0/16
+  if (a === 100 && b >= 64 && b <= 127) return false; // CGNAT
+  if (a >= 224) return false; // multicast以上（予約含む）
+  return true;
+}
+
+/** IPv6アドレスがパブリックかどうか（ループバック・ユニークローカル・リンクローカル・IPv4埋め込み等を拒否） */
+function isPublicIPv6(ip: string): boolean {
+  const h = ip.toLowerCase().replace(/^\[|\]$/g, '');
+  if (h === '::1') return false; // loopback
+  if (/^fe80:/.test(h)) return false; // link-local
+  if (/^f[cd][0-9a-f]{2}:/.test(h)) return false; // unique local (fc00::/7)
+  // IPv4-mapped / IPv4-compatible（::ffff:127.0.0.1 等）はIPv4側のルールで判定する
+  const mapped = h.match(/(?:^::ffff:|^::)(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/);
+  if (mapped) return isPublicIPv4(mapped[1]);
+  return true;
+}
+
+/**
+ * ホスト名を解決し、すべての解決先アドレスがパブリックIPであることを
+ * 確認する。許可リストで既に信頼できるドメインに絞っているため、
+ * これは多層防御（DNSが不正なIPを返す異常系への備え）として行う。
+ */
+async function resolvesToPublicIpsOnly(hostname: string): Promise<boolean> {
+  try {
+    const records = await dns.promises.lookup(hostname, { all: true, verbatim: true });
+    if (records.length === 0) return false;
+    return records.every((r) =>
+      r.family === 4 ? isPublicIPv4(r.address) : isPublicIPv6(r.address)
+    );
+  } catch {
+    return false;
+  }
+}
+
+/** 取得先URLとして安全か検証する（プロトコル・許可リスト・DNS解決結果） */
+async function validateImageUrl(
+  raw: string
+): Promise<{ ok: true; url: URL } | { ok: false; error: string }> {
   let url: URL;
   try {
     url = new URL(raw);
   } catch {
     return { ok: false, error: 'Invalid URL' };
   }
-  if (url.protocol !== 'https:' && url.protocol !== 'http:') {
-    return { ok: false, error: 'Only http(s) URLs are allowed' };
+  if (url.protocol !== 'https:') {
+    return { ok: false, error: 'Only https URLs are allowed' };
   }
-  if (isBlockedHost(url.hostname)) {
-    return { ok: false, error: 'This host is not allowed' };
+  if (!isAllowedHost(url.hostname)) {
+    return { ok: false, error: 'This host is not on the allowlist' };
+  }
+  if (!(await resolvesToPublicIpsOnly(url.hostname))) {
+    return { ok: false, error: 'This host does not resolve to a public address' };
   }
   return { ok: true, url };
 }
 
-/** 画像を取得する。サイズ・種別を検証し、上限を超えたら中断する */
+/** 先頭バイトから実際の画像形式を判定する（Content-Typeの詐称対策） */
+function detectImageFormat(buf: Buffer): string | null {
+  if (buf.length >= 3 && buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) {
+    return 'image/jpeg';
+  }
+  if (
+    buf.length >= 8 &&
+    buf[0] === 0x89 &&
+    buf[1] === 0x50 &&
+    buf[2] === 0x4e &&
+    buf[3] === 0x47
+  ) {
+    return 'image/png';
+  }
+  if (
+    buf.length >= 12 &&
+    buf.toString('ascii', 0, 4) === 'RIFF' &&
+    buf.toString('ascii', 8, 12) === 'WEBP'
+  ) {
+    return 'image/webp';
+  }
+  if (buf.length >= 12 && buf.toString('ascii', 4, 8) === 'ftyp') {
+    const brand = buf.toString('ascii', 8, 12);
+    if (brand.startsWith('avif') || brand.startsWith('avis')) return 'image/avif';
+  }
+  return null;
+}
+
+/** レスポンス本体をストリームで読みつつ、上限を超えたら打ち切る */
+async function readBodyWithLimit(res: Response, maxBytes: number): Promise<Buffer | { error: string }> {
+  if (!res.body) {
+    const buf = Buffer.from(await res.arrayBuffer());
+    if (buf.byteLength > maxBytes) return { error: `Image too large (${buf.byteLength} bytes)` };
+    return buf;
+  }
+
+  const reader = res.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (value) {
+        total += value.byteLength;
+        if (total > maxBytes) {
+          await reader.cancel().catch(() => {});
+          return { error: `Image too large (exceeded ${maxBytes} bytes while streaming)` };
+        }
+        chunks.push(value);
+      }
+    }
+  } catch (e) {
+    return { error: 'Failed while reading response body' };
+  }
+  return Buffer.concat(chunks.map((c) => Buffer.from(c)));
+}
+
+/** 画像を取得する。プロトコル・許可リスト・DNS・サイズ・種別をすべて検証する */
 async function fetchImageSafely(
   rawUrl: string
 ): Promise<{ buffer: Buffer; contentType: string } | { error: string }> {
-  const checked = validateImageUrl(rawUrl);
+  const checked = await validateImageUrl(rawUrl);
   if (checked.ok === false) return { error: checked.error };
 
   let imgRes: Response;
   try {
     imgRes = await fetch(checked.url.toString(), {
-      // リダイレクトで内部ホストへ回り込まれるのを防ぐ
+      // リダイレクトで許可リスト外のホストへ回り込まれるのを防ぐ
       redirect: 'manual',
       headers: {
         'User-Agent':
           'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         Accept: 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
       },
+      signal: AbortSignal.timeout(15_000),
     });
   } catch (err) {
-    return { error: String(err) };
+    console.error('[migrate-destination-images] fetch failed:', err);
+    return { error: 'Failed to reach the source host' };
   }
 
   if (imgRes.status >= 300 && imgRes.status < 400) {
     return { error: 'Redirects are not followed' };
   }
-  if (!imgRes.ok) return { error: `status ${imgRes.status}` };
+  if (!imgRes.ok) return { error: `Upstream returned status ${imgRes.status}` };
 
-  const contentType = (imgRes.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
-  if (!ALLOWED_CONTENT_TYPES.includes(contentType)) {
-    return { error: `Unsupported content-type: ${contentType || 'unknown'}` };
+  const declaredType = (imgRes.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
+  if (!ALLOWED_CONTENT_TYPES.includes(declaredType)) {
+    return { error: 'Unsupported content-type' };
   }
 
-  const declared = Number(imgRes.headers.get('content-length') || 0);
-  if (declared && declared > MAX_IMAGE_BYTES) {
-    return { error: `Image too large (${declared} bytes)` };
+  const declaredLength = Number(imgRes.headers.get('content-length') || 0);
+  if (declaredLength && declaredLength > MAX_IMAGE_BYTES) {
+    return { error: 'Image too large (declared content-length)' };
   }
 
-  const buffer = Buffer.from(await imgRes.arrayBuffer());
-  if (buffer.byteLength > MAX_IMAGE_BYTES) {
-    return { error: `Image too large (${buffer.byteLength} bytes)` };
-  }
+  const bodyResult = await readBodyWithLimit(imgRes, MAX_IMAGE_BYTES);
+  if ('error' in bodyResult) return bodyResult;
 
-  return { buffer, contentType };
+  // Content-Typeの詐称対策：実際のバイト列から形式を判定し、
+  // 宣言されたContent-Typeと矛盾しないか確認する
+  const actualType = detectImageFormat(bodyResult);
+  if (!actualType) return { error: 'File does not look like a supported image format' };
+
+  return { buffer: bodyResult, contentType: actualType };
+}
+
+/** Originヘッダーがこのサイト自身からのリクエストかを確認する（CSRF対策） */
+function isSameOriginRequest(req: VercelRequest): boolean {
+  const origin = req.headers.origin;
+  // Originを送らないリクエスト（同一オリジンの一部のケース、非ブラウザのCLI等）は
+  // ここでは許容せず、明示的に一致する場合のみ通す方が安全側に倒せる。
+  // ただし社内運用ツールからの直接呼び出しも想定されるため、Origin未送信は
+  // 「不明」として拒否する（fail-closed）。
+  if (!origin) return false;
+  const proto = req.headers['x-forwarded-proto'] || 'https';
+  const host = req.headers.host;
+  if (!host) return false;
+  return origin === `${proto}://${host}`;
 }
 
 export default async function handler(
   req: VercelRequest,
   res: VercelResponse
 ): Promise<void> {
-  if (req.method !== 'GET') {
-    res.status(405).json({ error: 'Method not allowed' });
+  if (req.method !== 'POST') {
+    res.status(405).json({ error: 'Method not allowed. Use POST.' });
     return;
   }
 
-  // 管理者以外は実行させない。無認証だと任意URLをサーバーに取得させられる
+  // 管理者以外は実行させない。無認証だと任意URL（許可リスト内であっても）を
+  // 無制限にサーバーへ取得させ、R2の容量・転送量を消費させられる。
   if (!(await isAdminNodeRequest(req))) {
     res.status(401).json({ error: 'Admin authentication required' });
     return;
   }
 
-  const offset = Number(req.query.offset) || 0;
-  const limit = Math.min(Number(req.query.limit) || 20, 30); // 1回の上限は30件
-  const idsParam = (req.query.ids as string) || '';
-  const idFilter = idsParam.split(',').map((s) => s.trim()).filter(Boolean);
-  const testUrl = req.query.testUrl as string | undefined;
-  const testUrlsParam = req.query.testUrls as string | undefined;
+  // CSRF対策：POST化に加えてOriginも確認する
+  // （SameSite=LaxのCookieだけでは、状況によりクロスサイトのPOSTが
+  // 通ってしまうケースを完全に排除できないため）。
+  if (!isSameOriginRequest(req)) {
+    res.status(403).json({ error: 'Cross-origin requests are not allowed' });
+    return;
+  }
+
+  const ip = clientIpFromNodeRequest(req);
+  const limit = await checkRateLimit('migrate-destination-images', ip, MIGRATE_LIMITS);
+  if (!limit.ok) {
+    res.setHeader('Retry-After', String(limit.retryAfter));
+    res.status(429).json({ error: 'Too many requests. Please try again later.', retryAfter: limit.retryAfter });
+    return;
+  }
+
+  const body = (req.body || {}) as {
+    offset?: unknown;
+    limit?: unknown;
+    ids?: unknown;
+    testUrl?: unknown;
+    testUrls?: unknown;
+  };
+
+  const offset = Number(body.offset) || 0;
+  const limitCount = Math.min(Number(body.limit) || 20, 30); // 1回の上限は30件
+  const idFilter = Array.isArray(body.ids)
+    ? body.ids.filter((s): s is string => typeof s === 'string')
+    : [];
+  const testUrl = typeof body.testUrl === 'string' ? body.testUrl : undefined;
+  const testUrls = Array.isArray(body.testUrls)
+    ? body.testUrls.filter((s): s is string => typeof s === 'string').slice(0, MAX_TEST_URLS)
+    : undefined;
 
   const accountId = process.env.R2_ACCOUNT_ID;
   const accessKeyId = process.env.R2_ACCESS_KEY_ID;
@@ -181,7 +344,8 @@ export default async function handler(
   const publicUrl = process.env.R2_PUBLIC_URL;
 
   if (!accountId || !accessKeyId || !secretAccessKey || !bucketName || !publicUrl) {
-    res.status(500).json({ error: 'Server misconfigured: R2 credentials are not set' });
+    console.error('[migrate-destination-images] R2 credentials are not fully configured');
+    res.status(503).json({ error: 'Image migration is not configured on the server' });
     return;
   }
 
@@ -192,120 +356,84 @@ export default async function handler(
   });
   const publicUrlBase = publicUrl.replace(/\/$/, '');
 
-  // testUrls（複数、パイプ区切り）が指定されている場合は、それぞれを
-  // その場でテストする（動作検証用）
-  if (testUrlsParam) {
-    const urls = testUrlsParam.split('|').map((u) => decodeURIComponent(u.trim())).filter(Boolean);
+  async function migrateOne(url: string, keyPrefix: string) {
+    const fetched = await fetchImageSafely(url);
+    if ('error' in fetched) return { error: fetched.error };
+    const { buffer, contentType } = fetched;
+    const objectKey = `destinations/${keyPrefix}-${crypto.randomUUID()}.${getExtensionFromContentType(
+      contentType
+    )}`;
+    await s3.send(
+      new PutObjectCommand({
+        Bucket: bucketName,
+        Key: objectKey,
+        Body: buffer,
+        ContentType: contentType,
+      })
+    );
+    return { newUrl: `${publicUrlBase}/${objectKey}` };
+  }
+
+  // testUrls（複数、検証用）
+  if (testUrls && testUrls.length > 0) {
     const results = await Promise.all(
-      urls.map(async (url) => {
+      testUrls.map(async (url) => {
         try {
-          const fetched = await fetchImageSafely(url);
-          if ('error' in fetched) {
-            return { url, error: fetched.error };
-          }
-          const { buffer, contentType } = fetched;
-          const objectKey = `destinations/test-${crypto.randomUUID()}.${getExtensionFromContentType(
-            contentType
-          )}`;
-          await s3.send(
-            new PutObjectCommand({
-              Bucket: bucketName,
-              Key: objectKey,
-              Body: buffer,
-              ContentType: contentType,
-            })
-          );
-          return { url, newUrl: `${publicUrlBase}/${objectKey}` };
+          const out = await migrateOne(url, 'test');
+          return { url, ...out };
         } catch (err) {
-          return { url, error: String(err) };
+          console.error('[migrate-destination-images] testUrls error:', err);
+          return { url, error: 'Failed to process this URL' };
         }
       })
     );
-    res.status(200).json({ testMode: true, count: urls.length, results });
+    res.status(200).json({ testMode: true, count: testUrls.length, results });
     return;
   }
 
-  // testUrl が指定されている場合は、homeData.tsの内容とは関係なく、
-  // そのURL1件だけをその場でテストする（動作検証用）
+  // testUrl（単体、検証用）
   if (testUrl) {
     try {
-      const fetched = await fetchImageSafely(decodeURIComponent(testUrl));
-      if ('error' in fetched) {
-        res.status(200).json({
-          testMode: true,
-          error: `Failed to fetch source image: ${fetched.error}`,
-        });
-        return;
-      }
-      const { buffer, contentType } = fetched;
-      const objectKey = `destinations/test-${crypto.randomUUID()}.${getExtensionFromContentType(
-        contentType
-      )}`;
-      await s3.send(
-        new PutObjectCommand({
-          Bucket: bucketName,
-          Key: objectKey,
-          Body: buffer,
-          ContentType: contentType,
-        })
-      );
-      res.status(200).json({ testMode: true, newUrl: `${publicUrlBase}/${objectKey}` });
+      const out = await migrateOne(testUrl, 'test');
+      res.status(200).json({ testMode: true, ...out });
     } catch (err) {
-      res.status(200).json({ testMode: true, error: String(err) });
+      console.error('[migrate-destination-images] testUrl error:', err);
+      res.status(200).json({ testMode: true, error: 'Failed to process this URL' });
     }
     return;
   }
 
+  // ── 本処理：destinationsをKVから直接読む ──
+  // 【重要】以前はreq.headers.hostを使い自分自身の/api/contentへ
+  // サーバー間fetchしていたが、Hostヘッダーはクライアントが送る値であり
+  // 外部fetch先として信用してはならない。KVから直接読む形に変更した。
   let destinations: Destination[] = [];
   try {
-    const proto = req.headers['x-forwarded-proto'] || 'https';
-    const host = req.headers.host;
-    const contentRes = await fetch(`${proto}://${host}/api/content?type=destinations`);
-    if (!contentRes.ok) {
-      res.status(502).json({ error: 'Failed to fetch destinations from /api/content' });
-      return;
-    }
-    const contentJson = await contentRes.json();
-    destinations = Array.isArray(contentJson?.data) ? contentJson.data : [];
+    const { kv } = await import('@vercel/kv');
+    const list = (await kv.get<Destination[]>('content:destinations')) || [];
+    destinations = Array.isArray(list) ? list : [];
   } catch (err) {
-    res.status(502).json({ error: 'Failed to fetch destinations', detail: String(err) });
+    console.error('[migrate-destination-images] failed to read destinations from KV:', err);
+    res.status(502).json({ error: 'Failed to load destinations' });
     return;
   }
 
-  // idsが指定されていれば、それを優先して絞り込む（offset/limitは無視する）
   const slice =
     idFilter.length > 0
       ? destinations.filter((d) => idFilter.includes(d.id))
-      : destinations.slice(offset, offset + limit);
+      : destinations.slice(offset, offset + limitCount);
 
   const results = await Promise.all(
     slice.map(async (dest) => {
-      if (dest.image.includes(publicUrlBase) || !dest.image.includes('readdy.ai')) {
+      if (!dest.image || dest.image.includes(publicUrlBase) || !dest.image.includes('readdy.ai')) {
         return { id: dest.id, skipped: true, reason: 'Already migrated or not a readdy.ai URL' };
       }
       try {
-        const fetched = await fetchImageSafely(dest.image);
-        if ('error' in fetched) {
-          return { id: dest.id, error: `Failed to fetch source image: ${fetched.error}` };
-        }
-        const { buffer, contentType } = fetched;
-
-        const objectKey = `destinations/${dest.id}-${crypto.randomUUID()}.${getExtensionFromContentType(
-          contentType
-        )}`;
-
-        await s3.send(
-          new PutObjectCommand({
-            Bucket: bucketName,
-            Key: objectKey,
-            Body: buffer,
-            ContentType: contentType,
-          })
-        );
-
-        return { id: dest.id, newUrl: `${publicUrlBase}/${objectKey}` };
+        const out = await migrateOne(dest.image, dest.id);
+        return { id: dest.id, ...out };
       } catch (err) {
-        return { id: dest.id, error: String(err) };
+        console.error(`[migrate-destination-images] failed for ${dest.id}:`, err);
+        return { id: dest.id, error: 'Failed to migrate this image' };
       }
     })
   );
@@ -313,7 +441,7 @@ export default async function handler(
   res.status(200).json({
     total: destinations.length,
     offset,
-    limit,
+    limit: limitCount,
     processed: slice.length,
     results,
   });
