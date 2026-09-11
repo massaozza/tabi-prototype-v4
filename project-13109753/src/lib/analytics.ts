@@ -53,6 +53,22 @@ export function initAnalytics(): void {
   };
   window.gtag = gtag;
 
+  // 【重要】これが無いと「同意ステータスが未設定」の状態のまま送信が
+  // 保留され続ける（実際に本番で発生し、手動でgtag()を叩いても
+  // 一切ヒットが送られない不具合の原因だった）。
+  // TABI47は広告用Cookieを使わないため ad_storage は denied のままにし、
+  // 計測（analytics_storage）だけ明示的に許可する。
+  // 【注意】EEA/UK等、Cookie同意バナーが法的に必須な地域向けに公開する
+  // 場合は、本来はユーザーの選択に応じて動的に更新する必要がある。
+  // 現時点ではバナー自体が未実装なため、まず計測を機能させることを
+  // 優先し、常時 granted にしている。
+  gtag('consent', 'default', {
+    ad_storage: 'denied',
+    ad_user_data: 'denied',
+    ad_personalization: 'denied',
+    analytics_storage: 'granted',
+  });
+
   gtag('js', new Date());
   // 遷移ごとに自前で送るので、自動のページビュー送信は切る
   gtag('config', MEASUREMENT_ID, { send_page_view: false });
