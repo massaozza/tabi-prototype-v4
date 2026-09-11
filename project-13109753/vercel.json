@@ -2,6 +2,7 @@
   "buildCommand": "npm run build",
   "outputDirectory": "out",
   "rewrites": [
+    { "source": "/sitemap.xml", "destination": "/api/sitemap" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }

@@ -7,6 +7,7 @@ import { loadAllSpots } from '@/lib/spotSnapshot';
 import { type Experience } from '@/pages/experiences/types';
 import AddToTripButton from '@/components/feature/AddToTripButton';
 import { useAutoT, useAutoText } from '@/hooks/useAutoT';
+import { useSeoMeta } from '@/hooks/useSeoMeta';
 
 interface Destination {
   id: string;
@@ -136,6 +137,14 @@ export default function DestinationPage() {
   const [notFound, setNotFound] = useState(false);
   const [activeTab, setActiveTab] = useState<TabKey>('overview');
   const [heroImageFailed, setHeroImageFailed] = useState(false);
+
+  // 【SEO】このSpot固有のtitle/descriptionを設定する。
+  // これまで全ページがトップページ向けの同じtitleを使い回していたため、
+  // 1万件超の個別ページが検索結果上で区別されにくかった。
+  useSeoMeta(
+    destination ? `${destination.title} - ${destination.prefecture || 'Japan'} | TABI47` : undefined,
+    destination?.description ? destination.description.slice(0, 155) : undefined
+  );
 
   useEffect(() => {
     let cancelled = false;
