@@ -10,24 +10,27 @@
 // 手動で最新化したい場合は ?refresh=1 を付けて呼ぶと、キャッシュを無視して
 // 再取得する。
 //
+// 【重要な修正】以前は content:destinations（DERIVED_CACHE_MAXである
+// 1500件を超えると更新が止まる派生キャッシュ）をHostヘッダー経由の
+// 自己fetchで参照していた。全国のOSM由来Spotを公開した結果、
+// このキャッシュに含まれないSpot（1501件目以降）の口コミ数が一切
+// 表示されない不具合になっていた。_spotStore.ts の getSpot() で
+// KVから直接読む形に変更し、件数に関わらず動作するようにした
+// （副次的に、信用すべきでないHostヘッダーへの依存も無くなった）。
+//
 // GET /api/spot-rating?id=xxx
 //   → { rating: 4.5, userRatingCount: 7800, googleMapsUri: "https://..." }
 //   → 見つからない・エラーの場合は { rating: null } を返す（画面側は非表示にする）
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { kv } from '@vercel/kv';
+import { getSpot } from './_spotStore.js';
 
 interface RatingResult {
   rating: number | null;
   userRatingCount?: number;
   googleMapsUri?: string;
   fetchedAt: string;
-}
-
-interface Destination {
-  id: string;
-  title: string;
-  prefecture?: string;
 }
 
 function cacheKey(id: string): string {
@@ -70,12 +73,7 @@ export default async function handler(
   }
 
   try {
-    const proto = (req.headers['x-forwarded-proto'] as string) || 'https';
-    const host = req.headers.host;
-    const contentRes = await fetch(`${proto}://${host}/api/content?type=destinations`);
-    const contentJson = await contentRes.json();
-    const destinations: Destination[] = Array.isArray(contentJson?.data) ? contentJson.data : [];
-    const spot = destinations.find((d) => d.id === id);
+    const spot = await getSpot(id);
 
     if (!spot) {
       res.status(200).json({ rating: null });
@@ -93,6 +91,7 @@ export default async function handler(
         'X-Goog-FieldMask': 'places.rating,places.userRatingCount,places.googleMapsUri',
       },
       body: JSON.stringify({ textQuery: query, languageCode: 'en' }),
+      signal: AbortSignal.timeout(10_000),
     });
     const searchJson = await searchRes.json();
     const place = searchJson?.places?.[0];
@@ -106,7 +105,8 @@ export default async function handler(
 
     await kv.set(cacheKey(id), result);
     res.status(200).json(result);
-  } catch {
+  } catch (err) {
+    console.error('[spot-rating] error:', err);
     res.status(200).json({ rating: null });
   }
 }
