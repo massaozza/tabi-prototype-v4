@@ -88,33 +88,39 @@ async function main() {
       (s): s is Spot => Boolean(s)
     );
 
-    for (const spot of spots) {
-      processed += 1;
+    // 【重要】以前はここで1件ずつ await patchSpot(...) していたため、
+    // KVの往復（読み取り＋複数の索引更新）が完全に直列化され、
+    // 13,177件で60分のワークフロー上限に達してキャンセルされる不具合が
+    // あった。チャンク内は並列に処理する。
+    await Promise.all(
+      spots.map(async (spot) => {
+        processed += 1;
 
-      if (spot.category && spot.category.trim().length > 0) {
-        skippedHasCategory += 1;
-        continue;
-      }
-      const canonical = spot.canonicalCategory;
-      const legacy = canonical ? CANONICAL_TO_LEGACY[canonical] : undefined;
-      if (!legacy) {
-        skippedNoMapping += 1;
-        if (canonical) unmappedKeys.set(canonical, (unmappedKeys.get(canonical) || 0) + 1);
-        continue;
-      }
+        if (spot.category && spot.category.trim().length > 0) {
+          skippedHasCategory += 1;
+          return;
+        }
+        const canonical = spot.canonicalCategory;
+        const legacy = canonical ? CANONICAL_TO_LEGACY[canonical] : undefined;
+        if (!legacy) {
+          skippedNoMapping += 1;
+          if (canonical) unmappedKeys.set(canonical, (unmappedKeys.get(canonical) || 0) + 1);
+          return;
+        }
 
-      if (!args.dryRun) {
-        await patchSpot(
-          spot.id,
-          {
-            category: legacy,
-            fieldSources: { ...(spot.fieldSources || {}), category: 'AI_DERIVED' },
-          },
-          false
-        );
-      }
-      updated += 1;
-    }
+        if (!args.dryRun) {
+          await patchSpot(
+            spot.id,
+            {
+              category: legacy,
+              fieldSources: { ...(spot.fieldSources || {}), category: 'AI_DERIVED' },
+            },
+            false
+          );
+        }
+        updated += 1;
+      })
+    );
 
     process.stdout.write(`\r  処理済み: ${processed}/${ids.length}（分類 ${updated}）`);
   }
