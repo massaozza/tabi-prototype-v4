@@ -1,0 +1,64 @@
+name: Bulk publish drafts
+
+# draft状態のSpotを、管理画面を経由せずまとめて公開する。
+# /admin/spots はdraftが万単位になるとチェックボックス操作が
+# 現実的でないため、GitHub Actionsから直接KVを操作する。
+
+on:
+  workflow_dispatch:
+    inputs:
+      prefecture:
+        description: '都道府県で絞り込む（空欄なら全都道府県のdraftが対象）例: Tochigi'
+        required: false
+        default: ''
+      limit:
+        description: '今回公開する件数の上限（空欄または0なら該当分すべて）'
+        required: false
+        default: '5000'
+      dryRun:
+        description: '対象件数の確認だけ行い、実際には公開しない'
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  bulk-publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    defaults:
+      run:
+        working-directory: project-13109753
+
+    steps:
+      - name: リポジトリを取得
+        uses: actions/checkout@v4
+
+      - name: Node.jsを準備
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: 依存関係をインストール
+        run: npm ci
+
+      - name: 一括公開を実行
+        env:
+          KV_REST_API_URL: ${{ secrets.KV_REST_API_URL }}
+          KV_REST_API_TOKEN: ${{ secrets.KV_REST_API_TOKEN }}
+        run: |
+          ARGS=""
+          if [ -n "${{ inputs.prefecture }}" ]; then
+            ARGS="$ARGS --prefecture=${{ inputs.prefecture }}"
+          fi
+          if [ -n "${{ inputs.limit }}" ]; then
+            ARGS="$ARGS --limit=${{ inputs.limit }}"
+          fi
+          if [ "${{ inputs.dryRun }}" = "true" ]; then
+            ARGS="$ARGS --dry-run"
+          fi
+          echo "実行: npm run bulk-publish -- $ARGS"
+          npm run bulk-publish -- $ARGS
