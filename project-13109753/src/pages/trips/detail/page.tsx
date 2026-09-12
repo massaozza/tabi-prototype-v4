@@ -386,12 +386,17 @@ export default function PublicTripDetailPage() {
                     return (
                       <div
                         key={day.day}
-                        className="bg-background-50 border border-background-200 rounded-xl p-5 md:p-6"
+                        className="bg-background-50 border border-background-200 rounded-2xl overflow-hidden"
                       >
-                        <div className="flex items-center justify-between mb-3">
-                          <h3 className="font-heading font-bold text-base text-foreground-900">
-                            {t('auto_987b9ced08', "Day")}{' '}{day.day}
-                          </h3>
+                        <div className="flex items-center justify-between px-5 md:px-6 py-4 bg-background-100/70 border-b border-background-200">
+                          <div className="flex items-center gap-2.5">
+                            <span className="w-7 h-7 rounded-full bg-primary-500 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">
+                              {day.day}
+                            </span>
+                            <h3 className="font-heading font-bold text-base text-foreground-900">
+                              {t('auto_987b9ced08', "Day")}{' '}{day.day}
+                            </h3>
+                          </div>
                           {stay && (
                             <span className="inline-flex items-center gap-1 text-xs text-foreground-500 whitespace-nowrap">
                               <i className="ri-hotel-line"></i>
@@ -399,41 +404,89 @@ export default function PublicTripDetailPage() {
                             </span>
                           )}
                         </div>
-                        <ul className="space-y-2 mb-3">
+
+                        <div className="px-5 md:px-6 pt-5 pb-1">
                           {day.activities.map((a, idx) => {
+                            const isTransport = a.type === 'transport';
                             const dest = a.spotId ? spotData.get(a.spotId) : undefined;
                             const imgUrl = dest?.image && isUsableImage(dest.image) ? dest.image : undefined;
+                            const isLast = idx === day.activities.length - 1;
+
                             return (
-                              <li key={idx} className="flex items-start gap-2.5 text-sm">
-                                {imgUrl && (
-                                  <img
-                                    src={imgUrl}
-                                    alt=""
-                                    className="w-10 h-10 rounded-lg object-cover flex-shrink-0 mt-0.5"
-                                  />
-                                )}
-                                <div>
-                                  {a.time && (
-                                    <span className="text-foreground-400 text-xs mr-1.5">
+                              <div key={idx} className="flex gap-3.5">
+                                {/* タイムライン（縦線＋ドット/アイコン） */}
+                                <div className="flex flex-col items-center flex-shrink-0">
+                                  {isTransport ? (
+                                    <span className="w-6 h-6 rounded-full bg-background-100 border border-background-200 flex items-center justify-center text-foreground-400">
+                                      <i className="ri-route-line text-xs"></i>
+                                    </span>
+                                  ) : imgUrl ? (
+                                    <img
+                                      src={imgUrl}
+                                      alt=""
+                                      className="w-12 h-12 rounded-xl object-cover ring-2 ring-white"
+                                    />
+                                  ) : (
+                                    <span className="w-12 h-12 rounded-xl bg-background-100 border border-background-200 flex items-center justify-center text-foreground-300">
+                                      <i className="ri-map-pin-line"></i>
+                                    </span>
+                                  )}
+                                  {!isLast && (
+                                    <span
+                                      className={`w-px flex-1 my-1 ${
+                                        isTransport ? 'bg-background-200' : 'bg-background-200'
+                                      }`}
+                                      style={{ minHeight: isTransport ? '16px' : '10px' }}
+                                    ></span>
+                                  )}
+                                </div>
+
+                                {/* 内容 */}
+                                <div className={`min-w-0 ${isTransport ? 'pb-3' : 'pb-4'}`}>
+                                  {a.time && !isTransport && (
+                                    <span className="inline-block text-[11px] font-semibold text-primary-600 bg-primary-50 px-2 py-0.5 rounded-full mb-1">
                                       {a.time}
                                     </span>
                                   )}
-                                  <span className="text-foreground-800 font-medium">{tx(a.title)}</span>
+                                  <p
+                                    className={
+                                      isTransport
+                                        ? 'text-foreground-600 text-sm font-medium'
+                                        : 'text-foreground-900 text-sm font-bold'
+                                    }
+                                  >
+                                    {tx(a.title)}
+                                  </p>
                                   {a.description && (
-                                    <span className="block text-foreground-500 text-xs mt-0.5">
+                                    <p className="text-foreground-500 text-xs mt-0.5 leading-relaxed">
                                       {tx(a.description)}
-                                    </span>
+                                    </p>
                                   )}
                                 </div>
-                              </li>
+                              </div>
                             );
                           })}
-                        </ul>
-                        <div className="flex flex-wrap gap-3 text-xs text-foreground-500">
-                          {day.meals.breakfast && <span>B: {day.meals.breakfast.suggestion}</span>}
-                          {day.meals.lunch && <span>L: {day.meals.lunch.suggestion}</span>}
-                          {day.meals.dinner && <span>D: {day.meals.dinner.suggestion}</span>}
                         </div>
+
+                        {(day.meals.breakfast || day.meals.lunch || day.meals.dinner) && (
+                          <div className="flex flex-wrap gap-3 text-xs text-foreground-500 px-5 md:px-6 pb-5">
+                            {day.meals.breakfast && (
+                              <span className="inline-flex items-center gap-1">
+                                <i className="ri-sun-line"></i>B: {day.meals.breakfast.suggestion}
+                              </span>
+                            )}
+                            {day.meals.lunch && (
+                              <span className="inline-flex items-center gap-1">
+                                <i className="ri-restaurant-line"></i>L: {day.meals.lunch.suggestion}
+                              </span>
+                            )}
+                            {day.meals.dinner && (
+                              <span className="inline-flex items-center gap-1">
+                                <i className="ri-moon-line"></i>D: {day.meals.dinner.suggestion}
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </div>
                     );
                   })}
