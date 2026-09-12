@@ -40,6 +40,24 @@ interface TripStay {
   checkOutDay: number;
 }
 
+interface Destination {
+  id: string;
+  title: string;
+  image: string;
+}
+
+/** OSM由来の一部Spotは正しい画像を持たないことがあるため、この判定を共通化する */
+function isUsableImage(url: string | undefined): boolean {
+  return !!url && !url.includes('readdy.ai');
+}
+
+/** Spot画像が3枚に満たない場合の汎用フォールバック（旅先の雰囲気だけを伝える一般的な写真） */
+const SAMPLE_IMAGES = [
+  'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=900&q=80',
+  'https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=600&q=80',
+  'https://images.unsplash.com/photo-1480796927426-f609979314bd?w=600&q=80',
+];
+
 interface PublicTrip {
   id: string;
   uid: string;
@@ -76,6 +94,7 @@ export default function PublicTripDetailPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [trip, setTrip] = useState<PublicTrip | null>(null);
+  const [spotData, setSpotData] = useState<Map<string, Destination>>(new Map());
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -94,6 +113,34 @@ export default function PublicTripDetailPage() {
           setTrip(found);
           if (found) {
             trackEvent('view', 'trip', found.id);
+
+            // 【重要】旅程で紹介しているSpotの写真を表示するため、個別に取得する。
+            // /api/content?type=destinations（1500件を超えると更新が止まる
+            // 派生キャッシュ）からは、全国展開後の新しいSpotが見つからない
+            // ことがあるため、/api/spots?id=xxx で1件ずつ確実に取得する。
+            const spotIds: string[] = Array.from(
+              new Set(
+                (found.days || [])
+                  .flatMap((d: TripDay) => d.activities || [])
+                  .map((a: TripActivity) => a.spotId)
+                  .filter((v: unknown): v is string => typeof v === 'string' && !!v)
+              )
+            ) as string[];
+            if (spotIds.length > 0) {
+              Promise.all(
+                spotIds.map((sid) =>
+                  fetch(`/api/spots?id=${encodeURIComponent(sid)}`)
+                    .then((r) => (r.ok ? r.json() : null))
+                    .then((d) => (d?.spot ? (d.spot as Destination) : null))
+                    .catch(() => null)
+                )
+              ).then((results) => {
+                if (cancelled) return;
+                const map = new Map<string, Destination>();
+                for (const dest of results) if (dest?.id) map.set(dest.id, dest);
+                setSpotData(map);
+              });
+            }
           }
         }
       } catch {
@@ -177,6 +224,24 @@ export default function PublicTripDetailPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, trip]);
 
+  const getHeaderImages = (t: PublicTrip): string[] => {
+    const result: string[] = [];
+    for (const day of [...t.days].sort((a, b) => a.day - b.day)) {
+      for (const act of day.activities || []) {
+        if (act.type === 'transport') continue;
+        if (act.spotId) {
+          const dest = spotData.get(act.spotId);
+          if (dest?.image && isUsableImage(dest.image) && !result.includes(dest.image)) {
+            result.push(dest.image);
+          }
+        }
+        if (result.length >= 3) return result;
+      }
+    }
+    while (result.length < 3) result.push(SAMPLE_IMAGES[result.length]);
+    return result;
+  };
+
   return (
     <main className="min-h-screen bg-background-50">
       <Navbar />
@@ -207,6 +272,34 @@ export default function PublicTripDetailPage() {
             </div>
           ) : (
             <article>
+              {(() => {
+                const headerImages = getHeaderImages(trip);
+                return (
+                  <div className="relative h-[220px] md:h-[320px] overflow-hidden rounded-2xl mb-6 -mx-6 md:mx-0">
+                    <div
+                      className="absolute inset-0 grid gap-[3px]"
+                      style={{ gridTemplateColumns: '2fr 1fr', gridTemplateRows: '1fr 1fr' }}
+                    >
+                      <img
+                        src={headerImages[0]}
+                        alt={tx(trip.title)}
+                        className="w-full h-full object-cover"
+                        style={{ gridRow: '1 / 3' }}
+                      />
+                      <img src={headerImages[1]} alt="" className="w-full h-full object-cover" />
+                      <img src={headerImages[2]} alt="" className="w-full h-full object-cover" />
+                    </div>
+                    <div
+                      className="absolute inset-0"
+                      style={{
+                        background:
+                          'linear-gradient(to bottom, rgba(10,18,40,0.45) 0%, rgba(10,18,40,0) 35%, rgba(10,18,40,0) 55%, rgba(10,18,40,0.85) 100%)',
+                      }}
+                    />
+                  </div>
+                );
+              })()}
+
               <nav
                 className="flex items-center gap-2 text-foreground-400 text-xs mb-6 flex-wrap"
                 aria-label={t('auto_c766e66518', "Breadcrumb")}
@@ -307,21 +400,34 @@ export default function PublicTripDetailPage() {
                           )}
                         </div>
                         <ul className="space-y-2 mb-3">
-                          {day.activities.map((a, idx) => (
-                            <li key={idx} className="text-sm">
-                              {a.time && (
-                                <span className="text-foreground-400 text-xs mr-1.5">
-                                  {a.time}
-                                </span>
-                              )}
-                              <span className="text-foreground-800 font-medium">{tx(a.title)}</span>
-                              {a.description && (
-                                <span className="block text-foreground-500 text-xs mt-0.5">
-                                  {tx(a.description)}
-                                </span>
-                              )}
-                            </li>
-                          ))}
+                          {day.activities.map((a, idx) => {
+                            const dest = a.spotId ? spotData.get(a.spotId) : undefined;
+                            const imgUrl = dest?.image && isUsableImage(dest.image) ? dest.image : undefined;
+                            return (
+                              <li key={idx} className="flex items-start gap-2.5 text-sm">
+                                {imgUrl && (
+                                  <img
+                                    src={imgUrl}
+                                    alt=""
+                                    className="w-10 h-10 rounded-lg object-cover flex-shrink-0 mt-0.5"
+                                  />
+                                )}
+                                <div>
+                                  {a.time && (
+                                    <span className="text-foreground-400 text-xs mr-1.5">
+                                      {a.time}
+                                    </span>
+                                  )}
+                                  <span className="text-foreground-800 font-medium">{tx(a.title)}</span>
+                                  {a.description && (
+                                    <span className="block text-foreground-500 text-xs mt-0.5">
+                                      {tx(a.description)}
+                                    </span>
+                                  )}
+                                </div>
+                              </li>
+                            );
+                          })}
                         </ul>
                         <div className="flex flex-wrap gap-3 text-xs text-foreground-500">
                           {day.meals.breakfast && <span>B: {day.meals.breakfast.suggestion}</span>}
