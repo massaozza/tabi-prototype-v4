@@ -38,7 +38,6 @@ import {
   updateStaging,
   linkOsmToSpot,
   getStagingSummary,
-  type StagingRecord,
 } from './_osmStaging.js';
 
 // 【注意】maxDuration は Edge Runtime では効かない。

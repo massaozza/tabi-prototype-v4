@@ -49,6 +49,5 @@ export function useSeoMeta(title?: string, description?: string): void {
       document.title = DEFAULT_TITLE;
       setMetaDescription(DEFAULT_DESCRIPTION);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [title, description]);
 }

@@ -217,7 +217,7 @@ async function readBodyWithLimit(res: Response, maxBytes: number): Promise<Buffe
         chunks.push(value);
       }
     }
-  } catch (e) {
+  } catch {
     return { error: 'Failed while reading response body' };
   }
   return Buffer.concat(chunks.map((c) => Buffer.from(c)));
