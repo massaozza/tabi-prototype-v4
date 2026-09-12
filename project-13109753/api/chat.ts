@@ -398,13 +398,15 @@ export default async function handler(req: Request): Promise<Response> {
           systemInstruction: { parts: [{ text: systemPrompt }] },
           generationConfig: { responseMimeType: 'application/json' },
         }),
+        signal: AbortSignal.timeout(20_000),
       }
     );
 
     if (!response.ok) {
       const detail = await response.text();
+      console.error('[chat] Upstream API error:', response.status, detail);
       return new Response(
-        JSON.stringify({ error: 'Upstream API error', detail }),
+        JSON.stringify({ error: 'Upstream API error' }),
         { status: 502, headers: { 'Content-Type': 'application/json' } }
       );
     }

@@ -148,6 +148,7 @@ ${JSON.stringify(candidates)}
             thinkingConfig: { thinkingBudget: 0 },
           },
         }),
+        signal: AbortSignal.timeout(15_000),
       }
     );
     if (!res.ok) {

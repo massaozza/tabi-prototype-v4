@@ -132,6 +132,7 @@ ${JSON.stringify(payload)}`;
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 8192 },
         }),
+        signal: AbortSignal.timeout(20_000),
       }
     );
   } catch (e) {
@@ -310,15 +311,19 @@ export default async function handler(req: Request): Promise<Response> {
     });
     await Promise.all(writes);
 
+    if (errors.length > 0) {
+      console.error('[translate-ui] Gemini errors during batch:', errors.slice(0, 5));
+    }
+
     return json({
       translations,
       translated: writes.length,
       ...(rateLimited ? { rateLimited: true } : {}),
-      ...(errors.length ? { geminiErrors: errors.slice(0, 2) } : {}),
+      ...(errors.length ? { hadErrors: true } : {}),
     });
   } catch (err) {
     console.error('[translate-ui] error:', err);
     // 失敗してもキャッシュ済み分は返す（画面が壊れないように）
-    return json({ translations, error: String(err) });
+    return json({ translations, error: 'Translation failed' });
   }
 }

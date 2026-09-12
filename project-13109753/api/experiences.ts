@@ -2,11 +2,6 @@
 // Vercel Serverless Function（Node.js Runtime）
 // 旅行者のリアルな体験（Experience）の投稿・一覧取得・削除を扱うAPI。
 //
-// 【重要】このVercelプロジェクトのNode.js Runtimeでは、api/配下の別ファイル
-// （_auth.ts, _store.ts等）をimportすると、実行時に "Cannot find module" で
-// 落ちることが判明した（Edge Runtimeでは問題なく動く）。そのため、
-// このファイルは共通ヘルパーに頼らず、必要なロジックを全て自己完結させている。
-//
 // 事業計画書の構造化データ（WHO/WHERE/WHEN/CONTEXT/EXPERIENCE/EVIDENCE）を
 // 反映したデータ構造。まずはAIとの会話ではなく、通常のフォーム入力で作成する。
 //
@@ -18,15 +13,41 @@
 // GET  /api/experiences?mine=1     → 自分が投稿したExperienceだけを取得（認証必須）
 // POST /api/experiences            → 新規投稿（認証必須）
 // DELETE /api/experiences?id=xxx   → 削除（認証必須、本人の投稿のみ）
+//
+// 【セキュリティ上の変更点（元の実装との差分）】
+// - analyzePhoto() が任意のphotoUrlを無制限にfetchしていた（SSRF・
+//   コスト濫用の両方のリスク）。自サービスのR2許可ホストの写真のみを
+//   許可し、サイズ・タイムアウト・Content-Typeも検証するようにした。
+// - POSTにユーザー単位のレート制限を追加した（1回の投稿で最大2回
+//   Geminiを呼ぶため、無制限だと費用を消費させられる）。
+// - matchSpotIdWithAI() が req.headers.host を使い自分自身の
+//   /api/content にfetchしていたが、Hostヘッダーはクライアントが
+//   送る値であり信用できない。listPublishedSpots() で直接KVから
+//   読む形に変更した。
+// - Gemini呼び出しにタイムアウトを追加した。
+// - 内部例外の詳細（String(err)）をレスポンスから削除した。
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { kv } from '@vercel/kv';
 import crypto from 'crypto';
+import { listPublishedSpots } from './_spotStore.js';
+import { checkRateLimit } from './_rateLimit.js';
 
 const COLLECTION = 'experiences';
 
 const TRAVEL_STYLES = ['Solo', 'Couple', 'Family with kids', 'Friends', 'Business'] as const;
 const BUDGET_LEVELS = ['Budget', 'Mid-range', 'Luxury'] as const;
+
+/** Geminiへの1回の呼び出しのタイムアウト */
+const GEMINI_TIMEOUT_MS = 15_000;
+/** 写真取得のタイムアウトとサイズ上限 */
+const PHOTO_FETCH_TIMEOUT_MS = 10_000;
+const MAX_PHOTO_BYTES = 8 * 1024 * 1024; // 8MB
+/** 投稿のレート制限（uid単位） */
+const POST_LIMITS = [
+  { windowSeconds: 60 * 60, max: 10 },
+  { windowSeconds: 24 * 60 * 60, max: 30 },
+];
 
 export interface Experience {
   id: string;
@@ -73,7 +94,6 @@ export interface Experience {
  * SPOT一覧は /api/content?type=destinations への内部リクエストで取得する。
  */
 async function matchSpotIdWithAI(
-  req: VercelRequest,
   placeName: string,
   area: string
 ): Promise<string | null> {
@@ -82,20 +102,8 @@ async function matchSpotIdWithAI(
   const model = process.env.GEMINI_MODEL || 'gemini-3.6-flash';
 
   try {
-    const proto = (req.headers['x-forwarded-proto'] as string) || 'https';
-    const host = req.headers.host;
-    const contentRes = await fetch(`${proto}://${host}/api/content?type=destinations`);
-    if (!contentRes.ok) return null;
-    const contentJson = await contentRes.json();
-    const spots: { id: string; title: string; prefecture?: string }[] = Array.isArray(
-      contentJson?.data
-    )
-      ? contentJson.data.map((d: { id: string; title: string; prefecture?: string }) => ({
-          id: d.id,
-          title: d.title,
-          prefecture: d.prefecture,
-        }))
-      : [];
+    const allSpots = await listPublishedSpots();
+    const spots = allSpots.map((d) => ({ id: d.id, title: d.title, prefecture: d.prefecture }));
     if (spots.length === 0) return null;
 
     const prompt = `旅行者が投稿した観光地の名前と地域が、以下のSPOT一覧のどれかと
@@ -131,6 +139,7 @@ ${JSON.stringify(spots)}
             thinkingConfig: { thinkingBudget: 0 },
           },
         }),
+        signal: AbortSignal.timeout(GEMINI_TIMEOUT_MS),
       }
     );
     if (!response.ok) {
@@ -148,8 +157,27 @@ ${JSON.stringify(spots)}
     if (!answer || answer.toLowerCase() === 'none') return null;
     const matched = spots.find((s) => s.id === answer);
     return matched ? matched.id : null;
-  } catch {
+  } catch (err) {
+    console.error('[experiences] matchSpotIdWithAI error:', err);
     return null;
+  }
+}
+
+/**
+ * photoUrlが、自サービスのR2（写真アップロード先）の許可ホストかを確認する。
+ * ユーザーが投稿するphotoUrlは本来 /api/upload-url でR2にアップロード
+ * したものだけのはずだが、フロントエンドの実装ミス・悪意ある直接APIコールで
+ * 任意のURLが混入する可能性を考え、サーバー側でも制限する。
+ */
+function isAllowedPhotoHost(url: string): boolean {
+  const publicUrl = process.env.R2_PUBLIC_URL;
+  if (!publicUrl) return false;
+  try {
+    const target = new URL(url);
+    const base = new URL(publicUrl);
+    return target.protocol === 'https:' && target.hostname === base.hostname;
+  } catch {
+    return false;
   }
 }
 
@@ -162,14 +190,52 @@ ${JSON.stringify(spots)}
 async function analyzePhoto(photoUrl: string): Promise<string | null> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return null;
+
+  // 【重要】自サービスのR2にアップロードされた写真だけを許可する。
+  // 任意のURLを無制限にfetchできると、社内ネットワークへのSSRFや、
+  // 巨大ファイルを繰り返し取得させてのコスト濫用に使われかねない。
+  if (!isAllowedPhotoHost(photoUrl)) {
+    console.error('[experiences] analyzePhoto: photoUrl is not on the allowed host');
+    return null;
+  }
+
   const model = process.env.GEMINI_MODEL || 'gemini-3.6-flash';
 
   try {
-    const imgRes = await fetch(photoUrl);
+    const imgRes = await fetch(photoUrl, { signal: AbortSignal.timeout(PHOTO_FETCH_TIMEOUT_MS) });
     if (!imgRes.ok) return null;
-    const arrayBuffer = await imgRes.arrayBuffer();
-    const base64 = Buffer.from(arrayBuffer).toString('base64');
+
     const contentType = imgRes.headers.get('content-type') || 'image/jpeg';
+    if (!contentType.startsWith('image/')) return null;
+
+    const declaredLength = Number(imgRes.headers.get('content-length') || 0);
+    if (declaredLength && declaredLength > MAX_PHOTO_BYTES) return null;
+
+    // ストリームを読みながら上限で打ち切る（全量取得してからサイズ判定しない）
+    let buffer: Buffer;
+    if (imgRes.body) {
+      const reader = imgRes.body.getReader();
+      const chunks: Uint8Array[] = [];
+      let total = 0;
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        if (value) {
+          total += value.byteLength;
+          if (total > MAX_PHOTO_BYTES) {
+            await reader.cancel().catch(() => {});
+            return null;
+          }
+          chunks.push(value);
+        }
+      }
+      buffer = Buffer.concat(chunks.map((c) => Buffer.from(c)));
+    } else {
+      buffer = Buffer.from(await imgRes.arrayBuffer());
+      if (buffer.byteLength > MAX_PHOTO_BYTES) return null;
+    }
+
+    const base64 = buffer.toString('base64');
 
     const prompt =
       'これは旅行者が投稿した写真です。写っているものを簡潔に日本語で説明してください' +
@@ -194,6 +260,7 @@ async function analyzePhoto(photoUrl: string): Promise<string | null> {
             },
           ],
         }),
+        signal: AbortSignal.timeout(GEMINI_TIMEOUT_MS),
       }
     );
 
@@ -204,7 +271,8 @@ async function analyzePhoto(photoUrl: string): Promise<string | null> {
         ?.map((p: { text?: string }) => p.text || '')
         .join('') ?? '';
     return text.trim() || null;
-  } catch {
+  } catch (err) {
+    console.error('[experiences] analyzePhoto error:', err);
     return null;
   }
 }
@@ -336,6 +404,15 @@ export default async function handler(
       return;
     }
 
+    // 1回の投稿でGeminiを最大2回（spot照合＋写真解析）呼ぶため、
+    // 無制限だと費用を消費させられる。ユーザー単位で制限する。
+    const limit = await checkRateLimit('experiences-post', uid, POST_LIMITS);
+    if (!limit.ok) {
+      res.setHeader('Retry-After', String(limit.retryAfter));
+      res.status(429).json({ error: 'Too many posts. Please try again later.', retryAfter: limit.retryAfter });
+      return;
+    }
+
     const body: Partial<Experience> = req.body || {};
 
     const placeName = (body.placeName || '').trim();
@@ -402,7 +479,7 @@ export default async function handler(
     // フロントエンドがspotIdを設定していない場合、AIが自動で最も近いSPOTを判定する
     // （投稿者が候補を明示的に選ばなくても、自動で紐づくようにするための仕組み）
     if (!spotId) {
-      spotId = (await matchSpotIdWithAI(req, placeName, area)) ?? undefined;
+      spotId = (await matchSpotIdWithAI(placeName, area)) ?? undefined;
     }
 
     // 1枚目の写真だけをAIで解析する（複数枚あっても最初の1枚のみ、コスト・時間を抑えるため）
@@ -446,7 +523,8 @@ export default async function handler(
 
       res.status(200).json({ success: true, experience });
     } catch (err) {
-      res.status(500).json({ error: 'Failed to save experience', detail: String(err) });
+      console.error('[experiences] POST error:', err);
+      res.status(500).json({ error: 'Failed to save experience' });
     }
     return;
   }
@@ -479,7 +557,8 @@ export default async function handler(
       await deleteExperienceRecord(id, uid, existing.spotId);
       res.status(200).json({ success: true });
     } catch (err) {
-      res.status(500).json({ error: 'Failed to delete experience', detail: String(err) });
+      console.error('[experiences] DELETE error:', err);
+      res.status(500).json({ error: 'Failed to delete experience' });
     }
     return;
   }

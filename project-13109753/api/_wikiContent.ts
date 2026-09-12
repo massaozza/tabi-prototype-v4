@@ -70,7 +70,10 @@ async function resolveWikipediaFromWikidata(
   try {
     const res = await fetch(
       `https://www.wikidata.org/wiki/Special:EntityData/${wikidataId}.json`,
-      { headers: { 'User-Agent': 'TABI47/1.0 (https://www.tabi47.com; content enrichment)' } }
+      {
+        headers: { 'User-Agent': 'TABI47/1.0 (https://www.tabi47.com; content enrichment)' },
+        signal: AbortSignal.timeout(10_000),
+      }
     );
     if (!res.ok) return null;
     const data = await res.json();
@@ -89,7 +92,10 @@ async function resolveCommonsFileFromWikidata(wikidataId: string): Promise<strin
   try {
     const res = await fetch(
       `https://www.wikidata.org/wiki/Special:EntityData/${wikidataId}.json`,
-      { headers: { 'User-Agent': 'TABI47/1.0 (https://www.tabi47.com; content enrichment)' } }
+      {
+        headers: { 'User-Agent': 'TABI47/1.0 (https://www.tabi47.com; content enrichment)' },
+        signal: AbortSignal.timeout(10_000),
+      }
     );
     if (!res.ok) return null;
     const data = await res.json();
@@ -106,7 +112,10 @@ async function fetchWikipediaExtract(lang: string, title: string): Promise<strin
   try {
     const res = await fetch(
       `https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`,
-      { headers: { 'User-Agent': 'TABI47/1.0 (https://www.tabi47.com; content enrichment)' } }
+      {
+        headers: { 'User-Agent': 'TABI47/1.0 (https://www.tabi47.com; content enrichment)' },
+        signal: AbortSignal.timeout(10_000),
+      }
     );
     if (!res.ok) return null;
     const data = await res.json();
@@ -125,7 +134,10 @@ async function fetchCommonsImageInfo(filename: string): Promise<WikiContent['ima
       `https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(
         title
       )}&prop=imageinfo&iiprop=url|extmetadata&format=json&origin=*`,
-      { headers: { 'User-Agent': 'TABI47/1.0 (https://www.tabi47.com; content enrichment)' } }
+      {
+        headers: { 'User-Agent': 'TABI47/1.0 (https://www.tabi47.com; content enrichment)' },
+        signal: AbortSignal.timeout(10_000),
+      }
     );
     if (!res.ok) return null;
     const data = await res.json();
@@ -200,6 +212,7 @@ Using ONLY the facts in the source above, write a description (about the same le
             maxOutputTokens: 4096,
           },
         }),
+        signal: AbortSignal.timeout(20_000),
       }
     );
     if (!res.ok) {
@@ -304,6 +317,7 @@ export async function fetchOsmTagsById(
         'User-Agent': 'TABI47/1.0 (https://www.tabi47.com; content regeneration)',
       },
       body: `data=${encodeURIComponent(query)}`,
+      signal: AbortSignal.timeout(20_000),
     });
     if (!res.ok) return null;
     const data = (await res.json()) as { elements?: Array<{ tags?: Record<string, string> }> };

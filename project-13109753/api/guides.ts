@@ -3,10 +3,6 @@
 // TABI 2.0：日本人クリエイターによる「ローカル知識」投稿（GUIDE）の
 // 投稿・一覧取得・削除を扱うAPI。
 //
-// 【重要】このVercelプロジェクトのNode.js Runtimeでは、api/配下の別ファイルを
-// importすると "Cannot find module" で落ちることが判明しているため、
-// experiences.ts / trips.ts と同様、このファイルも自己完結させている。
-//
 // GUIDEの思想（TABI 2.0事業戦略書 4-2章）：
 // 日本人クリエイターは日本語で、Spot単位の短いコメント・Local Tipを投稿する。
 // TABI AIが翻訳・Localizationを担うことで、英語で発信するハードルを下げる。
@@ -19,12 +15,32 @@
 // GET  /api/guides?spotId=xxx     → 指定したSPOTを含むGUIDEのみ取得
 // POST /api/guides                → 新規投稿（認証必須、投稿直後に翻訳を実行）
 // DELETE /api/guides?id=xxx       → 削除（認証必須、本人の投稿のみ）
+//
+// 【セキュリティ上の変更点（元の実装との差分）】
+// - 1回の投稿でspot照合（最大20回）＋本文翻訳（1回）と、最大21回もの
+//   Gemini呼び出しが発生しうるにも関わらず、レート制限が一切無かった。
+//   ユーザー単位のレート制限を追加した。
+// - matchSpotIdForGuideSpot() が req.headers.host を使い自分自身の
+//   /api/content にfetchしていたが、Hostヘッダーは信用できない。
+//   listPublishedSpots() で直接KVから読む形に変更した。
+// - Gemini呼び出しにタイムアウトを追加した。
+// - 内部例外の詳細（String(err)）をレスポンスから削除した。
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { kv } from '@vercel/kv';
 import crypto from 'crypto';
+import { listPublishedSpots } from './_spotStore.js';
+import { checkRateLimit } from './_rateLimit.js';
 
 const COLLECTION = 'guides';
+
+/** Geminiへの1回の呼び出しのタイムアウト */
+const GEMINI_TIMEOUT_MS = 15_000;
+/** 投稿のレート制限（uid単位）。1件で最大21回Geminiを呼びうるため、既存より厳しめにする */
+const POST_LIMITS = [
+  { windowSeconds: 60 * 60, max: 6 },
+  { windowSeconds: 24 * 60 * 60, max: 20 },
+];
 
 export interface GuideSpot {
   spotId?: string; // 既存SPOT（destinations）と紐づく場合はそのid
@@ -114,7 +130,6 @@ function extractPrefectureFromAddress(address?: string): string | undefined {
  * 確認という位置づけ（Experience投稿時のような自由入力の解釈ではない）。
  */
 async function matchSpotIdForGuideSpot(
-  req: VercelRequest,
   name: string,
   address?: string
 ): Promise<string | null> {
@@ -123,20 +138,8 @@ async function matchSpotIdForGuideSpot(
   const model = process.env.GEMINI_MODEL || 'gemini-3.6-flash';
 
   try {
-    const proto = (req.headers['x-forwarded-proto'] as string) || 'https';
-    const host = req.headers.host;
-    const contentRes = await fetch(`${proto}://${host}/api/content?type=destinations`);
-    if (!contentRes.ok) return null;
-    const contentJson = await contentRes.json();
-    const spots: { id: string; title: string; prefecture?: string }[] = Array.isArray(
-      contentJson?.data
-    )
-      ? contentJson.data.map((d: { id: string; title: string; prefecture?: string }) => ({
-          id: d.id,
-          title: d.title,
-          prefecture: d.prefecture,
-        }))
-      : [];
+    const allSpots = await listPublishedSpots();
+    const spots = allSpots.map((d) => ({ id: d.id, title: d.title, prefecture: d.prefecture }));
     if (spots.length === 0) return null;
 
     const prompt = `以下の実在する場所（Googleマップで確認済み）が、SPOT一覧のどれかと
@@ -166,6 +169,7 @@ ${JSON.stringify(spots)}
             thinkingConfig: { thinkingBudget: 0 },
           },
         }),
+        signal: AbortSignal.timeout(GEMINI_TIMEOUT_MS),
       }
     );
     if (!response.ok) return null;
@@ -180,7 +184,8 @@ ${JSON.stringify(spots)}
     if (!answer || answer.toLowerCase() === 'none') return null;
     const matched = spots.find((s) => s.id === answer);
     return matched ? matched.id : null;
-  } catch {
+  } catch (err) {
+    console.error('[guides] matchSpotIdForGuideSpot error:', err);
     return null;
   }
 }
@@ -352,6 +357,7 @@ ${JSON.stringify(spotCommentsForPrompt)}
           contents: [{ role: 'user', parts: [{ text: prompt }] }],
           generationConfig: { responseMimeType: 'application/json' },
         }),
+        signal: AbortSignal.timeout(GEMINI_TIMEOUT_MS),
       }
     );
     if (!response.ok) return null;
@@ -389,7 +395,8 @@ ${JSON.stringify(spotCommentsForPrompt)}
       bodyEn: parsed.bodyEn,
       spots: translatedSpots,
     };
-  } catch {
+  } catch (err) {
+    console.error('[guides] translateGuide error:', err);
     return null;
   }
 }
@@ -435,6 +442,15 @@ export default async function handler(
       return;
     }
 
+    // 1件の投稿でspot照合（最大20回）＋本文翻訳（1回）と、最大21回もの
+    // Geminiを呼びうるため、ユーザー単位で投稿頻度を制限する。
+    const limit = await checkRateLimit('guides-post', uid, POST_LIMITS);
+    if (!limit.ok) {
+      res.setHeader('Retry-After', String(limit.retryAfter));
+      res.status(429).json({ error: 'Too many posts. Please try again later.', retryAfter: limit.retryAfter });
+      return;
+    }
+
     const body: Partial<Guide> = req.body || {};
 
     const title = (body.title || '').trim();
@@ -466,7 +482,7 @@ export default async function handler(
     await Promise.all(
       spots.map(async (s) => {
         if (s.googlePlaceId && !s.spotId) {
-          s.spotId = (await matchSpotIdForGuideSpot(req, s.name, s.address)) ?? undefined;
+          s.spotId = (await matchSpotIdForGuideSpot(s.name, s.address)) ?? undefined;
         }
       })
     );
@@ -538,7 +554,8 @@ export default async function handler(
       await createGuideRecord(id, guide, uid);
       res.status(200).json({ success: true, guide });
     } catch (err) {
-      res.status(500).json({ error: 'Failed to save guide', detail: String(err) });
+      console.error('[guides] POST error:', err);
+      res.status(500).json({ error: 'Failed to save guide' });
     }
     return;
   }
@@ -572,7 +589,8 @@ export default async function handler(
       await deleteGuideRecord(id, uid, spotIds);
       res.status(200).json({ success: true });
     } catch (err) {
-      res.status(500).json({ error: 'Failed to delete guide', detail: String(err) });
+      console.error('[guides] DELETE error:', err);
+      res.status(500).json({ error: 'Failed to delete guide' });
     }
     return;
   }

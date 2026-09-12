@@ -23,6 +23,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { kv } from '@vercel/kv';
 import crypto from 'crypto';
 import { checkRateLimit, USER_LIMITS } from './_rateLimit.js';
+import { listPublishedSpots } from './_spotStore.js';
 
 interface PhotoInput {
   url: string;
@@ -129,6 +130,7 @@ ${bodyJa}
           contents: [{ role: 'user', parts: [{ text: prompt }] }],
           generationConfig: { responseMimeType: 'application/json' },
         }),
+        signal: AbortSignal.timeout(20_000),
       }
     );
     if (!response.ok) return null;
@@ -143,7 +145,8 @@ ${bodyJa}
 
     if (!parsed.titleEn || !parsed.bodyEn || !Array.isArray(parsed.spots)) return null;
     return parsed;
-  } catch {
+  } catch (err) {
+    console.error('[parse-travelogue] parse error:', err);
     return null;
   }
 }
@@ -152,7 +155,6 @@ ${bodyJa}
 // （GUIDE投稿時に使っている matchSpotIdForGuideSpot と同じ考え方。
 // 場所ごとに独立して呼び出すため、1回あたりの処理は軽い）
 async function matchSpotId(
-  req: VercelRequest,
   name: string,
   area: string
 ): Promise<string | null> {
@@ -161,20 +163,8 @@ async function matchSpotId(
   const model = process.env.GEMINI_MODEL || 'gemini-3.6-flash';
 
   try {
-    const proto = (req.headers['x-forwarded-proto'] as string) || 'https';
-    const host = req.headers.host;
-    const contentRes = await fetch(`${proto}://${host}/api/content?type=destinations`);
-    if (!contentRes.ok) return null;
-    const contentJson = await contentRes.json();
-    const spots: { id: string; title: string; prefecture?: string }[] = Array.isArray(
-      contentJson?.data
-    )
-      ? contentJson.data.map((d: { id: string; title: string; prefecture?: string }) => ({
-          id: d.id,
-          title: d.title,
-          prefecture: d.prefecture,
-        }))
-      : [];
+    const allSpots = await listPublishedSpots();
+    const spots = allSpots.map((d) => ({ id: d.id, title: d.title, prefecture: d.prefecture }));
     if (spots.length === 0) return null;
 
     const prompt = `旅行記に登場する場所が、SPOT一覧のどれかと同じ場所を指しているか判定してください。
@@ -194,6 +184,7 @@ ${JSON.stringify(spots)}
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
         body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: prompt }] }] }),
+        signal: AbortSignal.timeout(15_000),
       }
     );
     if (!response.ok) return null;
@@ -207,7 +198,8 @@ ${JSON.stringify(spots)}
     if (!answer || answer.toLowerCase() === 'none') return null;
     const matched = spots.find((s) => s.id === answer);
     return matched ? matched.id : null;
-  } catch {
+  } catch (err) {
+    console.error('[parse-travelogue] matchSpotId error:', err);
     return null;
   }
 }
@@ -283,7 +275,7 @@ export default async function handler(
     const spotsWithIds = await Promise.all(
       parsed.spots.map(async (s) => ({
         ...s,
-        spotId: (await matchSpotId(req, s.name, effectiveArea)) ?? undefined,
+        spotId: (await matchSpotId(s.name, effectiveArea)) ?? undefined,
       }))
     );
 
