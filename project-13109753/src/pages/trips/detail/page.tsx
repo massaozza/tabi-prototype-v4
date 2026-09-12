@@ -20,6 +20,7 @@ interface TripMeal {
 
 interface TripActivity {
   type?: 'activity' | 'transport';
+  transportMode?: 'walk' | 'train' | 'bus' | 'car' | 'taxi' | 'other';
   time?: string;
   title: string;
   description?: string;
@@ -57,6 +58,15 @@ const SAMPLE_IMAGES = [
   'https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=600&q=80',
   'https://images.unsplash.com/photo-1480796927426-f609979314bd?w=600&q=80',
 ];
+
+const TRANSPORT_ICON: Record<string, string> = {
+  walk: 'ri-walk-line',
+  train: 'ri-train-line',
+  bus: 'ri-bus-line',
+  car: 'ri-car-line',
+  taxi: 'ri-taxi-line',
+  other: 'ri-route-line',
+};
 
 interface PublicTrip {
   id: string;
@@ -405,61 +415,62 @@ export default function PublicTripDetailPage() {
                           )}
                         </div>
 
-                        <div className="px-5 md:px-6 pt-5 pb-1">
+                        <div className="px-5 md:px-6 pt-5 pb-2">
                           {day.activities.map((a, idx) => {
                             const isTransport = a.type === 'transport';
+
+                            if (isTransport) {
+                              const icon = TRANSPORT_ICON[a.transportMode || 'other'] || TRANSPORT_ICON.other;
+                              return (
+                                <div key={idx} className="flex items-center gap-3 pl-1 py-2.5 my-1">
+                                  <span className="w-8 h-8 rounded-full bg-background-100 border border-background-200 flex items-center justify-center text-foreground-500 flex-shrink-0">
+                                    <i className={`${icon} text-sm`}></i>
+                                  </span>
+                                  <div className="min-w-0 border-l-2 border-dashed border-background-200 pl-3 flex-1">
+                                    <p className="text-foreground-700 text-xs font-semibold">{tx(a.title)}</p>
+                                    {a.description && (
+                                      <p className="text-foreground-400 text-xs mt-0.5">{tx(a.description)}</p>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            }
+
                             const dest = a.spotId ? spotData.get(a.spotId) : undefined;
                             const imgUrl = dest?.image && isUsableImage(dest.image) ? dest.image : undefined;
-                            const isLast = idx === day.activities.length - 1;
 
                             return (
-                              <div key={idx} className="flex gap-3.5">
-                                {/* タイムライン（縦線＋ドット/アイコン） */}
-                                <div className="flex flex-col items-center flex-shrink-0">
-                                  {isTransport ? (
-                                    <span className="w-6 h-6 rounded-full bg-background-100 border border-background-200 flex items-center justify-center text-foreground-400">
-                                      <i className="ri-route-line text-xs"></i>
-                                    </span>
-                                  ) : imgUrl ? (
-                                    <img
-                                      src={imgUrl}
-                                      alt=""
-                                      className="w-12 h-12 rounded-xl object-cover ring-2 ring-white"
-                                    />
-                                  ) : (
-                                    <span className="w-12 h-12 rounded-xl bg-background-100 border border-background-200 flex items-center justify-center text-foreground-300">
-                                      <i className="ri-map-pin-line"></i>
-                                    </span>
-                                  )}
-                                  {!isLast && (
-                                    <span
-                                      className={`w-px flex-1 my-1 ${
-                                        isTransport ? 'bg-background-200' : 'bg-background-200'
-                                      }`}
-                                      style={{ minHeight: isTransport ? '16px' : '10px' }}
-                                    ></span>
-                                  )}
-                                </div>
-
-                                {/* 内容 */}
-                                <div className={`min-w-0 ${isTransport ? 'pb-3' : 'pb-4'}`}>
-                                  {a.time && !isTransport && (
-                                    <span className="inline-block text-[11px] font-semibold text-primary-600 bg-primary-50 px-2 py-0.5 rounded-full mb-1">
-                                      {a.time}
-                                    </span>
-                                  )}
-                                  <p
-                                    className={
-                                      isTransport
-                                        ? 'text-foreground-600 text-sm font-medium'
-                                        : 'text-foreground-900 text-sm font-bold'
-                                    }
-                                  >
+                              <div
+                                key={idx}
+                                className="flex gap-4 bg-white border border-background-200 rounded-xl p-3.5 mb-3"
+                              >
+                                {imgUrl ? (
+                                  <img
+                                    src={imgUrl}
+                                    alt=""
+                                    className="w-20 h-20 rounded-lg object-cover flex-shrink-0"
+                                  />
+                                ) : (
+                                  <span className="w-20 h-20 rounded-lg bg-background-100 border border-background-200 flex items-center justify-center text-foreground-300 flex-shrink-0">
+                                    <i className="ri-map-pin-line text-xl"></i>
+                                  </span>
+                                )}
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-center gap-2 flex-wrap mb-1">
+                                    {a.time && (
+                                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary-600 bg-primary-50 px-2 py-0.5 rounded-full whitespace-nowrap">
+                                        <i className="ri-time-line"></i>
+                                        {a.time}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="text-foreground-900 text-base font-bold leading-snug">
                                     {tx(a.title)}
                                   </p>
                                   {a.description && (
-                                    <p className="text-foreground-500 text-xs mt-0.5 leading-relaxed">
-                                      {tx(a.description)}
+                                    <p className="text-foreground-600 text-xs mt-1 leading-relaxed flex items-start gap-1.5">
+                                      <i className="ri-sparkling-2-line text-amber-500 mt-0.5 flex-shrink-0"></i>
+                                      <span>{tx(a.description)}</span>
                                     </p>
                                   )}
                                 </div>
