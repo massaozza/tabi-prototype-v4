@@ -155,21 +155,25 @@ async function collectFromIndex(
   return { total: ids.length, recent7d: recent };
 }
 
-/** Spot はリストに入っているため件数のみ（作成日を持たない） */
+/**
+ * Spot の件数（作成日を持たないため recent7d は常に0）。
+ *
+ * 【2026-09-18 修正】
+ * 以前は content:destinations / content:localsPlaces（= _spotStore.ts の
+ * LEGACY_CACHE_KEY。DERIVED_CACHE_MAX=1500件を超えた時点で更新が止まる
+ * 派生キャッシュ）を数えていたため、全国展開後は古い件数のまま凍結していた
+ * （547件など、実際のSpot総数と無関係な値）。
+ * 正しい件数は spots:status:published（公開済みSpotの索引セット）の
+ * SCARD で取得する。全件取得（GET）ではなく件数のみ（SCARD）にすることで、
+ * Spotが1万件超でも軽量に保てる。
+ */
 async function collectSpots(): Promise<ContentCounts> {
-  const seen = new Set<string>();
-  for (const key of ['content:destinations', 'content:localsPlaces']) {
-    try {
-      const list = await kv.get<Record<string, unknown>[]>(key);
-      if (!Array.isArray(list)) continue;
-      for (const item of list) {
-        if (typeof item?.id === 'string') seen.add(item.id);
-      }
-    } catch {
-      /* 片方が無くても続行する */
-    }
+  try {
+    const total = await kv.scard('spots:status:published');
+    return { total: typeof total === 'number' ? total : 0, recent7d: 0 };
+  } catch {
+    return { total: 0, recent7d: 0 };
   }
-  return { total: seen.size, recent7d: 0 };
 }
 
 async function collectArticles(): Promise<ContentCounts> {
@@ -238,31 +242,101 @@ async function collectIdsAndTitles(
     });
   }
 
-  if (contentType === 'spot') {
-    const out: { id: string; title: string }[] = [];
-    const seen = new Set<string>();
-    for (const key of ['content:destinations', 'content:localsPlaces']) {
+  // spot は件数が1万件超で全件走査に向かないため、別関数
+  // （collectSpotTotals / collectSpotTopRows）で個別に処理する。
+  return [];
+}
+
+/**
+ * Spot 1件あたりの上位候補として何件まで見るか。
+ * イベント種別ごとに上位N件を取り、和集合をとる（重複は除く）。
+ * 大半のSpotはイベント数が0のため、実務上はこれで十分な範囲をカバーできる。
+ */
+const SPOT_RANK_TOP_N = 100;
+
+/**
+ * Spotの種別合計（By content の集計行用）。
+ * totals:{event}:spot を読むだけなので、Spot件数に関わらず軽量。
+ */
+async function collectSpotTotals(): Promise<Counts> {
+  const keys = EVENTS.map((ev) => `totals:${ev}:spot`);
+  let values: unknown[] = [];
+  try {
+    const got = await kv.mget<unknown[]>(keys[0], ...keys.slice(1));
+    values = Array.isArray(got) ? got : keys.map(() => null);
+  } catch {
+    values = keys.map(() => null);
+  }
+  const counts = emptyCounts();
+  EVENTS.forEach((ev, i) => {
+    counts[ev] = toNumber(values[i]);
+  });
+  return counts;
+}
+
+/**
+ * Spotの明細行（1件ごとの内訳テーブル用）。
+ *
+ * 【注意】全12,000件超を対象にするのではなく、5イベントそれぞれの
+ * ランキング（rank:{event}:spot）上位N件の和集合のみを対象にする。
+ * そのため、明細テーブルでSpotを検索・並び替えする際は「上位に一度も
+ * 入ったことがないSpot」はヒットしない。全件対象の検索は別課題
+ * （Explore全文検索エンジン導入）で対応する。
+ */
+async function collectSpotTopRows(): Promise<ContentRow[]> {
+  const idSet = new Set<string>();
+  await Promise.all(
+    EVENTS.map(async (ev) => {
       try {
-        const list = await kv.get<Record<string, unknown>[]>(key);
-        if (!Array.isArray(list)) continue;
-        for (const item of list) {
-          const id = item?.id;
-          if (typeof id !== 'string' || seen.has(id)) continue;
-          seen.add(id);
-          const title =
-            (typeof item.title === 'string' && item.title) ||
-            (typeof item.name === 'string' && item.name) ||
-            '(No title)';
-          out.push({ id, title });
-        }
+        const top = await kv.zrange<string[]>(`rank:${ev}:spot`, 0, SPOT_RANK_TOP_N - 1, {
+          rev: true,
+        });
+        (top || []).forEach((id) => {
+          if (typeof id === 'string') idSet.add(id);
+        });
       } catch {
-        /* 片方が無くても続行する */
+        /* このイベントのランキングが未整備でも他は続行する */
       }
+    })
+  );
+
+  const ids = [...idSet];
+  if (ids.length === 0) return [];
+
+  const spots = await Promise.all(
+    ids.map((id) => kv.get<Record<string, unknown>>(`spot:${id}`).catch(() => null))
+  );
+
+  const keys: string[] = [];
+  for (const id of ids) {
+    for (const ev of EVENTS) {
+      keys.push(ev === 'view' ? `views:spot:${id}` : `events:${ev}:spot:${id}`);
     }
-    return out;
+  }
+  const CHUNK = 200;
+  const values: unknown[] = [];
+  for (let i = 0; i < keys.length; i += CHUNK) {
+    const slice = keys.slice(i, i + CHUNK);
+    try {
+      const got = await kv.mget<unknown[]>(slice[0], ...slice.slice(1));
+      values.push(...(Array.isArray(got) ? got : slice.map(() => null)));
+    } catch {
+      values.push(...slice.map(() => null));
+    }
   }
 
-  return [];
+  return ids.map((id, idx) => {
+    const counts = emptyCounts();
+    EVENTS.forEach((ev, evIdx) => {
+      counts[ev] = toNumber(values[idx * EVENTS.length + evIdx]);
+    });
+    const s = spots[idx];
+    const title =
+      (s && typeof s.title === 'string' && s.title) ||
+      (s && typeof s.name === 'string' && (s.name as string)) ||
+      '(No title)';
+    return { contentType: 'spot', id, title, counts };
+  });
 }
 
 /** 5イベント分のカウンタをまとめて読む */
@@ -306,7 +380,9 @@ async function collectAllContent(): Promise<{
   items: ContentRow[];
   byType: Record<string, Counts & { items: number }>;
 }> {
-  const types = ['trip', 'guide', 'experience', 'spot'];
+  // spot は件数が1万件超のため、全件走査するtrip/guide/experienceとは
+  // 別経路（totals: / rank: ベースの軽量集計）で扱う。
+  const types = ['trip', 'guide', 'experience'];
   const items: ContentRow[] = [];
   const byType: Record<string, Counts & { items: number }> = {};
 
@@ -321,6 +397,17 @@ async function collectAllContent(): Promise<{
     }
     byType[contentType] = { ...sum, items: rows.length };
   }
+
+  const [spotPublishedCount, spotTotals, spotTopRows] = await Promise.all([
+    kv.scard('spots:status:published').catch(() => 0),
+    collectSpotTotals(),
+    collectSpotTopRows(),
+  ]);
+  items.push(...spotTopRows);
+  byType['spot'] = {
+    ...spotTotals,
+    items: typeof spotPublishedCount === 'number' ? spotPublishedCount : 0,
+  };
 
   // 数字が動いているものを上に出す
   items.sort((a, b) => b.counts.copy - a.counts.copy || b.counts.view - a.counts.view);

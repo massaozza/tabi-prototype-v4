@@ -33,12 +33,25 @@
 //   events:{event}:{contentType}:{id}         … それ以外のイベントの累積
 //   m:{event}:{contentType}:{id}:{YYYY-MM}    … 月別（前月比の算出に使う）
 //   mt:{event}:{YYYY-MM}                      … 月別の全体合計（一覧を走査せずに読める）
+//   totals:{event}:{contentType}              … 種別ごとの合計（全件走査せずに読める）
+//   rank:{event}:{contentType}                … Sorted Set。上位ランキングを
+//                                                走査なしで取得するための索引
 //
 // 【月別を持つ理由】
 // 累積値だけでは「今月と先月」を分けられず、伸びているのか止まっているのかが
 // 判断できない。あとから遡って計算することもできないため、
 // 記録の時点で月ごとに分けておく必要がある。
 // 月別キーには400日のTTLを付け、古い分は自動で消えるようにしている。
+//
+// 【totals / rank を持つ理由】(2026-09-18追加)
+// SpotがOSM一括インポートで1万件を超えたことで、admin-dashboard.tsが
+// 「全Spotのイベントカウンタを読んで合計・並び替える」実装のままだと
+// 数万回のKVアクセスが発生し、実用に耐えなくなった。
+// イベント発生の都度、種別ごとの合計（totals）とランキング用の
+// Sorted Set（rank）を同時に更新しておくことで、ダッシュボード側は
+// 全件走査なしで「合計」と「上位N件」を取得できる。
+// 既存データ（このキーを持たない過去のイベント）は
+// scripts/backfill-event-totals.ts で一度だけ集約する。
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { kv } from '@vercel/kv';
@@ -85,6 +98,16 @@ function monthlyTotalKey(event: FunnelEvent, month: string): string {
 /** 月別データの保持期間（400日）。前年同月比まで見られる長さ */
 const MONTHLY_TTL_SECONDS = 400 * 24 * 60 * 60;
 
+/** 種別ごとの合計キー（全件走査せずに読める） */
+function totalsKey(event: FunnelEvent, contentType: ContentType): string {
+  return `totals:${event}:${contentType}`;
+}
+
+/** 種別ごとのランキング用Sorted Setキー（上位N件を走査なしで取得できる） */
+function rankKey(event: FunnelEvent, contentType: ContentType): string {
+  return `rank:${event}:${contentType}`;
+}
+
 function parseEvent(raw: unknown): FunnelEvent | null {
   if (raw === undefined || raw === null || raw === '') return 'view';
   if (typeof raw !== 'string') return null;
@@ -125,6 +148,10 @@ export default async function handler(
           .incr(mtKey)
           .then((n) => (n === 1 ? kv.expire(mtKey, MONTHLY_TTL_SECONDS) : null))
           .catch(() => null),
+        // 種別ごとの合計とランキングも同時に更新する。
+        // 失敗してもページ表示・閲覧数記録自体には影響させない。
+        kv.incr(totalsKey(event, contentType)).catch(() => null),
+        kv.zincrby(rankKey(event, contentType), 1, id).catch(() => null),
       ]);
 
       res.status(200).json({ success: true, event, views: newCount });

@@ -56,7 +56,8 @@
     "repair-lost-drafts": "esbuild scripts/repair-lost-drafts.ts --bundle --platform=node --format=esm --target=node20 --outfile=.tmp/repair-lost-drafts.mjs --log-level=warning && node .tmp/repair-lost-drafts.mjs",
     "backfill-image-index": "esbuild scripts/backfill-image-index.ts --bundle --platform=node --format=esm --target=node20 --outfile=.tmp/backfill-image-index.mjs --log-level=warning && node .tmp/backfill-image-index.mjs",
     "bulk-publish": "esbuild scripts/bulk-publish.ts --bundle --platform=node --format=esm --target=node20 --outfile=.tmp/bulk-publish.mjs --log-level=warning && node .tmp/bulk-publish.mjs",
-    "backfill-category": "esbuild scripts/backfill-category.ts --bundle --platform=node --format=esm --target=node20 --outfile=.tmp/backfill-category.mjs --log-level=warning && node .tmp/backfill-category.mjs"
+    "backfill-category": "esbuild scripts/backfill-category.ts --bundle --platform=node --format=esm --target=node20 --outfile=.tmp/backfill-category.mjs --log-level=warning && node .tmp/backfill-category.mjs",
+    "backfill-event-totals": "esbuild scripts/backfill-event-totals.ts --bundle --platform=node --format=esm --target=node20 --outfile=.tmp/backfill-event-totals.mjs --log-level=warning && node .tmp/backfill-event-totals.mjs"
   },
   "type": "module",
   "version": "0.0.0"
