@@ -309,7 +309,7 @@ async function fetchImageSafely(
 
     const declaredType = (imgRes.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
     if (!ALLOWED_CONTENT_TYPES.includes(declaredType)) {
-      return { error: 'Unsupported content-type' };
+      return { error: `Unsupported content-type (${declaredType || '(none)'})` };
     }
 
     const declaredLength = Number(imgRes.headers.get('content-length') || 0);
