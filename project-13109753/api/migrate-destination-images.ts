@@ -228,17 +228,22 @@ async function readBodyWithLimit(res: Response, maxBytes: number): Promise<Buffe
   return Buffer.concat(chunks.map((c) => Buffer.from(c)));
 }
 
-/** 画像を取得する。プロトコル・許可リスト・DNS・サイズ・種別をすべて検証する */
-async function fetchImageSafely(
-  rawUrl: string
-): Promise<{ buffer: Buffer; contentType: string } | { error: string }> {
-  const checked = await validateImageUrl(rawUrl);
-  if (checked.ok === false) return { error: checked.error };
-
+/**
+ * 1回分の取得（リダイレクトは追わない）。呼び出し元でリダイレクト先を
+ * 検証・追跡する。
+ */
+async function fetchOnce(
+  url: URL
+): Promise<
+  | { kind: 'redirect'; location: string }
+  | { kind: 'response'; res: Response }
+  | { kind: 'error'; error: string }
+> {
   let imgRes: Response;
   try {
-    imgRes = await fetch(checked.url.toString(), {
-      // リダイレクトで許可リスト外のホストへ回り込まれるのを防ぐ
+    imgRes = await fetch(url.toString(), {
+      // リダイレクトは自動追跡させず、ここで検知して自分で検証する
+      // （許可リスト外のホストへ回り込まれるのを防ぐため）
       redirect: 'manual',
       headers: {
         'User-Agent':
@@ -249,37 +254,73 @@ async function fetchImageSafely(
     });
   } catch (err) {
     console.error('[migrate-destination-images] fetch failed:', err);
-    return { error: 'Failed to reach the source host' };
+    return { kind: 'error', error: 'Failed to reach the source host' };
   }
 
   if (imgRes.status >= 300 && imgRes.status < 400) {
-    // 【診断用】リダイレクト先を一時的にエラーメッセージに含める。
-    // 許可リスト外へのリダイレクトを自動追跡することはしない
-    // （SSRF対策）。まずどこへ飛ばされているのかを確認するための対応。
-    const location = imgRes.headers.get('location') || '(no Location header)';
-    return { error: `Redirects are not followed (status ${imgRes.status} → ${location})` };
+    const location = imgRes.headers.get('location');
+    if (!location) return { kind: 'error', error: 'Redirect with no Location header' };
+    return { kind: 'redirect', location };
   }
-  if (!imgRes.ok) return { error: `Upstream returned status ${imgRes.status}` };
+  return { kind: 'response', res: imgRes };
+}
 
-  const declaredType = (imgRes.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
-  if (!ALLOWED_CONTENT_TYPES.includes(declaredType)) {
-    return { error: 'Unsupported content-type' };
+/** リダイレクトの最大追跡回数（無限ループ・大量のホップを防ぐ） */
+const MAX_REDIRECTS = 3;
+
+/**
+ * 画像を取得する。プロトコル・許可リスト・DNS・サイズ・種別をすべて検証する。
+ *
+ * 【リダイレクトについて】readdy.aiの検索API（/api/search-image）は、
+ * 実際の画像本体を public.readdy.ai （readdy.aiのサブドメイン）への
+ * 302リダイレクトで返す仕様だった。リダイレクト先も毎回、許可リスト・
+ * DNS解決結果を再検証してから追跡する（許可リスト外へのリダイレクトは
+ * 追跡しない）ため、SSRF対策の前提は変えていない。
+ */
+async function fetchImageSafely(
+  rawUrl: string
+): Promise<{ buffer: Buffer; contentType: string } | { error: string }> {
+  let current = rawUrl;
+
+  for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
+    const checked = await validateImageUrl(current);
+    if (checked.ok === false) return { error: checked.error };
+
+    const result = await fetchOnce(checked.url);
+    if (result.kind === 'error') return { error: result.error };
+
+    if (result.kind === 'redirect') {
+      if (hop === MAX_REDIRECTS) return { error: 'Too many redirects' };
+      // 次のループで location 自体を許可リスト・DNSの両方で再検証する
+      current = result.location;
+      continue;
+    }
+
+    const imgRes = result.res;
+    if (!imgRes.ok) return { error: `Upstream returned status ${imgRes.status}` };
+
+    const declaredType = (imgRes.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
+    if (!ALLOWED_CONTENT_TYPES.includes(declaredType)) {
+      return { error: 'Unsupported content-type' };
+    }
+
+    const declaredLength = Number(imgRes.headers.get('content-length') || 0);
+    if (declaredLength && declaredLength > MAX_IMAGE_BYTES) {
+      return { error: 'Image too large (declared content-length)' };
+    }
+
+    const bodyResult = await readBodyWithLimit(imgRes, MAX_IMAGE_BYTES);
+    if ('error' in bodyResult) return bodyResult;
+
+    // Content-Typeの詐称対策：実際のバイト列から形式を判定し、
+    // 宣言されたContent-Typeと矛盾しないか確認する
+    const actualType = detectImageFormat(bodyResult);
+    if (!actualType) return { error: 'File does not look like a supported image format' };
+
+    return { buffer: bodyResult, contentType: actualType };
   }
 
-  const declaredLength = Number(imgRes.headers.get('content-length') || 0);
-  if (declaredLength && declaredLength > MAX_IMAGE_BYTES) {
-    return { error: 'Image too large (declared content-length)' };
-  }
-
-  const bodyResult = await readBodyWithLimit(imgRes, MAX_IMAGE_BYTES);
-  if ('error' in bodyResult) return bodyResult;
-
-  // Content-Typeの詐称対策：実際のバイト列から形式を判定し、
-  // 宣言されたContent-Typeと矛盾しないか確認する
-  const actualType = detectImageFormat(bodyResult);
-  if (!actualType) return { error: 'File does not look like a supported image format' };
-
-  return { buffer: bodyResult, contentType: actualType };
+  return { error: 'Too many redirects' };
 }
 
 /** Originヘッダーがこのサイト自身からのリクエストかを確認する（CSRF対策） */
