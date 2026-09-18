@@ -308,8 +308,16 @@ async function fetchImageSafely(
     if (!imgRes.ok) return { error: `Upstream returned status ${imgRes.status}` };
 
     const declaredType = (imgRes.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
-    if (!ALLOWED_CONTENT_TYPES.includes(declaredType)) {
-      return { error: `Unsupported content-type (${declaredType || '(none)'})` };
+    // 【2026-09-18】readdy.aiの一部の画像は Content-Type が
+    // application/octet-stream・binary/octet-stream（＝形式を明示しない
+    // 汎用バイナリ）で返ってくることが実機検証で分かった。
+    // これらの汎用型は「画像ではない」ことの証拠にはならないため拒否せず、
+    // 後段の実バイト列によるマジックバイト判定（detectImageFormat）に
+    // 委ねる。一方、text/htmlなど明確に画像でない宣言はそのまま拒否する
+    // （エラーページ等を画像として取り込んでしまうのを防ぐ）。
+    const GENERIC_BINARY_TYPES = ['application/octet-stream', 'binary/octet-stream'];
+    if (declaredType && !ALLOWED_CONTENT_TYPES.includes(declaredType) && !GENERIC_BINARY_TYPES.includes(declaredType)) {
+      return { error: `Unsupported content-type (${declaredType})` };
     }
 
     const declaredLength = Number(imgRes.headers.get('content-length') || 0);
