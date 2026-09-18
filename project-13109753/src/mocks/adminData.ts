@@ -485,9 +485,9 @@ export const activityFeed = [
 ];
 
 export const teamMembers = [
-  { id: 'member-1', name: 'Kenji Tanaka', role: 'Editor-in-Chief', avatar: 'https://readdy.ai/api/search-image?query=Professional%20Japanese%20male%20writer%20portrait%20in%20late%2030s%2C%20warm%20expression%2C%20editorial%20style%2C%20soft%20lighting%2C%20blurred%20Tokyo%20background&width=64&height=64&seq=admin-avatar-kenji-01&orientation=square' },
-  { id: 'member-2', name: 'Hana Mori', role: 'Senior Writer', avatar: 'https://readdy.ai/api/search-image?query=Professional%20Japanese%20female%20writer%20portrait%20in%20early%2030s%2C%20friendly%20smile%2C%20editorial%20photography%2C%20warm%20natural%20light%2C%20clean%20aesthetic&width=64&height=64&seq=admin-avatar-hana-02&orientation=square' },
-  { id: 'member-3', name: 'Yuki Sato', role: 'Content Writer', avatar: 'https://readdy.ai/api/search-image?query=Professional%20Japanese%20male%20writer%20portrait%20in%20late%2020s%2C%20casual%20professional%20look%2C%20editorial%20style%2C%20soft%20studio%20lighting%2C%20neutral%20background&width=64&height=64&seq=admin-avatar-yuki-03&orientation=square' },
+  { id: 'member-1', name: 'Kenji Tanaka', role: 'Editor-in-Chief', avatar: 'https://pub-06389d4ab58c4eaf89af8574a94bdc18.r2.dev/destinations/test-98602da1-19a1-4e8d-b8ca-f36e32f13378.jpg' },
+  { id: 'member-2', name: 'Hana Mori', role: 'Senior Writer', avatar: 'https://pub-06389d4ab58c4eaf89af8574a94bdc18.r2.dev/destinations/test-9549d044-a864-4a31-a30e-7b646b257ce6.jpg' },
+  { id: 'member-3', name: 'Yuki Sato', role: 'Content Writer', avatar: 'https://pub-06389d4ab58c4eaf89af8574a94bdc18.r2.dev/destinations/test-59ed20c9-7c80-4e5f-8cfe-cbeffd497aaa.jpg' },
 ];
 
 export const categories = [

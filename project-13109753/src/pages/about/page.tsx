@@ -196,7 +196,7 @@ export default function AboutPage() {
               <div className="relative">
                 <div className="w-full aspect-[3/4] rounded-lg overflow-hidden">
                   <img
-                    src="https://readdy.ai/api/search-image?query=Traditional%20Japanese%20pottery%20studio%20interior%20with%20craftsman%20hands%20shaping%20clay%20on%20wooden%20wheel%2C%20warm%20ambient%20light%20from%20paper%20lantern%2C%20shelves%20of%20handmade%20ceramics%20in%20background%2C%20documentary%20style%20photography%20with%20intimate%20atmosphere%2C%20soft%20natural%20tones&width=600&height=800&seq=about-philosophy-visual&orientation=portrait"
+                    src="https://pub-06389d4ab58c4eaf89af8574a94bdc18.r2.dev/destinations/test-c53bf26b-2e7b-4b68-942a-7874dd2648d2.jpg"
                     alt={t('auto_e12feffb75', "Beyond Sightseeing — traditional Japanese craftsmanship")}
                     title={t('auto_588b1bde23', "Beyond Sightseeing — TABI Philosophy")}
                     className="w-full h-full object-cover"

@@ -12,35 +12,35 @@ interface RegionImage {
 const REGION_IMAGES: RegionImage[] = [
   {
     slug: 'hokkaido',
-    image: 'https://readdy.ai/api/search-image?query=Snow-covered%20Hokkaido%20landscape%20with%20rolling%20hills%20and%20farm%20fields%20under%20clear%20winter%20sky%2C%20minimalist%20travel%20photography%20with%20soft%20natural%20light%2C%20muted%20cool%20color%20palette%2C%20clean%20composition%20and%20wide%20open%20space&width=800&height=500&seq=region-hokkaido-01&orientation=landscape',
+    image: 'https://pub-06389d4ab58c4eaf89af8574a94bdc18.r2.dev/destinations/test-c8a4fe27-7c49-4342-be0f-48b578fc6c0c.jpg',
   },
   {
     slug: 'tohoku',
-    image: 'https://readdy.ai/api/search-image?query=Tohoku%20Japan%20mountain%20valley%20with%20rice%20terraces%20and%20misty%20green%20forests%20in%20early%20morning%20light%2C%20rural%20scenery%20with%20traditional%20farmhouses%2C%20minimalist%20travel%20photography%20with%20warm%20natural%20tones%20and%20clean%20composition&width=800&height=500&seq=region-tohoku-01&orientation=landscape',
+    image: 'https://pub-06389d4ab58c4eaf89af8574a94bdc18.r2.dev/destinations/test-03c089da-8630-4532-b2e5-ca09d239e57f.jpg',
   },
   {
     slug: 'kanto',
-    image: 'https://readdy.ai/api/search-image?query=Tokyo%20Japan%20cityscape%20blending%20modern%20skyscrapers%20with%20traditional%20temple%20rooftops%20and%20cherry%20blossom%20trees%20along%20a%20river%2C%20soft%20golden%20hour%20light%2C%20minimalist%20travel%20photography%20with%20warm%20neutral%20color%20palette%20and%20clean%20composition&width=800&height=500&seq=region-kanto-01&orientation=landscape',
+    image: 'https://pub-06389d4ab58c4eaf89af8574a94bdc18.r2.dev/destinations/test-f2e3c560-08f7-43a0-9529-372c1e9d58f3.jpg',
   },
   {
     slug: 'chubu',
-    image: 'https://readdy.ai/api/search-image?query=Mount%20Fuji%20and%20the%20Japanese%20Alps%20with%20lake%20reflection%20and%20forested%20foothills%20under%20clear%20blue%20sky%2C%20autumn%20colors%20beginning%20to%20show%2C%20minimalist%20travel%20photography%20with%20soft%20natural%20light%20and%20serene%20composition&width=800&height=500&seq=region-chubu-01&orientation=landscape',
+    image: 'https://pub-06389d4ab58c4eaf89af8574a94bdc18.r2.dev/destinations/test-a98ffc28-1f1b-46f8-a3be-ffa0e007ec87.jpg',
   },
   {
     slug: 'kansai',
-    image: 'https://readdy.ai/api/search-image?query=Kyoto%20Japan%20traditional%20temple%20with%20vermillion%20torii%20gates%20and%20stone%20path%20surrounded%20by%20maple%20trees%20in%20warm%20afternoon%20light%2C%20ancient%20wooden%20architecture%2C%20minimalist%20travel%20photography%20with%20rich%20warm%20tones%20and%20clean%20composition&width=800&height=500&seq=region-kansai-01&orientation=landscape',
+    image: 'https://pub-06389d4ab58c4eaf89af8574a94bdc18.r2.dev/destinations/test-8518c5f6-e791-42cc-8178-26e8760e2733.jpg',
   },
   {
     slug: 'chugoku',
-    image: 'https://readdy.ai/api/search-image?query=Seto%20Inland%20Sea%20coastline%20with%20small%20islands%20scattered%20across%20calm%20blue%20water%20and%20traditional%20fishing%20boats%20near%20shore%2C%20soft%20afternoon%20light%2C%20minimalist%20travel%20photography%20with%20muted%20blue%20and%20warm%20neutral%20color%20palette&width=800&height=500&seq=region-chugoku-01&orientation=landscape',
+    image: 'https://pub-06389d4ab58c4eaf89af8574a94bdc18.r2.dev/destinations/test-4eb3f777-42a1-4f61-81a1-ca88b2e709f4.jpg',
   },
   {
     slug: 'shikoku',
-    image: 'https://readdy.ai/api/search-image?query=Shikoku%20Japan%20rural%20coastal%20village%20with%20small%20harbor%20traditional%20wooden%20houses%20and%20green%20terraced%20hills%20meeting%20the%20sea%2C%20soft%20morning%20mist%2C%20minimalist%20travel%20photography%20with%20natural%20earth%20tones%20and%20peaceful%20composition&width=800&height=500&seq=region-shikoku-01&orientation=landscape',
+    image: 'https://pub-06389d4ab58c4eaf89af8574a94bdc18.r2.dev/destinations/test-1952d7da-d322-4bd4-931a-f2101077044b.jpg',
   },
   {
     slug: 'kyushu-okinawa',
-    image: 'https://readdy.ai/api/search-image?query=Okinawa%20Japan%20tropical%20beach%20with%20crystal%20clear%20turquoise%20water%20white%20sand%20and%20lush%20green%20vegetation%20along%20the%20coastline%2C%20palm%20trees%20swaying%20in%20gentle%20breeze%2C%20minimalist%20travel%20photography%20with%20bright%20natural%20light%20and%20vibrant%20yet%20soft%20color%20palette&width=800&height=500&seq=region-kyushu-01&orientation=landscape',
+    image: 'https://pub-06389d4ab58c4eaf89af8574a94bdc18.r2.dev/destinations/test-5880adee-b51b-4e31-8e9c-24cbde419fed.jpg',
   },
 ];
 

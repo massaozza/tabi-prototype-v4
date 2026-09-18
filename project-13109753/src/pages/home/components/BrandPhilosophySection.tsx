@@ -42,7 +42,7 @@ import { useAutoT } from '@/hooks/useAutoT';export default function BrandPhiloso
             <div className="relative">
               <div className="w-full aspect-[3/4] rounded-lg overflow-hidden">
                 <img
-                  src="https://readdy.ai/api/search-image?query=Abstract%20minimalist%20Japanese%20aesthetic%20composition%20with%20subtle%20ink%20wash%20texture%2C%20soft%20misty%20atmosphere%2C%20delicate%20negative%20space%2C%20warm%20off%20white%20and%20subtle%20charcoal%20tones%2C%20zen%20inspired%20editorial%20art%20photography%2C%20poetic%20quiet%20mood%20with%20natural%20light&width=600&height=800&seq=philosophy-visual-01&orientation=portrait"
+                  src="https://pub-06389d4ab58c4eaf89af8574a94bdc18.r2.dev/destinations/test-97a40d59-89aa-4c60-8e7e-171b966ae092.jpg"
                   alt={t('auto_817b230bbc', "Beyond Sightseeing")}
                   title={t('auto_6aa79168aa', "Beyond Sightseeing — TABI")}
                   className="w-full h-full object-cover"

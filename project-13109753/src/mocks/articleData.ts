@@ -6,12 +6,12 @@ export const articleData = {
   author: {
     name: 'Kenji Tanaka',
     bio: 'Tokyo-based travel writer who has explored all 47 prefectures. Former JR East employee with deep knowledge of Japan\'s railway system.',
-    avatar: 'https://readdy.ai/api/search-image?query=Professional%20Japanese%20male%20travel%20writer%20portrait%20in%20his%20late%2030s%2C%20warm%20friendly%20expression%2C%20editorial%20portrait%20style%20with%20soft%20natural%20lighting%2C%20blurred%20urban%20Tokyo%20background%2C%20clean%20modern%20aesthetic&width=128&height=128&seq=author-kenji-01&orientation=square',
+    avatar: 'https://pub-06389d4ab58c4eaf89af8574a94bdc18.r2.dev/destinations/test-6ee86a71-52b0-4a6f-89f1-3bb6f18bab5a.jpg',
   },
   date: 'June 10, 2026',
   dateISO: '2026-06-10',
   readTime: '12 min read',
-  heroImage: 'https://readdy.ai/api/search-image?query=Japan%20Shinkansen%20bullet%20train%20speeding%20past%20Mount%20Fuji%20on%20a%20clear%20sunny%20day%2C%20dramatic%20perspective%20from%20trackside%2C%20blue%20sky%20with%20white%20clouds%2C%20iconic%20Japanese%20landscape%2C%20editorial%20travel%20photography%20high%20detail&width=1600&height=900&seq=article-hero-jrpass-01&orientation=landscape',
+  heroImage: 'https://pub-06389d4ab58c4eaf89af8574a94bdc18.r2.dev/destinations/test-180db8a9-f8b7-424b-ac5d-36425c38d735.jpg',
   heroCaption: 'The Tokaido Shinkansen with Mount Fuji in the background — one of the many routes covered by the JR Pass.',
   affiliateCta: {
     label: 'QUICK RECOMMENDATION',
@@ -52,7 +52,7 @@ export const articleData = {
     },
     {
       type: 'image',
-      src: 'https://readdy.ai/api/search-image?query=Close%20up%20of%20Japan%20Rail%20Pass%20ticket%20and%20passport%20on%20a%20wooden%20train%20station%20bench%2C%20soft%20morning%20light%20streaming%20through%20station%20windows%2C%20editorial%20travel%20photography%20with%20warm%20natural%20tones%2C%20clean%20minimalist%20composition&width=860&height=500&seq=article-jrpass-ticket-02&orientation=landscape',
+      src: 'https://pub-06389d4ab58c4eaf89af8574a94bdc18.r2.dev/destinations/test-84a6b569-b336-4f13-add2-1b804a6e8d1e.jpg',
       caption: 'The Japan Rail Pass — now ¥50,000 for a 7-day ordinary pass as of 2026.',
       alt: 'Japan Rail Pass ticket on a station bench',
     },
@@ -259,19 +259,19 @@ export const articleData = {
     {
       title: 'Getting from Tokyo to Kamakura & Enoshima',
       category: 'Transport',
-      image: 'https://readdy.ai/api/search-image?query=Enoden%20vintage%20green%20train%20on%20coastal%20track%20in%20Kamakura%20Japan%2C%20bright%20sunny%20day%20with%20ocean%20view%2C%20traditional%20Japanese%20neighborhood%2C%20travel%20photography%20with%20clean%20composition&width=160&height=120&seq=article-sidebar-enoden-01&orientation=landscape',
+      image: 'https://pub-06389d4ab58c4eaf89af8574a94bdc18.r2.dev/destinations/test-cc9645d5-e945-4417-86dd-59ea891a734c.jpg',
       href: '/transport/tokyo-to-kamakura',
     },
     {
       title: 'IC Cards in Japan: Suica vs Pasmo vs Icoca',
       category: 'Transport',
-      image: 'https://readdy.ai/api/search-image?query=Japanese%20IC%20transport%20cards%20Suica%20and%20Pasmo%20on%20wooden%20table%2C%20close%20up%20product%20photography%2C%20minimalist%20composition%2C%20soft%20natural%20lighting%2C%20clean%20aesthetic&width=160&height=120&seq=article-sidebar-iccards-02&orientation=landscape',
+      image: 'https://pub-06389d4ab58c4eaf89af8574a94bdc18.r2.dev/destinations/test-e83408b0-4d63-4abf-ba48-eb85e2b63aed.jpg',
       href: '/transport/ic-cards-guide',
     },
     {
       title: 'Japanese Train Etiquette: 10 Unwritten Rules',
       category: 'Culture',
-      image: 'https://readdy.ai/api/search-image?query=Quiet%20and%20clean%20Japanese%20train%20interior%20with%20polite%20passengers%2C%20orderly%20atmosphere%2C%20soft%20natural%20lighting%20through%20windows%2C%20documentary%20style%20photography%2C%20authentic%20travel%20moment&width=160&height=120&seq=article-sidebar-etiquette-03&orientation=landscape',
+      image: 'https://pub-06389d4ab58c4eaf89af8574a94bdc18.r2.dev/destinations/test-45c7d66d-6d1b-4f2e-8bb7-d6a95725c04a.jpg',
       href: '/culture/train-etiquette',
     },
   ],
@@ -288,7 +288,7 @@ export const articleData = {
       title: 'Tokyo to Kyoto by Shinkansen: The Complete Guide',
       category: 'Transport',
       description: 'Everything from seat selection to bento box recommendations for the most iconic train journey in Japan.',
-      image: 'https://readdy.ai/api/search-image?query=Shinkansen%20bullet%20train%20interior%20with%20comfortable%20seats%20and%20large%20window%20showing%20Japanese%20countryside%20scenery%2C%20clean%20modern%20design%2C%20natural%20daylight%2C%20travel%20lifestyle%20photography&width=600&height=400&seq=article-related-shinkansen-01&orientation=landscape',
+      image: 'https://pub-06389d4ab58c4eaf89af8574a94bdc18.r2.dev/destinations/test-a4bd96e1-a1e9-4bb5-b31a-80307febf55e.jpg',
       href: '/transport/tokyo-kyoto-shinkansen',
     },
     {
@@ -296,7 +296,7 @@ export const articleData = {
       title: 'JR Pass vs Regional Passes: Which One Actually Saves You Money?',
       category: 'Transport',
       description: 'A detailed cost comparison of every major rail pass in Japan with real itinerary examples and 2026 prices.',
-      image: 'https://readdy.ai/api/search-image?query=Japanese%20railway%20map%20with%20colorful%20route%20lines%20on%20a%20wooden%20desk%2C%20travel%20planning%20concept%2C%20notebook%20and%20pen%20beside%20map%2C%20warm%20ambient%20lighting%2C%20editorial%20photography%20style&width=600&height=400&seq=article-related-passes-02&orientation=landscape',
+      image: 'https://pub-06389d4ab58c4eaf89af8574a94bdc18.r2.dev/destinations/test-bc3db8e5-770d-4796-ad85-5fb100bbc251.jpg',
       href: '/transport/rail-passes-comparison',
     },
     {
@@ -304,14 +304,14 @@ export const articleData = {
       title: 'How to Use HyperDia & Japan Transit Planner Like a Local',
       category: 'Travel Tips',
       description: 'Master Japan\'s most powerful transit apps to navigate trains, find the cheapest routes, and avoid tourist mistakes.',
-      image: 'https://readdy.ai/api/search-image?query=Smartphone%20displaying%20Japanese%20train%20route%20planning%20app%20on%20screen%2C%20held%20by%20traveler%20on%20a%20train%20platform%2C%20blurred%20Shinkansen%20in%20background%2C%20modern%20travel%20technology%2C%20natural%20daylight&width=600&height=400&seq=article-related-apps-03&orientation=landscape',
+      image: 'https://pub-06389d4ab58c4eaf89af8574a94bdc18.r2.dev/destinations/test-4f8cec43-8321-4154-b624-a0e6cfd990b9.jpg',
       href: '/travel-tips/transit-apps-guide',
     },
   ],
   authorBox: {
     name: 'Kenji Tanaka',
     bio: 'Tokyo-based travel writer who has explored all 47 prefectures of Japan. Former JR East employee with deep knowledge of Japan\'s railway systems and a passion for helping travelers navigate the country like a local.',
-    avatar: 'https://readdy.ai/api/search-image?query=Professional%20Japanese%20male%20travel%20writer%20portrait%20in%20his%20late%2030s%2C%20warm%20friendly%20expression%2C%20editorial%20portrait%20style%20with%20soft%20natural%20lighting%2C%20blurred%20urban%20Tokyo%20background%2C%20clean%20modern%20aesthetic&width=128&height=128&seq=author-kenji-box-01&orientation=square',
+    avatar: 'https://pub-06389d4ab58c4eaf89af8574a94bdc18.r2.dev/destinations/test-bfb26ece-6b48-46b6-a836-3affe0801937.jpg',
     articlesHref: '/author/kenji-tanaka',
   },
 };

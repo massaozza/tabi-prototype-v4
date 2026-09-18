@@ -15,7 +15,7 @@ export default function CreatorsHomePage() {
       <section className="relative pt-16 pb-20 md:pt-28 md:pb-32 overflow-hidden">
         <div className="absolute inset-0">
           <img
-            src="https://readdy.ai/api/search-image?query=Serene%20Japanese%20landscape%20with%20a%20red%20torii%20gate%20and%20Mount%20Fuji%20at%20golden%20hour%2C%20soft%20gradient%20sky%20in%20warm%20amber%20and%20deep%20indigo%2C%20delicate%20cherry%20blossom%20petals%20floating%20in%20the%20air%2C%20misty%20atmosphere%2C%20artistic%20digital%20illustration%2C%20elegant%20minimal%20composition%2C%20high%20detail%2C%20cinematic%20lighting&width=1600&height=900&seq=creators-hero-01&orientation=landscape"
+            src="https://pub-06389d4ab58c4eaf89af8574a94bdc18.r2.dev/destinations/test-debccb7c-9404-4691-a991-a223eff671e2.jpg"
             alt="日本の風景"
             title={t('auto_20c8bc093d', "日本の風景 TABI Creators")}
             className="w-full h-full object-cover object-top"

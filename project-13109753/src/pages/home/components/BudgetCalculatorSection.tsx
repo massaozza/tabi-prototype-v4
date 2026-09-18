@@ -5,7 +5,7 @@ import { useAutoT } from '@/hooks/useAutoT';export default function BudgetCalcul
     <section id="budget-calculator" className="relative py-16 md:py-24 bg-primary-500 overflow-hidden">
       <div className="absolute inset-0 opacity-10">
         <img
-          src="https://readdy.ai/api/search-image?query=Japanese%20wave%20pattern%20seigaiha%20style%20in%20light%20blue%20tones%2C%20repeating%20geometric%20ocean%20wave%20motif%2C%20subtle%20textured%20background%2C%20minimalist%20Japanese%20design%20aesthetic&width=1600&height=600&seq=budget-bg-pattern&orientation=landscape"
+          src="https://pub-06389d4ab58c4eaf89af8574a94bdc18.r2.dev/destinations/test-64c2ca14-2586-416e-863a-d77e5e892e0d.jpg"
           alt=""
           className="w-full h-full object-cover"
         />
