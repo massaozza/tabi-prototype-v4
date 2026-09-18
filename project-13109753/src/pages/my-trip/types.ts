@@ -23,6 +23,11 @@ export interface TripActivity {
   time?: string;
   title: string;
   description?: string;
+  // API側（api/trips.ts）には元から存在するSPOT紐づけ用フィールド。
+  // days[].activities は items モデルへの移行前の旧構造だが、まだ
+  // 存在する既存Tripのヘッダー画像取得（getHeaderImages）等で参照される
+  // ため、フロント側の型にも反映する（2026-09-18修正）。
+  spotId?: string;
 }
 
 export interface TripDay {
@@ -94,6 +99,17 @@ export interface Trip {
   copiedFromTripId?: string;
   copyCount?: number;
   saveCount?: number;
+
+  // TABI47：パンフレット風カード表示に必要なCreatorが設定するメタ情報。
+  // API側（api/trips.ts）には元から存在していたが、フロントのTrip型に
+  // 反映されていなかったため、呼び出し側で(trip as any)による回避が
+  // 発生していた（2026-09-18修正）。
+  highlights?: string[];
+  tags?: string[];
+  budgetMin?: number;
+  budgetMax?: number;
+  authorName?: string;
+  coverImageUrl?: string;
 
   items?: TripItem[];
   actualVisitLog?: ActualVisitLogEntry[];

@@ -1,10 +1,6 @@
-interface BottomCtaProps {
-  title: string;
-  description: string;
-  primaryButtonText: string;
-  secondaryButtonText: string;
-  disclaimer: string;
-}
+import type { BottomCtaData } from '../types';
+
+type BottomCtaProps = BottomCtaData;
 
 export default function BottomCta({
   title,

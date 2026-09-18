@@ -109,7 +109,16 @@ export default function PrefecturePage() {
   const region = PREFECTURE_REGIONS.find((r) => r.prefectures.includes(name || ''));
 
   // Spotコンテンツのバッチ翻訳
-  const prefGuides = guides.filter((g) => g.spots.some((s) => s.prefecture === name));
+  // 【2026-09-18修正】GuideSpotにはprefectureフィールドが無く
+  // （spotIdで実Spotを参照する形）、以前の s.prefecture === name は
+  // 常にundefinedとの比較になり、prefGuidesは常に空配列だった。
+  // 今読み込み済みのこの都道府県のSpot（prefDestinations）とspotIdで
+  // 突き合わせる（※ページ単位取得のため、まだ読み込んでいないSpotに
+  // 紐づくGuideは次ページを読むまで出てこない場合がある）。
+  const prefDestinationIds = new Set(prefDestinations.map((d) => d.id));
+  const prefGuides = guides.filter((g) =>
+    g.spots.some((s) => s.spotId && prefDestinationIds.has(s.spotId))
+  );
 
   const handleAskAboutPrefecture = () => {
     window.dispatchEvent(
@@ -264,7 +273,7 @@ export default function PrefecturePage() {
                       {guide.theme}
                     </span>
                     <h3 className="font-heading font-bold text-base text-foreground-900 mb-2 leading-snug">
-                      {guide.titleEn || guide.title}
+                      {tx(guide.title)}
                     </h3>
                     <p className="text-foreground-600 text-sm leading-relaxed line-clamp-2 mb-3">
                       {guide.bodyEn || guide.bodyJa}

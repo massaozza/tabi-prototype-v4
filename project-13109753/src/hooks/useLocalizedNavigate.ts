@@ -1,7 +1,7 @@
 // src/hooks/useLocalizedNavigate.ts
 // 言語prefixを自動付与するnavigateラッパー
 
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, type NavigateOptions } from 'react-router-dom';
 
 const SUPPORTED_LANGS = ['en','ja','zh-TW','zh-CN','ko','th','fr','de','es','id'];
 
@@ -25,7 +25,7 @@ export function useLocalizedNavigate() {
   const location = useLocation();
   const lang = getLangFromPathname(location.pathname);
 
-  return (to: string, options?: Parameters<typeof navigate>[1]) => {
+  return (to: string, options?: NavigateOptions) => {
     const localizedTo = needsLangPrefix(to)
       ? `/${lang}${to.startsWith('/') ? to : `/${to}`}`
       : to;

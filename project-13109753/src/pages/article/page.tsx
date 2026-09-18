@@ -181,7 +181,7 @@ export default function ArticlePage() {
 
       {data.bottomCta && (
         <div className="py-10 md:py-16">
-          <BottomCta data={data.bottomCta} />
+          <BottomCta {...data.bottomCta} />
         </div>
       )}
 
@@ -195,7 +195,7 @@ export default function ArticlePage() {
 
       {data.authorBox && (
         <div className="pb-16 md:pb-24">
-          <AuthorBox data={data.authorBox} />
+          <AuthorBox {...data.authorBox} />
         </div>
       )}
 

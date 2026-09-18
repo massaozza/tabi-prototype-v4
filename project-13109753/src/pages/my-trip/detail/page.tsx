@@ -388,8 +388,8 @@ export default function MyTripDetailPage() {
 
   const getHeaderImages = (trip: Trip): string[] => {
     const result: string[] = [];
-    if ((trip as any).coverImageUrl && isUsableImage((trip as any).coverImageUrl)) {
-      result.push((trip as any).coverImageUrl);
+    if (trip.coverImageUrl && isUsableImage(trip.coverImageUrl)) {
+      result.push(trip.coverImageUrl);
     }
     for (const day of trip.days || []) {
       for (const act of day.activities || []) {
@@ -437,7 +437,7 @@ export default function MyTripDetailPage() {
   }
 
   const headerImages = getHeaderImages(trip);
-  const budgetText = formatBudget((trip as any).budgetMin, (trip as any).budgetMax);
+  const budgetText = formatBudget(trip.budgetMin, trip.budgetMax);
   const dayCount = trip.days?.length || 0;
   const statusBadge = STATUS_BADGE[trip.status || 'planning'] || STATUS_BADGE.planning;
   const visitedIds = new Set((trip.actualVisitLog || []).map((l) => l.itemId));

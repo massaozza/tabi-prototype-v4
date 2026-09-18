@@ -1,32 +1,11 @@
 
-import { useAutoT } from '@/hooks/useAutoT';interface QuickFact {
-  label: string;
-  value: string;
-}
-
-interface SidebarRelatedArticle {
-  title: string;
-  category: string;
-  image: string;
-  href: string;
-}
-
-interface TopPick {
-  title: string;
-  productName: string;
-  rating: number;
-  description: string;
-  buttonText: string;
-  guaranteeText: string;
-}
+import { useAutoT } from '@/hooks/useAutoT';
+import type { QuickFactsData, TopPickData, SidebarRelatedData } from '../types';
 
 interface ArticleSidebarProps {
-  quickFacts?: {
-    title: string;
-    items: QuickFact[];
-  };
-  topPick?: TopPick;
-  relatedArticles?: SidebarRelatedArticle[];
+  quickFacts?: QuickFactsData;
+  topPick?: TopPickData;
+  relatedArticles?: SidebarRelatedData[];
 }
 
 export default function ArticleSidebar({ quickFacts, topPick, relatedArticles }: ArticleSidebarProps) {
@@ -41,7 +20,7 @@ export default function ArticleSidebar({ quickFacts, topPick, relatedArticles }:
               {quickFacts.title}
             </h4>
             <dl className="space-y-3">
-              {quickFacts.items.map((item, idx) => (
+              {(quickFacts.items || []).map((item, idx) => (
                 <div key={idx}>
                   <dt className="text-foreground-400 text-xs mb-0.5">{item.label}</dt>
                   <dd className="text-foreground-800 text-sm font-medium">{item.value}</dd>
@@ -60,7 +39,7 @@ export default function ArticleSidebar({ quickFacts, topPick, relatedArticles }:
               {topPick.productName}
             </p>
             <div className="flex items-center gap-0.5 mb-2">
-              {Array.from({ length: topPick.rating }).map((_, i) => (
+              {Array.from({ length: topPick.rating || 0 }).map((_, i) => (
                 <div key={i} className="w-4 h-4 flex items-center justify-center text-accent-500">
                   <i className="ri-star-fill text-sm"></i>
                 </div>

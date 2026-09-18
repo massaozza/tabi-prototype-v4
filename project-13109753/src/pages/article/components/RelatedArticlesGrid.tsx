@@ -1,15 +1,9 @@
 
-import { useAutoT } from '@/hooks/useAutoT';interface RelatedArticle {
-  id: string;
-  title: string;
-  category: string;
-  description: string;
-  image: string;
-  href: string;
-}
+import { useAutoT } from '@/hooks/useAutoT';
+import type { RelatedData } from '../types';
 
 interface RelatedArticlesGridProps {
-  articles: RelatedArticle[];
+  articles: RelatedData[];
 }
 
 const categoryColors: Record<string, string> = {
@@ -33,7 +27,7 @@ export default function RelatedArticlesGrid({ articles }: RelatedArticlesGridPro
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {articles.map((article) => (
             <article
-              key={article.id}
+              key={article.href}
               className="bg-background-50 rounded-xl overflow-hidden border border-background-200 hover:border-background-300 transition-all duration-300 group cursor-pointer"
               data-product-shop
             >

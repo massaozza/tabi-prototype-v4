@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAutoT, useAutoText } from '@/hooks/useAutoT';
+import type { TripItem, ActualVisitLogEntry, TripStatus, PlanLevel, ItemStatus } from '../types';
 
 // TABI 3.0：My Trip中心の循環の基盤となる、計画パネル。
 // 「まだ日程未定（saved）」→「日だけ決めた（day_assigned）」→
@@ -8,43 +9,12 @@ import { useAutoT, useAutoText } from '@/hooks/useAutoT';
 // （ブラウザ標準のprompt()は、サイトのデザインから浮いて分かりにくい
 // というフィードバックを受け、画面内蔵のUIに置き換えている）。
 
-type PlanLevel = 'saved' | 'day_assigned' | 'scheduled';
-type ItemStatus = 'fixed' | 'planned' | 'option';
-
-interface TripItem {
-  id: string;
-  itemType: 'sightseeing' | 'restaurant' | 'shopping' | 'accommodation' | 'activity' | 'transport' | 'other';
-  title: string;
-  spotId?: string;
-  // 「Saved for Trip」のカード表示用。この変更より前に追加されたItemには
-  // 存在しないため、常にオプショナルとして扱い、無い場合はフォールバック表示にする。
-  imageUrl?: string;
-  description?: string;
-  planLevel: PlanLevel;
-  day?: number;
-  time?: string;
-  status: ItemStatus;
-  optionGroupId?: string;
-  // TABI 3.0：この項目をMeals（B/L/D）欄に表示するかどうか。SPOTデータには
-  // レストランを判別できる明確なカテゴリがないため、ユーザーが手動で
-  // 「これは食事です」と指定する方式にしている。
-  mealSlot?: 'breakfast' | 'lunch' | 'dinner';
-  // TABI 3.0：SCHEDULE列でのドラッグ並び替え用（TripCard.tsx側で使用）。
-  order?: number;
-}
-
-interface ActualVisitLogEntry {
-  itemId: string;
-  visitedAt: string;
-  order: number;
-}
-
 interface TripPlanningPanelProps {
   tripId: string;
   items: TripItem[];
   actualVisitLog: ActualVisitLogEntry[];
   tripStatus: string;
-  onTripUpdate: (trip: { items: TripItem[]; actualVisitLog: ActualVisitLogEntry[]; status?: string }) => void;
+  onTripUpdate: (trip: { items: TripItem[]; actualVisitLog: ActualVisitLogEntry[]; status?: TripStatus }) => void;
 }
 
 const STATUS_LABELS: Record<ItemStatus, string> = {
@@ -94,7 +64,7 @@ export default function TripPlanningPanel({
   const callTripAction = async (
     action: string,
     body: Record<string, unknown>
-  ): Promise<{ items: TripItem[]; actualVisitLog: ActualVisitLogEntry[]; status?: string } | null> => {
+  ): Promise<{ items: TripItem[]; actualVisitLog: ActualVisitLogEntry[]; status?: TripStatus } | null> => {
     try {
       const res = await fetch(
         `/api/trips?id=${encodeURIComponent(tripId)}&action=${action}`,

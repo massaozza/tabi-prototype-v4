@@ -1,10 +1,8 @@
 
-import { useAutoT } from '@/hooks/useAutoT';interface AuthorBoxProps {
-  name: string;
-  bio: string;
-  avatar: string;
-  articlesHref: string;
-}
+import { useAutoT } from '@/hooks/useAutoT';
+import type { AuthorBoxData } from '../types';
+
+type AuthorBoxProps = AuthorBoxData;
 
 export default function AuthorBox({ name, bio, avatar, articlesHref }: AuthorBoxProps) {
   const t = useAutoT();
