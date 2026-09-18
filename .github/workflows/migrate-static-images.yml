@@ -1,0 +1,56 @@
+name: Migrate hardcoded static images (readdy.ai → R2)
+
+# ホームページ・About・記事など、ソースコード内に直接書かれている
+# readdy.aiの画像URLをダウンロードし、Cloudflare R2にアップロードする。
+# 実行後にログへ出力される「元のURL → 新しいURL」のマッピングを使い、
+# ソースコード側のURL置き換えは別途（Claude側で）行う。
+#
+# ReadyAIのアカウント削除前に一度だけ実行することを想定している。
+
+on:
+  workflow_dispatch:
+    inputs:
+      dryRun:
+        description: '検証のみ行い、R2にはアップロードしない'
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  migrate-static-images:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    defaults:
+      run:
+        working-directory: project-13109753
+
+    steps:
+      - name: リポジトリを取得
+        uses: actions/checkout@v4
+
+      - name: Node.jsを準備
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: 依存関係をインストール
+        run: npm ci
+
+      - name: 画像を移行
+        env:
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+          R2_PUBLIC_URL: ${{ secrets.R2_PUBLIC_URL }}
+        run: |
+          ARGS=""
+          if [ "${{ inputs.dryRun }}" = "true" ]; then
+            ARGS="$ARGS --dry-run"
+          fi
+          echo "実行: npm run migrate-static-images -- $ARGS"
+          npm run migrate-static-images -- $ARGS
