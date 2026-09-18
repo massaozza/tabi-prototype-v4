@@ -82,8 +82,16 @@ const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 /** 画像として受け入れるContent-Type */
 const ALLOWED_CONTENT_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/avif'];
 
-/** 1回のtestUrls呼び出しで検証できる件数の上限 */
-const MAX_TEST_URLS = 5;
+/**
+ * 1回のtestUrls呼び出しで検証できる件数の上限。
+ *
+ * 【2026-09-18】ハードコードされた画像（本文中に直接書かれたURL、
+ * 38件）を一度の呼び出しでまとめて移行できるように、5→40に上げた。
+ * レート制限（MIGRATE_LIMITS）は別途かかるため、この上限を上げても
+ * 大量の連続呼び出しを許すわけではない。移行が終わったら5に戻す
+ * （または、このAPI自体をいずれ削除する）のが望ましい。
+ */
+const MAX_TEST_URLS = 40;
 
 /** このAPI自体の呼び出しレート制限（管理者による誤操作・スクリプト暴走対策） */
 const MIGRATE_LIMITS = [{ windowSeconds: 60, max: 20 }];
