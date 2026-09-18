@@ -1,0 +1,55 @@
+name: Backfill spot event totals
+
+# Spotの閲覧数・コピー数等の個別カウンタ（views:spot:{id} 等）を全件読み、
+# 種別ごとの合計（totals:{event}:spot）とランキング用Sorted Set
+# （rank:{event}:spot）に一度だけ集約する。
+#
+# これらのキーは api/track-view.ts が今後発生するイベントについて
+# 自動更新するが、既存の記録済みイベントはこの一度限りの実行でしか
+# 反映されない（admin-dashboard.ts をSpot 1万件超でも軽量に動かすための
+# 前提となる初期値作成）。
+
+on:
+  workflow_dispatch:
+    inputs:
+      dryRun:
+        description: '集計結果の確認だけ行い、実際には書き込まない'
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  backfill-event-totals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    defaults:
+      run:
+        working-directory: project-13109753
+
+    steps:
+      - name: リポジトリを取得
+        uses: actions/checkout@v4
+
+      - name: Node.jsを準備
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: 依存関係をインストール
+        run: npm ci
+
+      - name: イベントカウンタを一括集約
+        env:
+          KV_REST_API_URL: ${{ secrets.KV_REST_API_URL }}
+          KV_REST_API_TOKEN: ${{ secrets.KV_REST_API_TOKEN }}
+        run: |
+          ARGS=""
+          if [ "${{ inputs.dryRun }}" = "true" ]; then
+            ARGS="$ARGS --dry-run"
+          fi
+          echo "実行: npm run backfill-event-totals -- $ARGS"
+          npm run backfill-event-totals -- $ARGS
