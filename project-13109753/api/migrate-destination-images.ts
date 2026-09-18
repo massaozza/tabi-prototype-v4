@@ -1,11 +1,22 @@
 // /api/migrate-destination-images.ts
 // Vercel Serverless Function（Node.js Runtime）
 //
-// 【一時的な移行用API】destinationsに保存されているimage URLが、
-// readdy.aiの生成画像URL（外部埋め込み用には作られておらず、本番サイトの
-// <img>タグから読み込むと拒否されてしまう）になっている問題を解決する
-// ため、各画像をサーバー側で取得し、Cloudflare R2に保存し直して、
-// 新しいURLのマッピングを返す。
+// 【一時的な移行用API】Spotのimage URLが、readdy.aiの生成画像URL
+// （外部埋め込み用には作られておらず、本番サイトの<img>タグから読み込むと
+// 拒否されてしまう）になっている問題を解決するため、各画像をサーバー側で
+// 取得し、Cloudflare R2に保存し直して、Spot本体のimageフィールドを
+// 新しいURLに書き換える。
+//
+// 【2026-09-18 重要な修正】
+// 以前の実装は content:destinations（_spotStore.tsのLEGACY_CACHE_KEY。
+// DERIVED_CACHE_MAX=1500件を超えると更新が止まる、Spot本体とは別の
+// 派生キャッシュ）を読んでいたため、実際のSpot本体（spot:{id}、
+// 現在12,000件超）には一度も反映されていなかった。
+// また、R2へのアップロードは行っていたが、新しいURLをどこにも
+// 書き込んでいなかった（マッピングを返すだけで、次に読み込んだ時には
+// また同じreaddy.aiのURLに戻ってしまっていた）。
+// 今回、_spotStore.ts の getSpots / patchSpot を使い、実際のSpot本体を
+// 直接読み書きするようにした。
 //
 // 【まだ本番APIとして残している理由】
 // R2移行（Readdy.aiのURLが残存しているSpotの解消）はまだ完了していない
@@ -13,7 +24,7 @@
 // 行わず、まずAPIとしての安全性を高める形にした。
 // 完全に移行が終わった段階で、このAPI自体を削除するのが望ましい。
 //
-// 【今回のセキュリティ変更点（元の実装との差分）】
+// 【セキュリティ対策（元の実装との差分）】
 // 1. GET（副作用あり）→ POST に変更した。
 //    以前はGETで画像取得・R2アップロードという副作用のある処理を
 //    行っていたため、管理者がログインした状態で悪意あるページを開くと
@@ -54,15 +65,9 @@ import crypto from 'crypto';
 import dns from 'dns';
 import { isAdminNodeRequest } from './_adminAuth.js';
 import { checkRateLimit, clientIpFromNodeRequest } from './_rateLimit.js';
+import { listSpotIds, getSpots, patchSpot } from './_spotStore.js';
 
-interface Destination {
-  id: string;
-  title: string;
-  category: string;
-  prefecture?: string;
-  description: string;
-  image: string;
-}
+// Spotの型・キー操作は _spotStore.ts の Spot 型・関数を使う。
 
 // ───────────────────────────────────────────────
 // 許可リスト・上限値
@@ -403,25 +408,30 @@ export default async function handler(
     return;
   }
 
-  // ── 本処理：destinationsをKVから直接読む ──
-  // 【重要】以前はreq.headers.hostを使い自分自身の/api/contentへ
-  // サーバー間fetchしていたが、Hostヘッダーはクライアントが送る値であり
-  // 外部fetch先として信用してはならない。KVから直接読む形に変更した。
-  let destinations: Destination[] = [];
+  // ── 本処理：Spot本体を直接読み書きする ──
+  // 【重要】以前はKVの content:destinations（派生キャッシュ、1500件で
+  // 更新が止まる）を読んでいたため、実際のSpot本体には反映されて
+  // いなかった。listSpotIds/getSpotsで本体を直接読む。
+  let allIds: string[] = [];
   try {
-    const { kv } = await import('@vercel/kv');
-    const list = (await kv.get<Destination[]>('content:destinations')) || [];
-    destinations = Array.isArray(list) ? list : [];
+    allIds = await listSpotIds();
   } catch (err) {
-    console.error('[migrate-destination-images] failed to read destinations from KV:', err);
-    res.status(502).json({ error: 'Failed to load destinations' });
+    console.error('[migrate-destination-images] failed to list spot ids:', err);
+    res.status(502).json({ error: 'Failed to load spot ids' });
     return;
   }
 
-  const slice =
-    idFilter.length > 0
-      ? destinations.filter((d) => idFilter.includes(d.id))
-      : destinations.slice(offset, offset + limitCount);
+  const idsSlice = idFilter.length > 0 ? idFilter : allIds.slice(offset, offset + limitCount);
+
+  let slice: { id: string; image: string }[] = [];
+  try {
+    const spots = await getSpots(idsSlice);
+    slice = spots.map((s) => ({ id: s.id, image: s.image }));
+  } catch (err) {
+    console.error('[migrate-destination-images] failed to load spots:', err);
+    res.status(502).json({ error: 'Failed to load spots' });
+    return;
+  }
 
   const results = await Promise.all(
     slice.map(async (dest) => {
@@ -430,7 +440,12 @@ export default async function handler(
       }
       try {
         const out = await migrateOne(dest.image, dest.id);
-        return { id: dest.id, ...out };
+        if ('error' in out) return { id: dest.id, error: out.error };
+        // 新しいURLをSpot本体に書き込む。rebuild=falseにして、
+        // 大量件数を処理する際に毎回の重いキャッシュ再構築を避ける
+        // （キャッシュの再構築が必要な場合は、別途まとめて実行する）。
+        await patchSpot(dest.id, { image: out.newUrl }, false);
+        return { id: dest.id, newUrl: out.newUrl };
       } catch (err) {
         console.error(`[migrate-destination-images] failed for ${dest.id}:`, err);
         return { id: dest.id, error: 'Failed to migrate this image' };
@@ -439,7 +454,7 @@ export default async function handler(
   );
 
   res.status(200).json({
-    total: destinations.length,
+    total: allIds.length,
     offset,
     limit: limitCount,
     processed: slice.length,
