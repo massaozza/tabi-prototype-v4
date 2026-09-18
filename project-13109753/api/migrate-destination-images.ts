@@ -253,7 +253,11 @@ async function fetchImageSafely(
   }
 
   if (imgRes.status >= 300 && imgRes.status < 400) {
-    return { error: 'Redirects are not followed' };
+    // 【診断用】リダイレクト先を一時的にエラーメッセージに含める。
+    // 許可リスト外へのリダイレクトを自動追跡することはしない
+    // （SSRF対策）。まずどこへ飛ばされているのかを確認するための対応。
+    const location = imgRes.headers.get('location') || '(no Location header)';
+    return { error: `Redirects are not followed (status ${imgRes.status} → ${location})` };
   }
   if (!imgRes.ok) return { error: `Upstream returned status ${imgRes.status}` };
 
