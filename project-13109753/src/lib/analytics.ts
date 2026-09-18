@@ -80,21 +80,16 @@ export function initAnalytics(): void {
   };
   window.gtag = gtag;
 
-  // 【重要】これが無いと「同意ステータスが未設定」の状態のまま送信が
-  // 保留され続ける（実際に本番で発生し、手動でgtag()を叩いても
-  // 一切ヒットが送られない不具合の原因だった）。
-  // TABI47は広告用Cookieを使わないため ad_storage は denied のままにし、
-  // 計測（analytics_storage）だけ明示的に許可する。
-  // 【注意】EEA/UK等、Cookie同意バナーが法的に必須な地域向けに公開する
-  // 場合は、本来はユーザーの選択に応じて動的に更新する必要がある。
-  // 現時点ではバナー自体が未実装なため、まず計測を機能させることを
-  // 優先し、常時 granted にしている。
-  gtag('consent', 'default', {
-    ad_storage: 'denied',
-    ad_user_data: 'denied',
-    ad_personalization: 'denied',
-    analytics_storage: 'granted',
-  });
+  // 【2026-09-18 削除】以前はここで gtag('consent', 'default', {...}) を
+  // 呼んでいたが、Googleタグ（GT-）コンテナ経由の読み込みに切り替えた後、
+  // この呼び出しがあると（値をすべて 'granted' にしても）ヒットの送信
+  // 自体が止まることが実機検証で複数回確認された。
+  // GA4側の「同意設定」もこのプロパティでは「同意シグナルが無効」
+  // （要求されていない）ことを確認済みで、TABI47は広告用Cookieや
+  // Cookie同意バナーも使っていないため、consentの呼び出し自体が不要。
+  // 将来EEA/UK等向けにCookie同意バナーを実装する場合は、その時に
+  // 改めてConsent Modeの実装を検討する（そのときはGT-コンテナ経由での
+  // 動作を個別に検証すること）。
 
   gtag('js', new Date());
   // 遷移ごとに自前で送るので、自動のページビュー送信は切る
