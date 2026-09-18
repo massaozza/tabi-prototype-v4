@@ -273,7 +273,7 @@ export default function PrefecturePage() {
                       {guide.theme}
                     </span>
                     <h3 className="font-heading font-bold text-base text-foreground-900 mb-2 leading-snug">
-                      {tx(guide.title)}
+                      {guide.titleEn || guide.title}
                     </h3>
                     <p className="text-foreground-600 text-sm leading-relaxed line-clamp-2 mb-3">
                       {guide.bodyEn || guide.bodyJa}

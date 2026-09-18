@@ -23,8 +23,10 @@ export interface Guide {
   authorIsLocalExpert: boolean;
   authorExpertiseArea?: string;
   title: string;
+  titleEn?: string;
   theme: string;
   area: string;
+  areaEn?: string;
   season?: string;
   bodyJa: string;
   bodyEn?: string;

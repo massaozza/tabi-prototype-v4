@@ -53,7 +53,7 @@ export default function GuideDetailPage() {
     window.dispatchEvent(
       new CustomEvent('tabi:ask-question', {
         detail: {
-          question: `Tell me more about ${tx(guide.area)} — I'm interested in ${guide.theme}.`,
+          question: `Tell me more about ${guide.areaEn || guide.area} — I'm interested in ${guide.theme}.`,
         },
       })
     );
@@ -124,7 +124,7 @@ export default function GuideDetailPage() {
                 </span>
                 <span className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1 rounded-full bg-background-100 text-foreground-700 whitespace-nowrap">
                   <i className="ri-map-pin-line"></i>
-                  {tx(guide.area)}
+                  {guide.areaEn || guide.area}
                 </span>
                 {guide.season && (
                   <span className="inline-block text-xs font-semibold px-3 py-1 rounded-full bg-background-100 text-foreground-700 whitespace-nowrap">
@@ -134,7 +134,7 @@ export default function GuideDetailPage() {
               </div>
 
               <h1 className="font-heading font-bold text-3xl md:text-4xl text-foreground-900 leading-tight mb-3">
-                {tx(guide.title)}
+                {guide.titleEn || guide.title}
               </h1>
 
               <p className="text-foreground-500 text-sm mb-8">
@@ -208,7 +208,7 @@ export default function GuideDetailPage() {
                 className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm px-5 py-2.5 rounded-lg transition-colors cursor-pointer whitespace-nowrap mb-10"
               >
                 <i className="ri-chat-3-line"></i>
-                {t('auto_c48326d1fb', "Ask TABI about")}{' '}{tx(guide.area)}
+                {t('auto_c48326d1fb', "Ask TABI about")}{' '}{guide.areaEn || guide.area}
               </button>
 
               <div>
