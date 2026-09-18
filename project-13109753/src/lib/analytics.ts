@@ -15,6 +15,28 @@
 //
 // 測定IDは Vite の環境変数 VITE_GA_MEASUREMENT_ID から読む。
 // 未設定なら何も送らない（開発環境の数字が混ざるのを防ぐ）。
+//
+// 【2026-09-18 重要な追加】
+// 本番でGA4にヒットが一件も届かない不具合を調査した結果、原因は
+// 「gtag.jsの読み込みスクリプトを、測定ID（G-xxxxxxxxxx）で直接
+// 読み込んでいたこと」だった。
+// このGA4プロパティは、Googleが自動生成する上位の統合コンテナ
+// （Google タグ、GT-xxxxxxxxxx。GA4管理画面 → データストリーム →
+// 該当ストリームの詳細 → 「Googleタグ」欄で確認できる）にリンクされて
+// おり、GT-側からG-側へのリンクが行われた状態のプロパティでは、
+// G-のIDで直接 gtag/js を読み込んでも「初期化はされるが、実際の送信は
+// 一切行われない」という、コンソールにもエラーが出ない静かな不具合が
+// 起きることが実機検証で確認された（Google Tag Assistant でも
+// 「このタグで送られたヒットはありません」と表示される一方、
+// TABI47のコードを一切使わない検証用ページでも同じ現象が再現し、
+// GT-のIDで読み込んだ場合のみ実際にcollectへの送信が発生した）。
+// そのため、スクリプトの読み込み（<script src="...id=...">）は
+// VITE_GA_CONTAINER_ID（GT-のID）を使い、gtag('config', ...)で
+// 実際にデータを送る先は引き続き VITE_GA_MEASUREMENT_ID（G-のID）を
+// 使う、という2つのIDを使い分ける形にしている。
+// VITE_GA_CONTAINER_ID が未設定の場合は、従来通りG-のIDでスクリプトを
+// 読み込む（後方互換のためのフォールバックであり、その場合は上記の
+// 不具合が再発する可能性がある）。
 
 type GtagFn = (...args: unknown[]) => void;
 
@@ -26,6 +48,9 @@ declare global {
 }
 
 const MEASUREMENT_ID = import.meta.env.VITE_GA_MEASUREMENT_ID as string | undefined;
+// Googleタグ（GT-xxxxxxxxxx）のID。GA4管理画面の
+// データストリーム詳細 → 「Googleタグ」欄に表示されるIDを設定する。
+const CONTAINER_ID = (import.meta.env.VITE_GA_CONTAINER_ID as string | undefined) || MEASUREMENT_ID;
 
 /** 測定IDが正しく設定されているか。プレースホルダは無効扱いにする */
 function isConfigured(): boolean {
@@ -44,7 +69,9 @@ export function initAnalytics(): void {
 
   const script = document.createElement('script');
   script.async = true;
-  script.src = `https://www.googletagmanager.com/gtag/js?id=${MEASUREMENT_ID}`;
+  // 【重要】measurement ID（G-）ではなく、Googleタグの container ID
+  // （GT-）で読み込む。理由は上のコメントを参照。
+  script.src = `https://www.googletagmanager.com/gtag/js?id=${CONTAINER_ID}`;
   document.head.appendChild(script);
 
   window.dataLayer = window.dataLayer || [];
