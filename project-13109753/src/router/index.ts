@@ -3,6 +3,7 @@ import { useRoutes, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import routes from "./config";
 import { trackPageView } from "@/lib/analytics";
+import { useCanonicalUrl } from "@/hooks/useSeoMeta";
 
 let navigateResolver: (navigate: ReturnType<typeof useNavigate>) => void;
 
@@ -20,6 +21,11 @@ export function AppRoutes() {
   const element = useRoutes(routes);
   const navigate = useNavigate();
   const location = useLocation();
+
+  // 全ページに、そのページ自身のURLをcanonical/og:urlとして設定する。
+  // （以前はindex.htmlに固定されたトップページのURLが全ページに
+  // 適用されており、Spotページ等がトップページの重複と見なされていた）
+  useCanonicalUrl(location.pathname);
 
   useEffect(() => {
     window.REACT_APP_NAVIGATE = navigate;
