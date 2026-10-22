@@ -75,18 +75,27 @@ export function initAnalytics(): void {
   document.head.appendChild(script);
 
   window.dataLayer = window.dataLayer || [];
-  const gtag: GtagFn = (...args) => {
-    window.dataLayer?.push(args);
-  };
-  window.gtag = gtag;
+  // 【2026-10-22 重要な修正】コマンドは必ず `arguments` オブジェクトのまま
+  // dataLayer に積む（Google公式スニペットと同じ書き方）。
+  // 以前は `(...args) => dataLayer.push(args)` と書いており、これは
+  // 「配列」を積むことになる。gtag.js は Arguments オブジェクトだけを
+  // gtag コマンド（js / config / event）として処理し、配列はGTM流の
+  // 単なるデータ積み込みと見なして無視する。そのため dataLayer には
+  // 中身が見えているのに、config も event も一切処理されず、collect への
+  // 送信が一度も起きなかった（9月からのGA4計測ゼロの本当の原因）。
+  // アロー関数は arguments を持たないため、function 式で定義する。
+  function gtag(..._args: unknown[]): void {
+    window.dataLayer?.push(arguments);
+  }
+  window.gtag = gtag as GtagFn;
 
-  // 【2026-09-18 削除】以前はここで gtag('consent', 'default', {...}) を
-  // 呼んでいたが、Googleタグ（GT-）コンテナ経由の読み込みに切り替えた後、
-  // この呼び出しがあると（値をすべて 'granted' にしても）ヒットの送信
-  // 自体が止まることが実機検証で複数回確認された。
-  // GA4側の「同意設定」もこのプロパティでは「同意シグナルが無効」
-  // （要求されていない）ことを確認済みで、TABI47は広告用Cookieや
-  // Cookie同意バナーも使っていないため、consentの呼び出し自体が不要。
+  // 【2026-09-18 削除 / 2026-10-22 訂正】gtag('consent', 'default', {...}) の
+  // 呼び出しは削除したまま。9/18時点では「consentがあると送信が止まる」と
+  // 判断したが、その検証は配列形式（上記の不具合）で行っていたため、
+  // 因果の判断は誤りだった可能性が高い（consentの有無に関わらず、配列形式では
+  // 送信されない）。GA4側の「同意設定」はこのプロパティでは「同意シグナルが
+  // 無効」（要求されていない）で、TABI47は広告用Cookieや同意バナーも
+  // 使っていないため、consentの呼び出し自体が不要という点は変わらない。
   // 将来EEA/UK等向けにCookie同意バナーを実装する場合は、その時に
   // 改めてConsent Modeの実装を検討する（そのときはGT-コンテナ経由での
   // 動作を個別に検証すること）。
