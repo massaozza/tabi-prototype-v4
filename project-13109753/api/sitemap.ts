@@ -28,7 +28,67 @@ import { kv } from '@vercel/kv';
 
 export const config = { runtime: 'edge' };
 
-const SITE_ORIGIN = 'https://tabi47.com';
+// 【2026-10-22 修正】正規ホストに合わせる。
+// 本番は apex（tabi47.com）→ www.tabi47.com に転送され、canonical も
+// `https://www.tabi47.com/en/...`（言語prefix付き）になっている。
+// 以前は apex・prefixなしのURLを並べていたため、1万3千件すべてが
+// 「転送されるURL」となり、Search Consoleで全件「検出 - インデックス未登録」に
+// なっていた。サイトマップには転送されない最終URL（正規URL）だけを載せる。
+const SITE_ORIGIN = 'https://www.tabi47.com';
+/** 正規URLの言語prefix（canonicalが /en/ 付きのため） */
+const LANG = 'en';
+
+/**
+ * サイトマップに載せるSpotの品質基準。
+ *
+ * 【なぜ絞るか】
+ * 説明文が1文だけの似たページを1万件以上まとめて出すと、新規ドメインでは
+ * 「薄いページ」と判断され、インデックスされにくい。まず中身のあるSpotだけを
+ * 伝え、インデックスされてから基準を緩めて広げる。
+ *   ・実質的な説明文（completeness.editorialContent）があり、かつ
+ *     公式情報・Creatorの知識・旅行者の実体験のいずれかがある、または
+ *   ・説明文そのものが十分長い（MIN_DESC_LENGTH 以上）
+ * 緩めたいときは MIN_DESC_LENGTH を下げる、または ?all=1 で全件を確認できる。
+ */
+const MIN_DESC_LENGTH = 200;
+const MGET_CHUNK = 250;
+const MGET_PARALLEL = 6;
+
+interface SpotLite {
+  id?: string;
+  description?: string;
+  completeness?: {
+    editorialContent?: boolean;
+    officialInfo?: boolean;
+    localKnowledge?: boolean;
+    actualData?: boolean;
+  };
+}
+
+function isIndexWorthy(spot: SpotLite | null | undefined): boolean {
+  if (!spot) return false;
+  const c = spot.completeness;
+  if (c?.editorialContent && (c.officialInfo || c.localKnowledge || c.actualData)) return true;
+  return typeof spot.description === 'string' && spot.description.trim().length >= MIN_DESC_LENGTH;
+}
+
+/** 公開Spotのうち、基準を満たすIDだけを返す。mgetを分割して読む */
+async function listIndexWorthyIds(allIds: string[]): Promise<string[]> {
+  const chunks: string[][] = [];
+  for (let i = 0; i < allIds.length; i += MGET_CHUNK) chunks.push(allIds.slice(i, i + MGET_CHUNK));
+  const out: string[] = [];
+  for (let i = 0; i < chunks.length; i += MGET_PARALLEL) {
+    const batch = chunks.slice(i, i + MGET_PARALLEL);
+    const results = await Promise.all(
+      batch.map(async (ids) => {
+        const spots = (await kv.mget(...ids.map((id) => `spot:${id}`))) as (SpotLite | null)[];
+        return ids.filter((_, idx) => isIndexWorthy(spots[idx]));
+      }),
+    );
+    for (const r of results) out.push(...r);
+  }
+  return out;
+}
 
 /** 47都道府県。都道府県ページのURL生成に使う（表示名はSpotのprefectureフィールドと揃えている） */
 const PREFECTURES = [
@@ -61,22 +121,28 @@ export default async function handler(req: Request): Promise<Response> {
 
   const entries: string[] = [];
 
-  entries.push(urlEntry('/', 'daily', '1.0'));
-  entries.push(urlEntry('/explore', 'daily', '0.9'));
+  entries.push(urlEntry(`/${LANG}`, 'daily', '1.0'));
+  entries.push(urlEntry(`/${LANG}/explore`, 'daily', '0.9'));
 
   for (const pref of PREFECTURES) {
-    entries.push(urlEntry(`/prefectures/${encodeURIComponent(pref)}`, 'weekly', '0.7'));
+    entries.push(urlEntry(`/${LANG}/prefectures/${encodeURIComponent(pref)}`, 'weekly', '0.7'));
   }
   for (const region of REGIONS) {
-    entries.push(urlEntry(`/regions/${region}`, 'weekly', '0.6'));
+    entries.push(urlEntry(`/${LANG}/regions/${region}`, 'weekly', '0.6'));
   }
 
-  // 公開中のSpot一覧（IDだけをKVから直接読む。1回のsmembersで済む軽い処理）
+  // 公開中のSpot一覧。基準を満たすものだけを載せる（?all=1 で全件）
+  const all = new URL(req.url).searchParams.get('all') === '1';
+  let totalPublished = 0;
+  let included = 0;
   try {
     const ids = ((await kv.smembers('spots:status:published')) || []) as string[];
-    for (const id of ids) {
+    totalPublished = ids.length;
+    const target = all ? ids : await listIndexWorthyIds(ids);
+    included = target.length;
+    for (const id of target) {
       if (!id) continue;
-      entries.push(urlEntry(`/destinations/${encodeURIComponent(id)}`, 'weekly', '0.5'));
+      entries.push(urlEntry(`/${LANG}/destinations/${encodeURIComponent(id)}`, 'weekly', '0.5'));
     }
   } catch (err) {
     console.error('[sitemap] failed to list published spots:', err);
@@ -89,6 +155,8 @@ export default async function handler(req: Request): Promise<Response> {
     status: 200,
     headers: {
       'Content-Type': 'application/xml; charset=utf-8',
+      // 基準の調整用（公開Spot総数と、サイトマップに載せた件数）
+      'X-Sitemap-Spots': `${included}/${totalPublished}`,
       // sitemapは日々のSpot増減はあるが、頻繁に見に行く必要はないため
       // 短めのキャッシュを許可し、クロールのたびにKVへ問い合わせるのを避ける
       'Cache-Control': 'public, max-age=0, s-maxage=3600, stale-while-revalidate=86400',
